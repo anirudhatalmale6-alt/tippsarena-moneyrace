@@ -146,7 +146,7 @@ export async function setCompetitionFixtures(
     // prediction already made. Refused outright rather than half-applied.
     if (rows[0] && !["draft", "open"].includes(rows[0].status)) {
       throw new Error(
-        `Spiele koennen nur im Entwurf oder vor dem Tippschluss geaendert werden (Status: ${rows[0].status})`,
+        `Spiele können nur im Entwurf oder vor dem Tippschluss geändert werden (Status: ${rows[0].status})`,
       );
     }
     await client.query(
@@ -182,13 +182,13 @@ export async function publishCompetition(
     [competitionId],
   );
   if (!competition) throw new Error("Wettbewerb nicht gefunden");
-  if (!competition.locks_at) throw new Error("Ohne Tippschluss kann nicht veroeffentlicht werden");
+  if (!competition.locks_at) throw new Error("Ohne Tippschluss kann nicht veröffentlicht werden");
   // A giveaway has no matches by design; anything else without matches would
   // publish an empty competition to the channel.
   const type = await one<{ type: string }>(
     "SELECT type FROM competitions WHERE id = $1", [competitionId]);
   if (type?.type !== "giveaway" && competition.matches === 0) {
-    throw new Error("Ohne Spiele kann nicht veroeffentlicht werden");
+    throw new Error("Ohne Spiele kann nicht veröffentlicht werden");
   }
 
   await query(
@@ -224,7 +224,7 @@ export async function publishCompetition(
     );
   }
   await audit(adminUserId, "competition.publish",
-    `Wettbewerb "${competition.name}" veroeffentlicht`, "competition", competitionId);
+    `Wettbewerb "${competition.name}" veröffentlicht`, "competition", competitionId);
 }
 
 /** Copy a competition, without its participants (spec §16). */

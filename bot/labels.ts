@@ -16,27 +16,27 @@ export const L = {
   myResults: "📊 MEINE ERGEBNISSE",
   invite: "🔗 FREUNDE EINLADEN",
   rules: "📜 REGELN",
-  backToMenu: "◀️ ZUM MENUE",
+  backToMenu: "◀️ ZUM MENÜ",
 
   // competitions
   pickCompetition: "🏁 Welcher Wettbewerb?",
-  noCompetitions: "Gerade laeuft kein Wettbewerb. Schau bald wieder vorbei!",
+  noCompetitions: "Gerade läuft kein Wettbewerb. Schau bald wieder vorbei!",
   notFound: "Diesen Wettbewerb gibt es nicht mehr.",
   startPicks: "🎯 TIPPS ABGEBEN",
-  reviewPicks: "🎯 TIPPS ANSEHEN / AENDERN",
+  reviewPicks: "🎯 TIPPS ANSEHEN / ÄNDERN",
   completeMissing: "⚠️ FEHLENDE TIPPS ABGEBEN",
 
   // predicting
   draw: "Unentschieden",
-  back: "◀️ ZURUECK",
-  skip: "UEBERSPRINGEN ▶️",
+  back: "◀️ ZURÜCK",
+  skip: "ÜBERSPRINGEN ▶️",
   saved: "Gespeichert",
   lockedAlert: "Die Tipps sind bereits geschlossen.",
   matchOf: (index: number, total: number) => `SPIEL ${index} VON ${total}`,
 
   // membership
   checkUnavailable:
-    "Die Pruefung ist gerade nicht moeglich. Versuch es in einer Minute noch einmal.",
+    "Die Prüfung ist gerade nicht möglich. Versuch es in einer Minute noch einmal.",
 
   // profile / results
   yourProfile: "DEIN PROFIL",
@@ -47,8 +47,8 @@ export const L = {
   // invite
   inviteTitle: "DEIN EINLADUNGSLINK",
   inviteBody:
-    "Teile diesen Link. Jeder, der ueber ihn startet, wird dir zugeordnet.",
+    "Teile diesen Link. Jeder, der über ihn startet, wird dir zugeordnet.",
 
   // rules
-  noRules: "📜 Die Regeln werden gerade ueberarbeitet.",
+  noRules: "📜 Die Regeln werden gerade überarbeitet.",
 };

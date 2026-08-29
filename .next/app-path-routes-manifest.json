@@ -1,0 +1,16 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/login/page": "/login",
+  "/analytics/page": "/analytics",
+  "/gewinner/page": "/gewinner",
+  "/spiele/page": "/spiele",
+  "/einstellungen/page": "/einstellungen",
+  "/leaderboards/page": "/leaderboards",
+  "/referrals/page": "/referrals",
+  "/page": "/",
+  "/teilnehmer/page": "/teilnehmer",
+  "/wettbewerbe/neu/page": "/wettbewerbe/neu",
+  "/wettbewerbe/page": "/wettbewerbe",
+  "/telegram/page": "/telegram",
+  "/wettbewerbe/[id]/page": "/wettbewerbe/[id]"
+}

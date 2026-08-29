@@ -11,16 +11,26 @@
     "migrate": "node scripts/migrate.ts",
     "bot": "node bot/index.ts",
     "worker": "node worker/index.ts",
-    "admin": "node admin/server.ts",
     "seed:admin": "node scripts/create-admin.ts",
-    "import:fixtures": "node scripts/import-fixtures.ts",
     "test": "node tests/run.ts && node tests/bot.ts",
     "test:logic": "node tests/run.ts",
-    "test:bot": "node tests/bot.ts"
+    "test:bot": "node tests/bot.ts",
+    "dev": "next dev -p 3200",
+    "build": "next build",
+    "start": "next start -p 3200",
+    "create:competition": "node scripts/create-competition.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "grammy": "^1.30.0",
-    "pg": "^8.13.0"
+    "pg": "^8.13.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.0"
   }
 }

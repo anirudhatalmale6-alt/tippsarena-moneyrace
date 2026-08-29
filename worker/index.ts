@@ -242,7 +242,7 @@ async function sendCompetitionMessage(
     );
     if (!winner) {
       // A jackpot with nobody right, or an evaluation that produced no winner.
-      // Announcing "GLUECKWUNSCH undefined" would be worse than silence.
+      // Announcing "GLÜCKWUNSCH undefined" would be worse than silence.
       log.warn(`competition ${competitionId} finished with no winner - no announcement`);
       return;
     }

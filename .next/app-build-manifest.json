@@ -1,0 +1,110 @@
+{
+  "pages": {
+    "/_not-found/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/_not-found/page-a9b0526d8d0a19e6.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/css/5af1e4c9377cb6d0.css",
+      "static/chunks/app/layout-277e61882f8fbbd6.js"
+    ],
+    "/login/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/login/page-3090228b5f312999.js"
+    ],
+    "/analytics/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/analytics/page-3090228b5f312999.js"
+    ],
+    "/gewinner/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/gewinner/page-3090228b5f312999.js"
+    ],
+    "/spiele/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/spiele/page-3090228b5f312999.js"
+    ],
+    "/einstellungen/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/einstellungen/page-3090228b5f312999.js"
+    ],
+    "/leaderboards/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/leaderboards/page-3090228b5f312999.js"
+    ],
+    "/referrals/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/referrals/page-3090228b5f312999.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/page-3090228b5f312999.js"
+    ],
+    "/teilnehmer/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/teilnehmer/page-3090228b5f312999.js"
+    ],
+    "/wettbewerbe/neu/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/wettbewerbe/neu/page-3090228b5f312999.js"
+    ],
+    "/wettbewerbe/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/wettbewerbe/page-3090228b5f312999.js"
+    ],
+    "/telegram/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/telegram/page-3090228b5f312999.js"
+    ],
+    "/wettbewerbe/[id]/page": [
+      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/wettbewerbe/[id]/page-3090228b5f312999.js"
+    ]
+  }
+}

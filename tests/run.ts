@@ -32,7 +32,7 @@ import {
   winners,
   type Standing,
 } from "../lib/scoring.ts";
-import { fill, money, escapeHtml } from "../lib/templates.ts";
+import { fill, money, escapeHtml, zonedToUtc, utcToZonedInput } from "../lib/templates.ts";
 import { parseStartPayload } from "../lib/users.ts";
 
 let failures: string[] = [];
@@ -437,6 +437,39 @@ function truthy(name: string, got: unknown): void {
       [`${tag}%`],
     ))?.n,
     0);
+}
+
+// =================================================================== timezone
+// A lock time typed into the dashboard is a wall-clock time in HIS timezone.
+// Getting this wrong moves every lock by an hour or two, which is the
+// difference between locking before kick-off and locking after it.
+{
+  check("summer: 15:25 in Berlin is 13:25 UTC",
+    zonedToUtc("2026-08-29T15:25", "Europe/Berlin")?.toISOString(),
+    "2026-08-29T13:25:00.000Z");
+  check("winter: 15:25 in Berlin is 14:25 UTC",
+    zonedToUtc("2026-12-29T15:25", "Europe/Berlin")?.toISOString(),
+    "2026-12-29T14:25:00.000Z");
+  check("UTC is left alone",
+    zonedToUtc("2026-08-29T15:25", "UTC")?.toISOString(),
+    "2026-08-29T15:25:00.000Z");
+  check("midnight does not become 24:00",
+    zonedToUtc("2026-08-29T00:00", "Europe/Berlin")?.toISOString(),
+    "2026-08-28T22:00:00.000Z");
+  check("an empty box is not a date", zonedToUtc("", "Europe/Berlin"), null);
+  check("nonsense is not a date", zonedToUtc("morgen", "Europe/Berlin"), null);
+
+  // ...and back again, so opening a saved competition shows what was typed.
+  for (const [iso, expected] of [
+    ["2026-08-29T13:25:00.000Z", "2026-08-29T15:25"],
+    ["2026-12-29T14:25:00.000Z", "2026-12-29T15:25"],
+  ] as const) {
+    check(`round trip ${expected}`,
+      utcToZonedInput(new Date(iso), "Europe/Berlin"), expected);
+  }
+  check("a round trip through both is unchanged",
+    utcToZonedInput(zonedToUtc("2026-08-29T15:25", "Europe/Berlin"), "Europe/Berlin"),
+    "2026-08-29T15:25");
 }
 
 // ================================================== announcements and config

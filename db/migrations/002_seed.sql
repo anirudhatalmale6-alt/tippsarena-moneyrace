@@ -18,16 +18,16 @@ INSERT INTO settings (key, value, description) VALUES
  ('channel_chat_id',   'null'::jsonb,
   'Chat-ID oder @name des TippsArena-Kanals'),
  ('channel_invite_url','null'::jsonb,
-  'Einladungslink des Kanals fuer den KANAL-BEITRETEN-Button'),
+  'Einladungslink des Kanals für den KANAL-BEITRETEN-Button'),
  ('timezone',          '"Europe/Berlin"'::jsonb,
-  'Zeitzone fuer alle Anzeigen'),
- ('currency',          '"EUR"'::jsonb, 'Standardwaehrung'),
+  'Zeitzone für alle Anzeigen'),
+ ('currency',          '"EUR"'::jsonb, 'Standardwährung'),
  ('reminder_hours_before_lock', '1'::jsonb,
-  'Stunden vor Tippschluss fuer die Erinnerung'),
+  'Stunden vor Tippschluss für die Erinnerung'),
  ('football_default_season',    '2026'::jsonb,
-  'Saison fuer den Spiele-Import'),
+  'Saison für den Spiele-Import'),
  ('rules_text',
-  '"📜 <b>REGELN</b>\n\nDiese Regeln kannst du im Dashboard aendern."'::jsonb,
+  '"📜 <b>REGELN</b>\n\nDiese Regeln kannst du im Dashboard ändern."'::jsonb,
   'Inhalt der Regeln-Seite im Bot')
 ON CONFLICT (key) DO NOTHING;
 
@@ -38,29 +38,29 @@ INSERT INTO message_templates (key, name, body, buttons) VALUES
 
  ('bot_welcome', 'Bot: Willkommen',
   '🏁 <b>WILLKOMMEN BEI TIPPSARENA MONEYRACE</b>' || E'\n\n' ||
-  'Jede Woche kaempfen Fussballfans um Punkte und Preisgeld.' || E'\n\n' ||
-  '⚽ Fussball-Tipps' || E'\n' ||
+  'Jede Woche kämpfen Fußballfans um Punkte und Preisgeld.' || E'\n\n' ||
+  '⚽ Fußball-Tipps' || E'\n' ||
   '🏆 Ranglisten' || E'\n' ||
   '💰 Gewinne' || E'\n' ||
   '🎁 Giveaways' || E'\n\n' ||
   'Die Teilnahme ist kostenlos.',
   '[{"text":"🏁 JETZT STARTEN","action":"menu"}]'::jsonb),
 
- ('bot_menu', 'Bot: Hauptmenue',
+ ('bot_menu', 'Bot: Hauptmenü',
   '🏁 <b>TIPPSARENA MONEYRACE</b>' || E'\n\n' ||
-  'Waehle aus, was du machen moechtest.',
+  'Wähle aus, was du machen möchtest.',
   '[]'::jsonb),
 
- ('membership_required', 'Bot: Kanal-Mitgliedschaft noetig',
+ ('membership_required', 'Bot: Kanal-Mitgliedschaft nötig',
   '🏆 Um an der MoneyRace teilzunehmen, musst du zuerst unserem kostenlosen ' ||
   'TippsArena-Kanal beitreten.',
   -- Parenthesised: :: binds tighter than ||, so without these brackets the cast
   -- applies to the second half only and Postgres is handed half a JSON array.
   ('[{"text":"📲 KANAL BEITRETEN","action":"channel"},' ||
-   ' {"text":"✅ MITGLIEDSCHAFT PRUEFEN","action":"check_membership"}]')::jsonb),
+   ' {"text":"✅ MITGLIEDSCHAFT PRÜFEN","action":"check_membership"}]')::jsonb),
 
- ('membership_ok', 'Bot: Mitgliedschaft bestaetigt',
-  '✅ <b>Mitgliedschaft bestaetigt!</b>', '[]'::jsonb),
+ ('membership_ok', 'Bot: Mitgliedschaft bestätigt',
+  '✅ <b>Mitgliedschaft bestätigt!</b>', '[]'::jsonb),
 
  ('membership_missing', 'Bot: Mitgliedschaft fehlt',
   '❌ Du bist noch nicht Mitglied unseres Kanals.', '[]'::jsonb),
@@ -82,7 +82,7 @@ INSERT INTO message_templates (key, name, body, buttons) VALUES
 
  ('predictions_locked', 'Bot: Tipps geschlossen',
   '🔒 <b>DIE TIPPS SIND BEREITS GESCHLOSSEN.</b>' || E'\n\n' ||
-  'Der naechste Wettbewerb kommt bald - bleib dran.',
+  'Der nächste Wettbewerb kommt bald - bleib dran.',
   '[]'::jsonb),
 
  ('channel_competition_new', 'Kanal: Neuer Wettbewerb',
@@ -102,7 +102,7 @@ INSERT INTO message_templates (key, name, body, buttons) VALUES
 
  ('channel_locked', 'Kanal: Wettbewerb geschlossen',
   '🔒 <b>{name} GESCHLOSSEN</b>' || E'\n\n' ||
-  '{participants} Teilnehmer sind dabei. Viel Glueck!',
+  '{participants} Teilnehmer sind dabei. Viel Glück!',
   '[]'::jsonb),
 
  ('channel_results', 'Kanal: Ergebnisse',
@@ -111,7 +111,7 @@ INSERT INTO message_templates (key, name, body, buttons) VALUES
   '[{"text":"🏆 LEADERBOARD","action":"deeplink"}]'::jsonb),
 
  ('channel_winner', 'Kanal: Gewinner',
-  '🥇 <b>GLUECKWUNSCH {winner}!</b>' || E'\n\n' ||
+  '🥇 <b>GLÜCKWUNSCH {winner}!</b>' || E'\n\n' ||
   '🏁 {name}' || E'\n' ||
   '💰 {prize}',
   '[]'::jsonb),

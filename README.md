@@ -5,9 +5,9 @@ Telegram-based football prediction and giveaway platform for the German market.
 Everything a user reads is German and lives in the database, so the wording can
 be changed without touching code. The technical naming is English.
 
-**Status:** the engine is running. Database, Telegram funnel, football import,
-scoring, ranking and the automatic worker are live and tested. The German admin
-dashboard is the next piece.
+**Status:** running. Database, Telegram funnel, football import, scoring,
+ranking, the automatic worker and the German admin dashboard are all live and
+tested.
 
 ---
 
@@ -17,11 +17,18 @@ dashboard is the next piece.
 |---|---|---|
 | `bot/index.ts` | The Telegram bot: /start, deep links, channel check, predictions | `tippsarena-bot` |
 | `worker/index.ts` | Opens and locks competitions, imports results, scores, ranks, announces | `tippsarena-worker` |
-| `admin/` | German web dashboard | *(next)* |
+| Next.js app (`app/`) | The German admin dashboard | `tippsarena-admin` |
 
 ```
-systemctl status tippsarena-bot tippsarena-worker
+systemctl status tippsarena-bot tippsarena-worker tippsarena-admin
 journalctl -u tippsarena-worker -f
+```
+
+The dashboard listens on 127.0.0.1:3200 only and is reached through nginx, so
+the login is never served over plain http. Create the first login with:
+
+```bash
+node scripts/create-admin.ts "email" "ein-langes-passwort" "Name"
 ```
 
 ## Setup
@@ -111,6 +118,22 @@ due times. The worker can be restarted at any second and picks up where it was.
 An unknown `{placeholder}` in a template is left visible rather than blanked, so
 a typo shows up as text in a test message instead of an empty announcement.
 
+## The dashboard
+
+Ten German pages, usable on a phone: Dashboard, Wettbewerbe, Spiele,
+Teilnehmer, Leaderboards, Gewinner, Referrals, Analytics, Telegram,
+Einstellungen.
+
+Every button goes through `lib/admin.ts`, the same functions the command-line
+scripts use, and every one of them writes an `audit_logs` row. A server action
+re-checks the session before it does anything, because an action is a public
+endpoint and not a page.
+
+Times typed into the dashboard are wall-clock times in the operator's own
+timezone (`settings.timezone`) and are converted with `zonedToUtc` — reading
+"15:25" as UTC would move every lock by two hours in summer, which is the
+difference between locking before kick-off and locking after it.
+
 ## Tests
 
 ```bash
@@ -128,6 +151,14 @@ refused after the lock.
 
 Both suites create their own data and delete it again, so they can be run twice
 back to back and must give the same answer.
+
+The dashboard is checked separately by driving a real browser through it — log
+in, walk all ten pages, pick a template, save settings, and confirm nothing
+scrolls sideways on a phone. Two things that bit during that: `networkidle` can
+return while React is still hydrating, so a click lands on a button React owns
+but has not wired up and the form never posts; and `page.content()` contains
+Next's 404 boundary on every page, so an "is there English on this page" check
+has to read the VISIBLE text.
 
 ## Moving to Supabase
 

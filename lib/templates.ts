@@ -135,6 +135,76 @@ export function when(
   }).format(value);
 }
 
+/**
+ * A wall-clock time typed by the operator, turned into a real instant.
+ *
+ * A <input type="datetime-local"> gives "2026-08-29T15:25" with no timezone.
+ * He means 15:25 in Berlin. Reading that as UTC would move every lock by two
+ * hours in summer and one in winter - which is the difference between locking
+ * before kick-off and locking after it.
+ *
+ * The trick: pretend the string is UTC, ask what that instant looks like in the
+ * target zone, and shift by the difference. One pass is exact except for the
+ * hour a DST change skips or repeats, where the offset is genuinely ambiguous.
+ */
+export function zonedToUtc(local: string, timeZone = "Europe/Berlin"): Date | null {
+  if (!local) return null;
+  const withSeconds = local.length === 16 ? `${local}:00` : local;
+  const asIfUtc = new Date(`${withSeconds}Z`);
+  if (Number.isNaN(asIfUtc.getTime())) return null;
+
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      // h23 rather than hour12:false - some runtimes render midnight as "24".
+      hourCycle: "h23",
+    })
+      .formatToParts(asIfUtc)
+      .map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+
+  const shown = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  const offset = shown - asIfUtc.getTime();
+  return new Date(asIfUtc.getTime() - offset);
+}
+
+/** The reverse, for filling a datetime-local box from a stored instant. */
+export function utcToZonedInput(
+  date: Date | string | null,
+  timeZone = "Europe/Berlin",
+): string {
+  if (!date) return "";
+  const value = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(value.getTime())) return "";
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(value)
+      .map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
 /** Telegram's HTML parse mode only forgives these three if they are escaped. */
 export function escapeHtml(text: string): string {
   return text
