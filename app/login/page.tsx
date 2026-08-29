@@ -11,7 +11,7 @@ async function login(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   const admin = await authenticate(email, password);
-  if (!admin) redirect("/login?fehler=1");
+  if (!admin) redirect("/login?error=1");
 
   const jar = await cookies();
   jar.set(SESSION_COOKIE, await createSessionToken(admin.id), {
@@ -29,7 +29,7 @@ async function login(formData: FormData) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ fehler?: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const params = await searchParams;
   const count = await query<{ n: number }>(
@@ -42,18 +42,18 @@ export default async function LoginPage({
       <div className="login-box">
         <div className="brand" style={{ textAlign: "center" }}>
           TippsArena
-          <small>MoneyRace Verwaltung</small>
+          <small>MoneyRace Admin</small>
         </div>
 
-        {params.fehler ? (
-          <div className="notice bad">E-Mail oder Passwort ist falsch.</div>
+        {params.error ? (
+          <div className="notice bad">Email or password is wrong.</div>
         ) : null}
 
         {noAdmins ? (
           <div className="notice warn">
-            Es gibt noch keinen Zugang. Auf dem Server anlegen mit:
+            There is no account yet. Create one on the server with:
             <div className="mono" style={{ marginTop: 6 }}>
-              node scripts/create-admin.ts &quot;email&quot; &quot;passwort&quot; &quot;Name&quot;
+              node scripts/create-admin.ts &quot;email&quot; &quot;password&quot; &quot;Name&quot;
             </div>
           </div>
         ) : null}
@@ -61,7 +61,7 @@ export default async function LoginPage({
         <form action={login} className="panel">
           <label htmlFor="email">E-Mail</label>
           <input id="email" name="email" type="email" required autoComplete="username" />
-          <label htmlFor="password">Passwort</label>
+          <label htmlFor="password">Password</label>
           <input
             id="password"
             name="password"
@@ -70,7 +70,7 @@ export default async function LoginPage({
             autoComplete="current-password"
           />
           <button type="submit" style={{ width: "100%" }}>
-            ANMELDEN
+            SIGN IN
           </button>
         </form>
       </div>

@@ -250,7 +250,7 @@ export interface EvaluationOutcome {
  * so a corrected result simply produces a corrected leaderboard.
  *
  * `complete` is false when any match still has no result. Spec §37: a
- * competition with a missing result is marked "Auswertung ausstehend", never
+ * competition with a missing result is marked "evaluation pending", never
  * declared won.
  */
 export async function evaluateCompetition(
@@ -374,7 +374,7 @@ export async function evaluateCompetition(
         competitionId,
         missingResults === 0
           ? null
-          : `${missingResults} Spiel(e) ohne Ergebnis - Auswertung ausstehend`,
+          : `${missingResults} match(es) without a result - evaluation pending`,
       ],
     );
   });

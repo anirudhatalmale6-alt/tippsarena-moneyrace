@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const metadata = {
   title: "TippsArena Admin",
-  description: "TippsArena MoneyRace - Verwaltung",
+  description: "TippsArena MoneyRace - admin",
 };
 
 export const viewport = {

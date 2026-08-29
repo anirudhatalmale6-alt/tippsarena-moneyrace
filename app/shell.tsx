@@ -1,9 +1,11 @@
 /**
  * The frame every dashboard page sits in, and the guard in front of it.
  *
- * Spec §25: the navigation is German and it is the same on every page. §35:
- * nothing renders until the session cookie has been verified against a real,
- * active admin row - the check is here, once, rather than in each page.
+ * Spec §25: the navigation is the same on every page. The dashboard is in
+ * English at his request (29 Aug) - only the operator reads it; everything a
+ * player reads in the bot and the channel stays German. §35: nothing renders
+ * until the session cookie has been verified against a real, active admin row -
+ * the check is here, once, rather than in each page.
  */
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -12,15 +14,15 @@ import { findAdmin, readSessionToken, SESSION_COOKIE, type AdminUser } from "@/l
 
 export const NAV: Array<[string, string]> = [
   ["/", "🏠 Dashboard"],
-  ["/wettbewerbe", "🏁 Wettbewerbe"],
-  ["/spiele", "⚽ Spiele"],
-  ["/teilnehmer", "👥 Teilnehmer"],
+  ["/competitions", "🏁 Competitions"],
+  ["/matches", "⚽ Matches"],
+  ["/participants", "👥 Participants"],
   ["/leaderboards", "🏆 Leaderboards"],
-  ["/gewinner", "🏅 Gewinner"],
+  ["/winners", "🏅 Winners"],
   ["/referrals", "🔗 Referrals"],
   ["/analytics", "📊 Analytics"],
   ["/telegram", "📢 Telegram"],
-  ["/einstellungen", "⚙️ Einstellungen"],
+  ["/settings", "⚙️ Settings"],
 ];
 
 /** The current admin, or a redirect to the login page. Never returns null. */
@@ -48,7 +50,7 @@ export function Shell({
       <aside className="sidebar">
         <div className="brand">
           TippsArena
-          <small>MoneyRace Verwaltung</small>
+          <small>MoneyRace Admin</small>
         </div>
         <nav className="nav">
           {NAV.map(([href, label]) => (
@@ -69,15 +71,15 @@ export function Shell({
   );
 }
 
-/** Status word -> colour, in his words (spec §27). */
+/** Status word -> colour (spec §27). */
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, [string, string]> = {
-    draft: ["Entwurf", ""],
-    open: ["Geöffnet", "green"],
-    locked: ["Gesperrt", "amber"],
-    evaluating: ["Auswertung", "amber"],
-    finished: ["Beendet", "blue"],
-    cancelled: ["Abgebrochen", "red"],
+    draft: ["Draft", ""],
+    open: ["Open", "green"],
+    locked: ["Locked", "amber"],
+    evaluating: ["Evaluating", "amber"],
+    finished: ["Finished", "blue"],
+    cancelled: ["Cancelled", "red"],
   };
   const [label, colour] = map[status] ?? [status, ""];
   return <span className={`badge ${colour}`}>{label}</span>;

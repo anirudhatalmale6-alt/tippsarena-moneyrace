@@ -18,6 +18,7 @@ const PLACEHOLDERS: Record<string, string> = {
   competition_intro: "{name} {prize} {match_count} {lock_time}",
   predictions_saved: "{name} {done} {total} {prize}",
   membership_required: "{support}",
+  already_entered: "{name} {prize} {lock_time}",
 };
 
 export default async function TelegramPage({
@@ -29,7 +30,7 @@ export default async function TelegramPage({
   const params = await searchParams;
 
   const templates = await listTemplates();
-  const selectedKey = params.vorlage ?? templates[0]?.key ?? "";
+  const selectedKey = params.template ?? templates[0]?.key ?? "";
   const selected = templates.find((t) => t.key === selectedKey) ?? templates[0];
 
   const competitions = await query<{ id: number; name: string }>(
@@ -60,26 +61,25 @@ export default async function TelegramPage({
 
   return (
     <Shell title="Telegram" active="/telegram">
-      {params.gespeichert ? <Notice>Vorlage gespeichert.</Notice> : null}
-      {params.gesendet ? <Notice>In den Kanal gesendet.</Notice> : null}
-      {params.erneut ? <Notice>Wird erneut versucht.</Notice> : null}
-      {params.fehler ? <Notice kind="bad">{params.fehler}</Notice> : null}
+      {params.saved ? <Notice>Template saved.</Notice> : null}
+      {params.sent_ok ? <Notice>Sent to the channel.</Notice> : null}
+      {params.retry ? <Notice>Will be tried again.</Notice> : null}
+      {params.error ? <Notice kind="bad">{params.error}</Notice> : null}
       {!channelSet ? (
         <Notice kind="warn">
-          Es ist noch kein Kanal hinterlegt. Ankündigungen warten, bis unter{" "}
-          <a href="/einstellungen">Einstellungen</a> eine Kanal-ID eingetragen
-          ist — es geht nichts verloren.
+          No channel is set yet. Announcements wait until a channel ID is entered under{" "}
+          <a href="/settings">Settings</a> — nothing is lost in the meantime.
         </Notice>
       ) : null}
 
-      <h2>Nachrichtenvorlagen</h2>
+      <h2>Message templates</h2>
       <div className="panel">
         <div className="actions" style={{ marginBottom: 12 }}>
           {templates.map((t) => (
             <a
               key={t.key}
               className={`button small ${t.key === selected?.key ? "" : "secondary"}`}
-              href={`/telegram?vorlage=${t.key}`}
+              href={`/telegram?template=${t.key}`}
             >
               {t.name}
             </a>
@@ -94,11 +94,10 @@ export default async function TelegramPage({
             </label>
             <textarea id="body" name="body" defaultValue={selected.body} />
             <div className="hint">
-              HTML erlaubt: &lt;b&gt;fett&lt;/b&gt;, &lt;i&gt;kursiv&lt;/i&gt;,
-              &lt;code&gt;. Platzhalter:{" "}
-              <span className="mono">{PLACEHOLDERS[selected.key] ?? "keine"}</span>
-              . Ein unbekannter Platzhalter bleibt sichtbar stehen, statt leer zu
-              werden.
+              HTML allowed: &lt;b&gt;bold&lt;/b&gt;, &lt;i&gt;italic&lt;/i&gt;,
+              &lt;code&gt;. Placeholders:{" "}
+              <span className="mono">{PLACEHOLDERS[selected.key] ?? "none"}</span>
+              . An unknown placeholder is left visible instead of turning into nothing.
             </div>
 
             <label htmlFor="buttons">Buttons (JSON)</label>
@@ -112,19 +111,18 @@ export default async function TelegramPage({
               <span className="mono">
                 [{"{"}&quot;text&quot;:&quot;🏁 JETZT TEILNEHMEN&quot;,&quot;action&quot;:&quot;deeplink&quot;{"}"}]
               </span>{" "}
-              — action: deeplink (öffnet den Bot), channel (Kanal-Link), url (mit
-              eigenem &quot;url&quot;).
+              — action: deeplink (opens the bot), channel (channel link), url (with its own &quot;url&quot;).
             </div>
-            <button type="submit">VORLAGE SPEICHERN</button>
+            <button type="submit">SAVE TEMPLATE</button>
           </form>
         ) : null}
       </div>
 
-      <h2>Jetzt veröffentlichen</h2>
+      <h2>Publish now</h2>
       <form action={actionSendTemplate} className="panel">
         <div className="row">
           <div>
-            <label htmlFor="key">Vorlage</label>
+            <label htmlFor="key">Template</label>
             <select id="key" name="key" defaultValue={selected?.key ?? ""}>
               {templates
                 .filter((t) => t.key.startsWith("channel_"))
@@ -136,9 +134,9 @@ export default async function TelegramPage({
             </select>
           </div>
           <div>
-            <label htmlFor="competition_id">Wettbewerb</label>
+            <label htmlFor="competition_id">Competition</label>
             <select id="competition_id" name="competition_id" defaultValue="">
-              <option value="">(keiner)</option>
+              <option value="">(none)</option>
               {competitions.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -148,24 +146,24 @@ export default async function TelegramPage({
           </div>
         </div>
         <button type="submit" disabled={!channelSet}>
-          📢 VERÖFFENTLICHEN
+          📢 PUBLISH
         </button>
       </form>
 
-      <h2>Wartende Ankündigungen</h2>
+      <h2>Queued announcements</h2>
       <div className="panel">
         {pending.length === 0 ? (
-          <p className="muted">Nichts wartet.</p>
+          <p className="muted">Nothing waiting.</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th className="wrap">Wettbewerb</th>
-                  <th>Art</th>
-                  <th>Fällig</th>
-                  <th>Versuche</th>
-                  <th className="wrap">Fehler</th>
+                  <th className="wrap">Competition</th>
+                  <th>Kind</th>
+                  <th>Due</th>
+                  <th>Attempts</th>
+                  <th className="wrap">Error</th>
                   <th />
                 </tr>
               </thead>
@@ -182,7 +180,7 @@ export default async function TelegramPage({
                         <form action={actionRetryNotification}>
                           <input type="hidden" name="notification_id" value={n.id} />
                           <button className="secondary small" type="submit">
-                            Erneut versuchen
+                            Try again
                           </button>
                         </form>
                       ) : null}
@@ -198,13 +196,13 @@ export default async function TelegramPage({
       <h2>Gesendet</h2>
       <div className="panel">
         {sent.length === 0 ? (
-          <p className="muted">Noch nichts gesendet.</p>
+          <p className="muted">Nothing sent yet.</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Wann</th>
+                  <th>When</th>
                   <th>Status</th>
                   <th className="wrap">Text</th>
                 </tr>

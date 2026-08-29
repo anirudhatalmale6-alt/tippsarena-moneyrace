@@ -20,12 +20,12 @@
   },
   "dynamicRoutes": [
     {
-      "page": "/wettbewerbe/[id]",
-      "regex": "^/wettbewerbe/([^/]+?)(?:/)?$",
+      "page": "/competitions/[id]",
+      "regex": "^/competitions/([^/]+?)(?:/)?$",
       "routeKeys": {
         "nxtPid": "nxtPid"
       },
-      "namedRegex": "^/wettbewerbe/(?<nxtPid>[^/]+?)(?:/)?$"
+      "namedRegex": "^/competitions/(?<nxtPid>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -48,16 +48,28 @@
       "namedRegex": "^/analytics(?:/)?$"
     },
     {
-      "page": "/einstellungen",
-      "regex": "^/einstellungen(?:/)?$",
+      "page": "/competitions",
+      "regex": "^/competitions(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/einstellungen(?:/)?$"
+      "namedRegex": "^/competitions(?:/)?$"
     },
     {
-      "page": "/gewinner",
-      "regex": "^/gewinner(?:/)?$",
+      "page": "/competitions/new",
+      "regex": "^/competitions/new(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/gewinner(?:/)?$"
+      "namedRegex": "^/competitions/new(?:/)?$"
+    },
+    {
+      "page": "/dach",
+      "regex": "^/dach(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dach(?:/)?$"
+    },
+    {
+      "page": "/leaderboard",
+      "regex": "^/leaderboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/leaderboard(?:/)?$"
     },
     {
       "page": "/leaderboards",
@@ -72,22 +84,34 @@
       "namedRegex": "^/login(?:/)?$"
     },
     {
+      "page": "/matches",
+      "regex": "^/matches(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/matches(?:/)?$"
+    },
+    {
+      "page": "/moneyrace",
+      "regex": "^/moneyrace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/moneyrace(?:/)?$"
+    },
+    {
+      "page": "/participants",
+      "regex": "^/participants(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/participants(?:/)?$"
+    },
+    {
       "page": "/referrals",
       "regex": "^/referrals(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/referrals(?:/)?$"
     },
     {
-      "page": "/spiele",
-      "regex": "^/spiele(?:/)?$",
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/spiele(?:/)?$"
-    },
-    {
-      "page": "/teilnehmer",
-      "regex": "^/teilnehmer(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/teilnehmer(?:/)?$"
+      "namedRegex": "^/settings(?:/)?$"
     },
     {
       "page": "/telegram",
@@ -96,16 +120,10 @@
       "namedRegex": "^/telegram(?:/)?$"
     },
     {
-      "page": "/wettbewerbe",
-      "regex": "^/wettbewerbe(?:/)?$",
+      "page": "/winners",
+      "regex": "^/winners(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/wettbewerbe(?:/)?$"
-    },
-    {
-      "page": "/wettbewerbe/neu",
-      "regex": "^/wettbewerbe/neu(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/wettbewerbe/neu(?:/)?$"
+      "namedRegex": "^/winners(?:/)?$"
     }
   ],
   "dataRoutes": [],

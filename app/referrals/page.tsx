@@ -50,32 +50,32 @@ export default async function ReferralsPage() {
     <Shell title="Referrals" active="/referrals">
       <div className="cards">
         <div className="card">
-          <div className="label">Einladungen gesamt</div>
+          <div className="label">Invitations total</div>
           <div className="value">{totals.total}</div>
         </div>
         <div className="card">
-          <div className="label">Werber</div>
+          <div className="label">Inviter</div>
           <div className="value">{totals.referrers}</div>
         </div>
         <div className="card">
-          <div className="label">Qualifiziert</div>
+          <div className="label">Qualified</div>
           <div className="value">{totals.qualified}</div>
         </div>
       </div>
 
-      <h2>Top-Werber</h2>
+      <h2>Top inviters</h2>
       <div className="panel">
         {top.length === 0 ? (
-          <p className="muted">Noch keine Einladungen.</p>
+          <p className="muted">No invitations yet.</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Nutzer</th>
+                  <th>User</th>
                   <th>Telegram-ID</th>
-                  <th>Eingeladen</th>
-                  <th>Davon aktiv</th>
+                  <th>Invited</th>
+                  <th>Of those, active</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,18 +95,18 @@ export default async function ReferralsPage() {
         )}
       </div>
 
-      <h2>Zuletzt</h2>
+      <h2>Latest</h2>
       <div className="panel">
         {recent.length === 0 ? (
-          <p className="muted">Noch nichts.</p>
+          <p className="muted">Nothing yet.</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Wann</th>
-                  <th>Werber</th>
-                  <th>Neuer Nutzer</th>
+                  <th>When</th>
+                  <th>Inviter</th>
+                  <th>New user</th>
                 </tr>
               </thead>
               <tbody>

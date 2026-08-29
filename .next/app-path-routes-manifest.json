@@ -1,16 +1,19 @@
 {
   "/_not-found/page": "/_not-found",
-  "/login/page": "/login",
   "/analytics/page": "/analytics",
-  "/gewinner/page": "/gewinner",
-  "/spiele/page": "/spiele",
-  "/einstellungen/page": "/einstellungen",
   "/leaderboards/page": "/leaderboards",
+  "/login/page": "/login",
+  "/competitions/page": "/competitions",
+  "/matches/page": "/matches",
+  "/competitions/new/page": "/competitions/new",
   "/referrals/page": "/referrals",
   "/page": "/",
-  "/teilnehmer/page": "/teilnehmer",
-  "/wettbewerbe/neu/page": "/wettbewerbe/neu",
-  "/wettbewerbe/page": "/wettbewerbe",
+  "/competitions/[id]/page": "/competitions/[id]",
+  "/participants/page": "/participants",
+  "/settings/page": "/settings",
   "/telegram/page": "/telegram",
-  "/wettbewerbe/[id]/page": "/wettbewerbe/[id]"
+  "/winners/page": "/winners",
+  "/(public)/leaderboard/page": "/leaderboard",
+  "/(public)/moneyrace/page": "/moneyrace",
+  "/(public)/dach/page": "/dach"
 }

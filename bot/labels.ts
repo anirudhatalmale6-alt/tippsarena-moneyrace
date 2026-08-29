@@ -24,7 +24,9 @@ export const L = {
   notFound: "Diesen Wettbewerb gibt es nicht mehr.",
   startPicks: "🎯 TIPPS ABGEBEN",
   reviewPicks: "🎯 TIPPS ANSEHEN / ÄNDERN",
+  changePicks: "✏️ TIPPS ÄNDERN",
   completeMissing: "⚠️ FEHLENDE TIPPS ABGEBEN",
+  yourPicks: "DEINE TIPPS",
 
   // predicting
   draw: "Unentschieden",

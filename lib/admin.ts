@@ -320,9 +320,9 @@ export async function markPrizePaid(
   adminUserId: number | null = null,
 ): Promise<void> {
   await query(
-    `UPDATE prizes SET status = 'bezahlt', paid_at = now() WHERE id = $1`,
+    `UPDATE prizes SET status = 'paid', paid_at = now() WHERE id = $1`,
     [prizeId],
   );
-  await audit(adminUserId, "prize.paid", `Preis #${prizeId} als bezahlt markiert`,
+  await audit(adminUserId, "prize.paid", `Prize #${prizeId} marked as paid`,
     "prize", prizeId);
 }

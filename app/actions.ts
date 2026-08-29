@@ -65,7 +65,7 @@ export async function actionCreateCompetition(form: FormData): Promise<void> {
 
   const id = await createCompetition(
     {
-      name: text(form, "name") || "Neuer Wettbewerb",
+      name: text(form, "name") || "New competition",
       type: text(form, "type") || "moneyrace",
       description: text(form, "description") || null,
       prizeAmount: num(form, "prize_amount"),
@@ -91,8 +91,8 @@ export async function actionCreateCompetition(form: FormData): Promise<void> {
     .filter((v) => Number.isFinite(v));
   if (fixtureIds.length) await setCompetitionFixtures(id, fixtureIds, adminId);
 
-  revalidatePath("/wettbewerbe");
-  redirect(`/wettbewerbe/${id}?angelegt=1`);
+  revalidatePath("/competitions");
+  redirect(`/competitions/${id}?created=1`);
 }
 
 export async function actionUpdateCompetition(form: FormData): Promise<void> {
@@ -125,10 +125,10 @@ export async function actionUpdateCompetition(form: FormData): Promise<void> {
       num(form, "points_exact", 0),
     ],
   );
-  await audit(adminId, "competition.update", `Wettbewerb #${id} geändert`,
+  await audit(adminId, "competition.update", `Competition #${id} changed`,
     "competition", id, before[0]);
-  revalidatePath(`/wettbewerbe/${id}`);
-  redirect(`/wettbewerbe/${id}?gespeichert=1`);
+  revalidatePath(`/competitions/${id}`);
+  redirect(`/competitions/${id}?saved=1`);
 }
 
 export async function actionSetFixtures(form: FormData): Promise<void> {
@@ -141,9 +141,9 @@ export async function actionSetFixtures(form: FormData): Promise<void> {
   try {
     await setCompetitionFixtures(id, fixtureIds, adminId);
   } catch (err) {
-    redirect(`/wettbewerbe/${id}?fehler=${encodeURIComponent(String(err))}`);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(String(err))}`);
   }
-  redirect(`/wettbewerbe/${id}?gespeichert=1`);
+  redirect(`/competitions/${id}?saved=1`);
 }
 
 export async function actionPublish(form: FormData): Promise<void> {
@@ -153,18 +153,18 @@ export async function actionPublish(form: FormData): Promise<void> {
     await publishCompetition(id, adminId);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    redirect(`/wettbewerbe/${id}?fehler=${encodeURIComponent(message)}`);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
   }
-  revalidatePath("/wettbewerbe");
-  redirect(`/wettbewerbe/${id}?veröffentlicht=1`);
+  revalidatePath("/competitions");
+  redirect(`/competitions/${id}?published=1`);
 }
 
 export async function actionDuplicate(form: FormData): Promise<void> {
   const adminId = await admin();
   const id = num(form, "id");
-  const name = text(form, "name") || `Kopie von #${id}`;
+  const name = text(form, "name") || `Copy of #${id}`;
   const newId = await duplicateCompetition(id, name, adminId);
-  redirect(`/wettbewerbe/${newId}?angelegt=1`);
+  redirect(`/competitions/${newId}?created=1`);
 }
 
 export async function actionSetStatus(form: FormData): Promise<void> {
@@ -172,13 +172,13 @@ export async function actionSetStatus(form: FormData): Promise<void> {
   const id = num(form, "id");
   const status = text(form, "status");
   if (!["draft", "open", "locked", "evaluating", "finished", "cancelled"].includes(status)) {
-    redirect(`/wettbewerbe/${id}?fehler=Unbekannter+Status`);
+    redirect(`/competitions/${id}?error=Unknown+status`);
   }
   await query("UPDATE competitions SET status = $2, updated_at = now() WHERE id = $1",
     [id, status]);
-  await audit(adminId, "competition.status", `Status auf "${status}" gesetzt`,
+  await audit(adminId, "competition.status", `Status set to "${status}"`,
     "competition", id);
-  redirect(`/wettbewerbe/${id}?gespeichert=1`);
+  redirect(`/competitions/${id}?saved=1`);
 }
 
 export async function actionEvaluate(form: FormData): Promise<void> {
@@ -186,9 +186,9 @@ export async function actionEvaluate(form: FormData): Promise<void> {
   const id = num(form, "id");
   const outcome = await evaluateCompetition(id);
   await audit(adminId, "competition.evaluate",
-    `Neu ausgewertet: ${outcome.scored} Tipps, ${outcome.missingResults} ohne Ergebnis`,
+    `Re-evaluated: ${outcome.scored} predictions, ${outcome.missingResults} without a result`,
     "competition", id);
-  redirect(`/wettbewerbe/${id}?ausgewertet=${outcome.missingResults}`);
+  redirect(`/competitions/${id}?evaluated=${outcome.missingResults}`);
 }
 
 // ---------------------------------------------------------------- fixtures
@@ -198,17 +198,17 @@ export async function actionImportFixtures(form: FormData): Promise<void> {
   // reach any other league without waiting for me to add it.
   const league = num(form, "league_custom") || num(form, "league");
   const season = num(form, "season", new Date().getFullYear());
-  if (!league) redirect("/spiele?fehler=Keine+Liga+gewählt");
+  if (!league) redirect("/matches?error=No+league+chosen");
   const from = text(form, "from");
   const to = text(form, "to") || from;
   try {
     const result = await importFixtures(league, season, from, to, adminId);
-    redirect(`/spiele?importiert=${result.fetched}&league=${league}&from=${from}&to=${to}`);
+    redirect(`/matches?imported=${result.fetched}&league=${league}&from=${from}&to=${to}`);
   } catch (err) {
     if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
     const message = err instanceof Error ? err.message : String(err);
     log.error("fixture import failed", err);
-    redirect(`/spiele?fehler=${encodeURIComponent(message)}`);
+    redirect(`/matches?error=${encodeURIComponent(message)}`);
   }
 }
 
@@ -220,22 +220,22 @@ export async function actionManualResult(form: FormData): Promise<void> {
   if (text(form, "clear") === "1") {
     await clearManualResult(fixtureId);
     await audit(adminId, "fixture.clear_manual",
-      `Manuelles Ergebnis für Spiel #${fixtureId} aufgehoben`, "fixture", fixtureId);
+      `Manual result for match #${fixtureId} cleared`, "fixture", fixtureId);
   } else {
     const home = num(form, "home_goals", -1);
     const away = num(form, "away_goals", -1);
     if (home < 0 || away < 0) {
-      redirect(`/wettbewerbe/${competitionId}?fehler=Ergebnis+unvollständig`);
+      redirect(`/competitions/${competitionId}?error=Result+incomplete`);
     }
     await setManualResult(fixtureId, home, away);
     await audit(adminId, "fixture.manual_result",
-      `Ergebnis für Spiel #${fixtureId} von Hand auf ${home}:${away} gesetzt`,
+      `Result for match #${fixtureId} set by hand to ${home}:${away}`,
       "fixture", fixtureId);
   }
   // Re-score straight away, so the leaderboard he is looking at is the one the
   // correction produced rather than the one before it.
   if (competitionId) await evaluateCompetition(competitionId);
-  redirect(`/wettbewerbe/${competitionId}?gespeichert=1`);
+  redirect(`/competitions/${competitionId}?saved=1`);
 }
 
 // ---------------------------------------------------------------- giveaway
@@ -244,11 +244,11 @@ export async function actionDrawGiveaway(form: FormData): Promise<void> {
   const id = num(form, "id");
   try {
     const result = await drawGiveaway(id, adminId);
-    redirect(`/wettbewerbe/${id}?gelost=${result.poolSize}`);
+    redirect(`/competitions/${id}?drawn=${result.poolSize}`);
   } catch (err) {
     if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
     const message = err instanceof Error ? err.message : String(err);
-    redirect(`/wettbewerbe/${id}?fehler=${encodeURIComponent(message)}`);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
   }
 }
 
@@ -256,8 +256,8 @@ export async function actionDrawGiveaway(form: FormData): Promise<void> {
 export async function actionMarkPaid(form: FormData): Promise<void> {
   const adminId = await admin();
   await markPrizePaid(num(form, "prize_id"), adminId);
-  revalidatePath("/gewinner");
-  redirect("/gewinner?gespeichert=1");
+  revalidatePath("/winners");
+  redirect("/winners?saved=1");
 }
 
 // ---------------------------------------------------------------- templates
@@ -270,12 +270,12 @@ export async function actionSaveTemplate(form: FormData): Promise<void> {
     try {
       buttons = JSON.parse(raw);
     } catch {
-      redirect(`/telegram?vorlage=${key}&fehler=Buttons+sind+kein+gültiges+JSON`);
+      redirect(`/telegram?template=${key}&error=Buttons+are+not+valid+JSON`);
     }
   }
   await saveTemplate(key, text(form, "body"), buttons as any);
-  await audit(adminId, "template.save", `Vorlage "${key}" geändert`, "template", key);
-  redirect(`/telegram?vorlage=${key}&gespeichert=1`);
+  await audit(adminId, "template.save", `Template "${key}" changed`, "template", key);
+  redirect(`/telegram?template=${key}&saved=1`);
 }
 
 export async function actionSendTemplate(form: FormData): Promise<void> {
@@ -301,12 +301,12 @@ export async function actionSendTemplate(form: FormData): Promise<void> {
 
   try {
     await sendToChannel(competitionId, message);
-    await audit(adminId, "telegram.publish", `Vorlage "${key}" in den Kanal gesendet`);
-    redirect(`/telegram?gesendet=1`);
+    await audit(adminId, "telegram.publish", `Template "${key}" sent to the channel`);
+    redirect(`/telegram?sent_ok=1`);
   } catch (err) {
     if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
     const message2 = err instanceof Error ? err.message : String(err);
-    redirect(`/telegram?fehler=${encodeURIComponent(message2)}`);
+    redirect(`/telegram?error=${encodeURIComponent(message2)}`);
   }
 }
 
@@ -316,7 +316,7 @@ export async function actionRetryNotification(form: FormData): Promise<void> {
     "UPDATE notifications SET attempts = 0, last_error = NULL WHERE id = $1",
     [num(form, "notification_id")],
   );
-  redirect("/telegram?erneut=1");
+  redirect("/telegram?retry=1");
 }
 
 // ---------------------------------------------------------------- settings
@@ -333,8 +333,8 @@ export async function actionSaveSettings(form: FormData): Promise<void> {
   }
   await setSetting("reminder_hours_before_lock", num(form, "reminder_hours_before_lock", 1));
   await setSetting("football_default_season", num(form, "football_default_season", 2026));
-  await audit(adminId, "settings.save", "Einstellungen geändert");
-  redirect("/einstellungen?gespeichert=1");
+  await audit(adminId, "settings.save", "Settings changed");
+  redirect("/settings?saved=1");
 }
 
 export async function actionLogout(): Promise<void> {

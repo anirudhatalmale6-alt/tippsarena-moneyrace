@@ -48,7 +48,7 @@ export default async function AnalyticsPage() {
       LIMIT 50`,
   );
 
-  const byType = await query<{
+  const byTypee = await query<{
     type: string; competitions: number; entries: number; prize: number;
   }>(
     `SELECT c.type, COUNT(DISTINCT c.id)::int AS competitions,
@@ -74,39 +74,39 @@ export default async function AnalyticsPage() {
     <Shell title="Analytics" active="/analytics">
       <div className="cards">
         <div className="card">
-          <div className="label">Nutzer gesamt</div>
+          <div className="label">Users total</div>
           <div className="value">{totals.users}</div>
         </div>
         <div className="card">
-          <div className="label">Neu (7 Tage)</div>
+          <div className="label">New (7 days)</div>
           <div className="value">{totals.users_7}</div>
         </div>
         <div className="card">
-          <div className="label">Neu (30 Tage)</div>
+          <div className="label">New (30 days)</div>
           <div className="value">{totals.users_30}</div>
         </div>
         <div className="card">
-          <div className="label">Aktiv (7 Tage)</div>
+          <div className="label">Active (7 days)</div>
           <div className="value">{totals.active_7}</div>
         </div>
         <div className="card">
-          <div className="label">Kanal-Mitglieder</div>
+          <div className="label">Channel members</div>
           <div className="value">{totals.channel_members}</div>
-          <div className="hint">zuletzt geprüft</div>
+          <div className="hint">last checked</div>
         </div>
         <div className="card">
-          <div className="label">Teilnahmen</div>
+          <div className="label">Entries</div>
           <div className="value">{totals.entries}</div>
           <div className="hint">
-            {totals.completed} vollständig ({pct(totals.completed, totals.entries)})
+            {totals.completed} complete ({pct(totals.completed, totals.entries)})
           </div>
         </div>
       </div>
 
-      <h2>Neue Nutzer, 14 Tage</h2>
+      <h2>New users, 14 days</h2>
       <div className="panel">
         {daily.length === 0 ? (
-          <p className="muted">Noch keine Nutzer.</p>
+          <p className="muted">No users yet.</p>
         ) : (
           <div style={{ display: "flex", gap: 6, alignItems: "flex-end", height: 130 }}>
             {daily.map((d) => (
@@ -126,25 +126,25 @@ export default async function AnalyticsPage() {
         )}
       </div>
 
-      <h2>Kampagnen</h2>
+      <h2>Campaigns</h2>
       <div className="panel">
         {campaigns.length === 0 ? (
           <p className="muted">
-            Noch keine Kampagne. Ein Link wie{" "}
-            <span className="mono">t.me/DeinBot?start=meta_kampagne_1</span>{" "}
-            legt sie beim ersten Klick automatisch an.
+            No campaign yet. A link like{" "}
+            <span className="mono">t.me/YourBot?start=meta_campaign_1</span>{" "}
+            creates one automatically on the first click.
           </p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Kampagne</th>
-                  <th>Bot gestartet</th>
-                  <th>Kanal beigetreten</th>
-                  <th>Teilgenommen</th>
-                  <th>Tipps komplett</th>
-                  <th>Abschlussquote</th>
+                  <th>Campaign</th>
+                  <th>Startsed the bot</th>
+                  <th>Joined channel</th>
+                  <th>Entered</th>
+                  <th>Predictions complete</th>
+                  <th>Completion rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,24 +167,24 @@ export default async function AnalyticsPage() {
           </div>
         )}
         <div className="hint" style={{ marginTop: 10 }}>
-          Klicks und Impressionen stehen bei Meta bzw. TikTok - hier wird nur
-          gezählt, was tatsächlich im Bot ankommt.
+          Clicks and impressions live at Meta and TikTok - this page counts only
+          what actually arrives in the bot.
         </div>
       </div>
 
-      <h2>Nach Wettbewerbstyp</h2>
+      <h2>By competition type</h2>
       <div className="panel">
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Typ</th>
-                <th>Wettbewerbe</th>
-                <th>Teilnahmen</th>
+                <th>Type</th>
+                <th>Competitions</th>
+                <th>Entries</th>
               </tr>
             </thead>
             <tbody>
-              {byType.map((t) => (
+              {byTypee.map((t) => (
                 <tr key={t.type}>
                   <td>{t.type}</td>
                   <td>{t.competitions}</td>

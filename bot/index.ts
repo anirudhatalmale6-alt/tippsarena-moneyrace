@@ -12,7 +12,7 @@
  */
 import { Bot, GrammyError, HttpError, InlineKeyboard } from "grammy";
 import { config } from "../lib/config.ts";
-import { getSetting, query, one } from "../lib/db.ts";
+import { getSetting, query, one, setSetting } from "../lib/db.ts";
 import { log } from "../lib/log.ts";
 import {
   competitionFixtures,
@@ -213,6 +213,18 @@ async function showCompetition(
 
   const fixtures = await competitionFixtures(competitionId);
   const tz = await timezone();
+  const participant = await joinCompetition(competitionId, user.id);
+
+  // Somebody who has already finished must not be dropped straight back into
+  // the pick flow: it reads as a second entry even though the database can
+  // only ever hold one (participants is UNIQUE on competition + user, and
+  // predictions on participant + match). Show them what they already gave,
+  // say plainly that it counts once, and make changing it a deliberate step.
+  if (participant.completed) {
+    await showEntry(ctx, participant.id, competition, fixtures, tz);
+    return;
+  }
+
   const intro = await render("competition_intro", {
     name: competition.name,
     prize: money(competition.prize_amount, competition.currency),
@@ -220,12 +232,51 @@ async function showCompetition(
     lock_time: when(competition.locks_at, tz),
   });
 
-  const participant = await joinCompetition(competitionId, user.id);
   const keyboard = new InlineKeyboard().text(
-    participant.completed ? L.reviewPicks : L.startPicks,
+    L.startPicks,
     `play_${competitionId}_0`,
   );
   await ctx.reply(intro.text, { parse_mode: "HTML", reply_markup: keyboard });
+}
+
+/** The "you are already in" screen, with the picks they gave. */
+async function showEntry(
+  ctx: any,
+  participantId: number,
+  competition: Competition,
+  fixtures: CompetitionFixture[],
+  tz: string,
+): Promise<void> {
+  const made = await predictionsOf(participantId);
+  const PICK_LABEL: Record<string, (f: CompetitionFixture) => string> = {
+    H: (f) => f.home_team,
+    D: () => L.draw,
+    A: (f) => f.away_team,
+  };
+
+  const lines = fixtures.map((fixture) => {
+    const pick = made.get(fixture.competition_fixture_id)?.pick;
+    const chosen = pick ? PICK_LABEL[pick](fixture) : "—";
+    return (
+      `${escapeHtml(fixture.home_team)} — ${escapeHtml(fixture.away_team)}\n` +
+      `   ➜ <b>${escapeHtml(chosen)}</b>`
+    );
+  });
+
+  const entry = await render("already_entered", {
+    name: competition.name,
+    prize: money(competition.prize_amount, competition.currency),
+    lock_time: when(competition.locks_at, tz),
+  });
+
+  const keyboard = new InlineKeyboard()
+    .text(L.changePicks, `play_${competition.id}_0`).row()
+    .text(L.backToMenu, "menu");
+
+  await ctx.reply(
+    `${entry.text}\n\n📋 <b>${L.yourPicks}</b>\n\n${lines.join("\n")}`,
+    { parse_mode: "HTML", reply_markup: keyboard },
+  );
 }
 
 // --------------------------------------------------------------- predicting
@@ -477,6 +528,58 @@ bot.callbackQuery("rules", async (ctx) => {
   });
 });
 
+// --------------------------------------------------------------- channel
+/**
+ * Learn the channel by being put in it.
+ *
+ * There is no Telegram API that lists the chats a bot belongs to, so the
+ * channel id has to arrive on an update. Both of these carry it: being made an
+ * administrator, and any post in a channel the bot is already in.
+ *
+ * Only ever written when the setting is still empty, so this can never take a
+ * configured channel away from him - and it is editable in Settings either way.
+ */
+async function rememberChannel(chat: {
+  id: number;
+  type: string;
+  title?: string;
+}): Promise<void> {
+  if (chat.type !== "channel") return;
+  const existing = await getSetting<string>("channel_chat_id", null);
+  if (existing) return;
+
+  await setSetting("channel_chat_id", String(chat.id));
+  log.info(`channel set automatically: ${chat.title ?? "?"} (${chat.id})`);
+
+  // The invite link is a separate permission; if it is not granted, the
+  // channel still works and he can paste the link in Settings by hand.
+  if (!(await getSetting<string>("channel_invite_url", null))) {
+    try {
+      const link = await bot.api.createChatInviteLink(chat.id, {
+        name: "TippsArena Bot",
+      });
+      await setSetting("channel_invite_url", link.invite_link);
+      log.info("channel invite link stored");
+    } catch (err) {
+      log.warn(
+        "channel invite link could not be created - set it in Settings by hand",
+        err,
+      );
+    }
+  }
+}
+
+bot.on("my_chat_member", async (ctx) => {
+  const status = ctx.myChatMember.new_chat_member.status;
+  if (status === "administrator" || status === "member") {
+    await rememberChannel(ctx.myChatMember.chat as any);
+  }
+});
+
+bot.on("channel_post", async (ctx) => {
+  await rememberChannel(ctx.channelPost.chat as any);
+});
+
 // --------------------------------------------------------------- errors
 bot.catch((err) => {
   const ctx = err.ctx;
@@ -493,6 +596,9 @@ bot.catch((err) => {
 if (import.meta.url === `file://${process.argv[1]}`) {
   log.info("TippsArena MoneyRace bot starting");
   bot.start({
+    // Spelled out rather than left to the default, because my_chat_member is
+    // how the bot learns which channel it has been made an administrator of.
+    allowed_updates: ["message", "callback_query", "my_chat_member", "channel_post"],
     onStart: (me) => log.info(`bot online as @${me.username} (${me.id})`),
   });
 }

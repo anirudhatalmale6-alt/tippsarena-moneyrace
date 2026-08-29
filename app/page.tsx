@@ -24,8 +24,8 @@ export default async function DashboardPage() {
       (SELECT COUNT(*)::int FROM participants WHERE joined_at > now() - interval '7 days') AS participants_week,
       (SELECT COUNT(*)::int FROM users WHERE created_at > now() - interval '7 days') AS new_users_week,
       (SELECT COUNT(*)::int FROM competitions WHERE status = 'finished')      AS finished,
-      (SELECT COUNT(*)::int FROM prizes WHERE status = 'ausstehend')          AS pending_prizes,
-      (SELECT COALESCE(SUM(amount),0) FROM prizes WHERE status = 'ausstehend') AS pending_amount,
+      (SELECT COUNT(*)::int FROM prizes WHERE status = 'pending')          AS pending_prizes,
+      (SELECT COALESCE(SUM(amount),0) FROM prizes WHERE status = 'pending') AS pending_amount,
       (SELECT COUNT(*)::int FROM users WHERE referred_by IS NOT NULL)         AS referred_users
   `);
 
@@ -59,10 +59,10 @@ export default async function DashboardPage() {
     <Shell title="Dashboard" active="/">
       {stuck.length ? (
         <Notice kind="warn">
-          <strong>⚠️ Auswertung ausstehend</strong>
+          <strong>⚠️ Evaluation pending</strong>
           {stuck.map((c) => (
             <div key={c.id}>
-              <a href={`/wettbewerbe/${c.id}`}>{c.name}</a> — {c.evaluation_note}
+              <a href={`/competitions/${c.id}`}>{c.name}</a> — {c.evaluation_note}
             </div>
           ))}
         </Notice>
@@ -70,49 +70,48 @@ export default async function DashboardPage() {
 
       {failedMessages[0]?.n ? (
         <Notice kind="bad">
-          {failedMessages[0].n} Telegram-Nachricht(en) konnten nicht gesendet
-          werden. <a href="/telegram">Ansehen</a>
+          {failedMessages[0].n} Telegram message(s) could not be sent. <a href="/telegram">View</a>
         </Notice>
       ) : null}
 
       <div className="cards">
         <div className="card">
-          <div className="label">Aktive Wettbewerbe</div>
+          <div className="label">Active competitions</div>
           <div className="value">{stats.active}</div>
         </div>
         <div className="card">
-          <div className="label">Teilnehmer heute</div>
+          <div className="label">Participants today</div>
           <div className="value">{stats.participants_today}</div>
         </div>
         <div className="card">
-          <div className="label">Teilnehmer (7 Tage)</div>
+          <div className="label">Participants (7 days)</div>
           <div className="value">{stats.participants_week}</div>
         </div>
         <div className="card">
-          <div className="label">Neue Nutzer (7 Tage)</div>
+          <div className="label">New users (7 days)</div>
           <div className="value">{stats.new_users_week}</div>
         </div>
         <div className="card">
-          <div className="label">Beendet</div>
+          <div className="label">Finished</div>
           <div className="value">{stats.finished}</div>
         </div>
         <div className="card">
-          <div className="label">Offenes Preisgeld</div>
+          <div className="label">Prize money owed</div>
           <div className="value">{money(stats.pending_amount)}</div>
-          <div className="hint">{stats.pending_prizes} offen</div>
+          <div className="hint">{stats.pending_prizes} open</div>
         </div>
         <div className="card">
-          <div className="label">Über Einladung</div>
+          <div className="label">Came via invite</div>
           <div className="value">{stats.referred_users}</div>
         </div>
       </div>
 
-      <h2>Läuft gerade</h2>
+      <h2>Running now</h2>
       <div className="panel">
         {running.length === 0 ? (
           <p className="muted">
-            Kein laufender Wettbewerb.{" "}
-            <a href="/wettbewerbe/neu">Jetzt einen anlegen</a>.
+            No competition running.{" "}
+            <a href="/competitions/new">Create one now</a>.
           </p>
         ) : (
           <div className="table-wrap">
@@ -121,9 +120,9 @@ export default async function DashboardPage() {
                 <tr>
                   <th className="wrap">Name</th>
                   <th>Status</th>
-                  <th>Preisgeld</th>
-                  <th>Teilnehmer</th>
-                  <th>Tippschluss</th>
+                  <th>Prize money</th>
+                  <th>Participants</th>
+                  <th>Lock</th>
                   <th />
                 </tr>
               </thead>
@@ -136,8 +135,8 @@ export default async function DashboardPage() {
                     <td>{c.participants}</td>
                     <td>{when(c.locks_at)}</td>
                     <td>
-                      <a className="button secondary small" href={`/wettbewerbe/${c.id}`}>
-                        Öffnen
+                      <a className="button secondary small" href={`/competitions/${c.id}`}>
+                        Open
                       </a>
                     </td>
                   </tr>
@@ -148,10 +147,10 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <h2>Letzte Aktivität</h2>
+      <h2>Recent activity</h2>
       <div className="panel">
         {recent.length === 0 ? (
-          <p className="muted">Noch nichts passiert.</p>
+          <p className="muted">Nothing has happened yet.</p>
         ) : (
           recent.map((row, i) => (
             <div key={i} style={{ padding: "5px 0" }}>

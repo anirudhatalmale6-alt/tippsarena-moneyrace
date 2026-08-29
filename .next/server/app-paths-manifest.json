@@ -1,16 +1,19 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/login/page": "app/login/page.js",
   "/analytics/page": "app/analytics/page.js",
-  "/gewinner/page": "app/gewinner/page.js",
-  "/spiele/page": "app/spiele/page.js",
-  "/einstellungen/page": "app/einstellungen/page.js",
   "/leaderboards/page": "app/leaderboards/page.js",
+  "/login/page": "app/login/page.js",
+  "/competitions/page": "app/competitions/page.js",
+  "/matches/page": "app/matches/page.js",
+  "/competitions/new/page": "app/competitions/new/page.js",
   "/referrals/page": "app/referrals/page.js",
   "/page": "app/page.js",
-  "/teilnehmer/page": "app/teilnehmer/page.js",
-  "/wettbewerbe/neu/page": "app/wettbewerbe/neu/page.js",
-  "/wettbewerbe/page": "app/wettbewerbe/page.js",
+  "/competitions/[id]/page": "app/competitions/[id]/page.js",
+  "/participants/page": "app/participants/page.js",
+  "/settings/page": "app/settings/page.js",
   "/telegram/page": "app/telegram/page.js",
-  "/wettbewerbe/[id]/page": "app/wettbewerbe/[id]/page.js"
+  "/winners/page": "app/winners/page.js",
+  "/(public)/leaderboard/page": "app/(public)/leaderboard/page.js",
+  "/(public)/moneyrace/page": "app/(public)/moneyrace/page.js",
+  "/(public)/dach/page": "app/(public)/dach/page.js"
 }

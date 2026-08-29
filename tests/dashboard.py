@@ -15,17 +15,17 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 PAGES = [
     ("/", "dashboard"),
-    ("/wettbewerbe", "wettbewerbe"),
-    ("/wettbewerbe/neu", "neu"),
-    ("/wettbewerbe/8", "detail"),
-    ("/spiele", "spiele"),
-    ("/teilnehmer", "teilnehmer"),
+    ("/competitions", "wettbewerbe"),
+    ("/competitions/new", "neu"),
+    ("/competitions/8", "detail"),
+    ("/matches", "spiele"),
+    ("/participants", "teilnehmer"),
     ("/leaderboards", "leaderboards"),
-    ("/gewinner", "gewinner"),
+    ("/winners", "gewinner"),
     ("/referrals", "referrals"),
     ("/analytics", "analytics"),
     ("/telegram", "telegram"),
-    ("/einstellungen", "einstellungen"),
+    ("/settings", "einstellungen"),
 ]
 
 fails = []
@@ -97,7 +97,7 @@ with sync_playwright() as p:
         page.screenshot(path=str(OUT / f"desk_{name}.png"))
 
     # --- the "Tuesday morning" flow: template -> form is pre-filled
-    page.goto(f"{BASE}/wettbewerbe/neu", wait_until="load")
+    page.goto(f"{BASE}/competitions/new", wait_until="load")
     page.click("text=🏁 Bundesliga MoneyRace")
     page.wait_for_load_state("load"); page.wait_for_timeout(1200)
     prize = page.input_value("#prize_amount")
@@ -108,7 +108,7 @@ with sync_playwright() as p:
     page.screenshot(path=str(OUT / "desk_neu_vorlage.png"))
 
     # --- settings round trip: does a saved value come back?
-    page.goto(f"{BASE}/einstellungen", wait_until="load")
+    page.goto(f"{BASE}/settings", wait_until="load")
     page.fill("#brand_name", "TippsArena")
     page.select_option("#timezone", "Europe/Berlin")
     page.get_by_role("button", name="SPEICHERN", exact=True).click()
@@ -126,8 +126,8 @@ with sync_playwright() as p:
     pp.fill("#password", PW)
     pp.click("button[type=submit]")
     pp.wait_for_load_state("load"); pp.wait_for_timeout(1200)
-    for path, name in [("/", "dashboard"), ("/wettbewerbe", "wettbewerbe"),
-                       ("/wettbewerbe/neu", "neu"), ("/wettbewerbe/8", "detail")]:
+    for path, name in [("/", "dashboard"), ("/competitions", "wettbewerbe"),
+                       ("/competitions/new", "neu"), ("/competitions/8", "detail")]:
         pp.goto(f"{BASE}{path}", wait_until="load")
         pp.screenshot(path=str(OUT / f"phone_{name}.png"))
         # §40: he must be able to work on a phone - no sideways scrolling.

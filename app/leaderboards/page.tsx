@@ -21,18 +21,18 @@ function Board({ title, rows }: { title: string; rows: Row[] }) {
       <h2>{title}</h2>
       <div className="panel">
         {rows.length === 0 ? (
-          <p className="muted">Noch keine Daten.</p>
+          <p className="muted">No data yet.</p>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Platz</th>
-                  <th>Nutzer</th>
-                  <th>Punkte</th>
-                  {rows[0].correct_count !== undefined ? <th>Richtig</th> : null}
-                  {rows[0].exact_hits !== undefined ? <th>Exakt</th> : null}
-                  {rows[0].competitions !== undefined ? <th>Teilnahmen</th> : null}
+                  <th>Rank</th>
+                  <th>User</th>
+                  <th>Points</th>
+                  {rows[0].correct_count !== undefined ? <th>Correct</th> : null}
+                  {rows[0].exact_hits !== undefined ? <th>Exact</th> : null}
+                  {rows[0].competitions !== undefined ? <th>Entries</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -60,7 +60,7 @@ function Board({ title, rows }: { title: string; rows: Row[] }) {
 export default async function LeaderboardsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ wettbewerb?: string }>;
+  searchParams: Promise<{ competition?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
@@ -70,8 +70,8 @@ export default async function LeaderboardsPage({
       WHERE status IN ('open','locked','evaluating','finished')
       ORDER BY COALESCE(locks_at, created_at) DESC LIMIT 50`,
   );
-  const selected = params.wettbewerb
-    ? Number(params.wettbewerb)
+  const selected = params.competition
+    ? Number(params.competition)
     : (competitions[0]?.id ?? null);
 
   const single = selected
@@ -117,10 +117,10 @@ export default async function LeaderboardsPage({
   return (
     <Shell title="Leaderboards" active="/leaderboards">
       <form className="panel" method="get">
-        <label htmlFor="wettbewerb">Wettbewerb</label>
+        <label htmlFor="competition">Competition</label>
         <select
-          id="wettbewerb"
-          name="wettbewerb"
+          id="competition"
+          name="competition"
           defaultValue={selected ? String(selected) : ""}
         >
           {competitions.map((c) => (
@@ -129,17 +129,17 @@ export default async function LeaderboardsPage({
             </option>
           ))}
         </select>
-        <button type="submit">ANZEIGEN</button>
+        <button type="submit">SHOW</button>
       </form>
 
       <Board
         title={
-          competitions.find((c) => c.id === selected)?.name ?? "Wettbewerb"
+          competitions.find((c) => c.id === selected)?.name ?? "Competition"
         }
         rows={single}
       />
-      <Board title="🏆 Monatswertung (laufender Monat)" rows={monthly} />
-      <Board title="🏅 Ewige Bestenliste" rows={allTime} />
+      <Board title="🏆 Monthly standings (this month)" rows={monthly} />
+      <Board title="🏅 All-time standings" rows={allTime} />
     </Shell>
   );
 }
