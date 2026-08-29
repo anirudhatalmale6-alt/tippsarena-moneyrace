@@ -34,6 +34,7 @@ import {
 } from "../lib/scoring.ts";
 import { fill, money, escapeHtml, zonedToUtc, utcToZonedInput } from "../lib/templates.ts";
 import { parseStartPayload } from "../lib/users.ts";
+import { maskName } from "../lib/public.ts";
 
 let failures: string[] = [];
 let passes = 0;
@@ -513,6 +514,19 @@ function truthy(name: string, got: unknown): void {
 
   await query("DELETE FROM competitions WHERE id = $1", [comp.id]);
   await setSetting("channel_chat_id", previous);
+}
+
+// ================================================= the public leaderboard
+// "only first letter and then ******". The star count is fixed rather than
+// matching the name, because a variable length leaks how long the name was.
+{
+  check("a username is masked to one letter", maskName("thomastippsarena", "Thomas"), "T******");
+  check("...the first name is used when there is no username", maskName(null, "roko"), "R******");
+  check("...and something is shown even with neither", maskName(null, null), "A******");
+  check("two names of different length mask identically",
+    [maskName("al", null).length, maskName("alexanderthegreat", null).length], [7, 7]);
+  truthy("the full name never survives masking",
+    !maskName("thomastippsarena", null).includes("homas"));
 }
 
 console.log(

@@ -174,6 +174,13 @@
   .lp-cta { width: 100%; text-align: center; }
   .lp-top nav { gap: 12px; font-size: 13px; }
 }
+/* The logo and the nav collide long before the page starts scrolling
+   sideways, so this breakpoint is set by what it looks like, not by overflow. */
+@media (max-width: 560px) {
+  .lp-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .lp-logo { font-size: 17px; }
+  .lp-top nav { gap: 14px; }
+}
 @media (max-width: 460px) {
   .lp-grid, .lp-grid.lp-2, .lp-grid.lp-4 { grid-template-columns: 1fr; }
 }

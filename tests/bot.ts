@@ -273,6 +273,66 @@ await query(
   );
 }
 
+// ======================================================= one entry per person
+// He reported being able to give his predictions "twice". Walking the whole
+// funnel a second time is exactly what he did - so this walks it again and
+// counts the rows, rather than trusting that the UNIQUE constraints hold.
+{
+  const again = await tap(`comp_${comp.id}`);
+  const body = texts(again).join("\n");
+  truthy("coming back says you are already in", body.includes("DU BIST BEREITS DABEI"));
+  truthy("...and shows the picks it is holding", body.includes("DEINE TIPPS"));
+  truthy(
+    "...naming the team that was picked",
+    body.includes("Bayern Muenchen") && body.includes("Werder Bremen"),
+  );
+  truthy("...says the entry counts once", body.includes("zählt einmal"));
+  const labels = keyboards(again).flat().map((b: any) => b.text);
+  truthy("changing the picks is a deliberate button", labels.includes("✏️ TIPPS ÄNDERN"));
+  truthy("...next to a way out", labels.includes("◀️ ZUM MENÜ"));
+
+  // Now actually do it a second time, start to finish.
+  await tap(`play_${comp.id}_0`);
+  await tap(`pick_${comp.id}_0_A`);
+  await tap(`pick_${comp.id}_1_H`);
+
+  check(
+    "a second run through leaves ONE entry, not two",
+    (await one<{ n: number }>(
+      `SELECT COUNT(*)::int AS n FROM participants pa JOIN users u ON u.id = pa.user_id
+        WHERE pa.competition_id = $1 AND u.telegram_id = $2`,
+      [comp.id, TG_ID],
+    ))?.n,
+    1,
+  );
+  check(
+    "...and TWO predictions, not four",
+    (await one<{ n: number }>(
+      `SELECT COUNT(*)::int AS n FROM predictions pr
+         JOIN participants pa ON pa.id = pr.participant_id
+         JOIN users u ON u.id = pa.user_id
+        WHERE pa.competition_id = $1 AND u.telegram_id = $2`,
+      [comp.id, TG_ID],
+    ))?.n,
+    2,
+  );
+  check(
+    "...the picks were overwritten, not added to",
+    (await query<{ pick: string }>(
+      `SELECT pr.pick FROM predictions pr
+         JOIN participants pa ON pa.id = pr.participant_id
+         JOIN users u ON u.id = pa.user_id
+        WHERE pa.competition_id = $1 AND u.telegram_id = $2
+        ORDER BY pr.competition_fixture_id`,
+      [comp.id, TG_ID],
+    )).map((row) => row.pick),
+    ["A", "H"],
+  );
+
+  // Put the first answer back, because the lock test below asserts on it.
+  await tap(`pick_${comp.id}_0_H`);
+}
+
 // =============================================================== the lock
 {
   await query(

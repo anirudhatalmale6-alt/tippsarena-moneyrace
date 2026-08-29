@@ -5,7 +5,7 @@
  * times, ticks the matches, and publishes. No code, and it works on a phone.
  */
 import { query } from "@/lib/db.ts";
-import { utcToZonedInput, when } from "@/lib/templates.ts";
+import { utcToZonedInput, whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, requireAdmin } from "../../shell.tsx";
 import { actionCreateCompetition } from "../../actions.ts";
 
@@ -245,7 +245,7 @@ export default async function NewCompetitionPage({
               <span>
                 <strong>{f.home_team}</strong> — <strong>{f.away_team}</strong>
                 <div className="hint">
-                  {when(f.kickoff_at, tz)} · {f.league_name ?? "?"}
+                  {whenAdmin(f.kickoff_at, tz)} · {f.league_name ?? "?"}
                 </div>
               </span>
             </label>

@@ -61,7 +61,7 @@ export async function importFixtures(
   await audit(
     adminUserId,
     "fixtures.import",
-    `${rows.length} Spiele importiert (Liga ${leagueId}, ${from} bis ${to})`,
+    `${rows.length} matches imported (league ${leagueId}, ${from} to ${to})`,
     "league",
     leagueId,
   );
@@ -125,7 +125,7 @@ export async function createCompetition(
     ],
   );
   const id = rows[0].id;
-  await audit(adminUserId, "competition.create", `Wettbewerb "${input.name}" angelegt`,
+  await audit(adminUserId, "competition.create", `Competition "${input.name}" created`,
     "competition", id, undefined, input);
   log.info(`competition ${id} "${input.name}" created`);
   return id;
@@ -146,7 +146,7 @@ export async function setCompetitionFixtures(
     // prediction already made. Refused outright rather than half-applied.
     if (rows[0] && !["draft", "open"].includes(rows[0].status)) {
       throw new Error(
-        `Spiele können nur im Entwurf oder vor dem Tippschluss geändert werden (Status: ${rows[0].status})`,
+        `Matches can only be changed while the competition is a draft or still open (status: ${rows[0].status})`,
       );
     }
     await client.query(
@@ -164,7 +164,7 @@ export async function setCompetitionFixtures(
     }
   });
   await audit(adminUserId, "competition.fixtures",
-    `${fixtureIds.length} Spiele zugeordnet`, "competition", competitionId);
+    `${fixtureIds.length} matches assigned`, "competition", competitionId);
 }
 
 /** Move a draft to published so the worker will open it (spec §14). */
@@ -181,14 +181,14 @@ export async function publishCompetition(
        FROM competitions c WHERE c.id = $1`,
     [competitionId],
   );
-  if (!competition) throw new Error("Wettbewerb nicht gefunden");
-  if (!competition.locks_at) throw new Error("Ohne Tippschluss kann nicht veröffentlicht werden");
+  if (!competition) throw new Error("Competition not found");
+  if (!competition.locks_at) throw new Error("Cannot publish without a lock time");
   // A giveaway has no matches by design; anything else without matches would
   // publish an empty competition to the channel.
   const type = await one<{ type: string }>(
     "SELECT type FROM competitions WHERE id = $1", [competitionId]);
   if (type?.type !== "giveaway" && competition.matches === 0) {
-    throw new Error("Ohne Spiele kann nicht veröffentlicht werden");
+    throw new Error("Cannot publish without any matches");
   }
 
   await query(
@@ -224,7 +224,7 @@ export async function publishCompetition(
     );
   }
   await audit(adminUserId, "competition.publish",
-    `Wettbewerb "${competition.name}" veröffentlicht`, "competition", competitionId);
+    `Competition "${competition.name}" published`, "competition", competitionId);
 }
 
 /** Copy a competition, without its participants (spec §16). */
@@ -247,7 +247,7 @@ export async function duplicateCompetition(
   );
   const id = rows[0].id;
   await audit(adminUserId, "competition.duplicate",
-    `Wettbewerb #${competitionId} dupliziert zu "${newName}"`,
+    `Competition #${competitionId} duplicated to "${newName}"`,
     "competition", id);
   return id;
 }
@@ -276,7 +276,7 @@ export async function drawGiveaway(
       ORDER BY pa.id`,
     [competitionId],
   );
-  if (!pool.length) throw new Error("Keine Teilnehmer - es kann nicht gelost werden");
+  if (!pool.length) throw new Error("No participants - there is nobody to draw");
 
   const seed = crypto.randomUUID();
   // Uniform over the pool, from the platform's cryptographic source rather than
@@ -310,7 +310,7 @@ export async function drawGiveaway(
   });
 
   await audit(adminUserId, "giveaway.draw",
-    `Gewinner aus ${pool.length} Teilnehmern gelost`, "competition", competitionId);
+    `Winner drawn from ${pool.length} participants`, "competition", competitionId);
   return { winnerUserId, poolSize: pool.length, seed };
 }
 

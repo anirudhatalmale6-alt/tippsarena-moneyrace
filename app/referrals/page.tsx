@@ -1,6 +1,6 @@
 /** Referrals (spec §20). */
 import { query } from "@/lib/db.ts";
-import { when } from "@/lib/templates.ts";
+import { whenAdmin } from "@/lib/templates.ts";
 import { Shell, requireAdmin } from "../shell.tsx";
 
 export const dynamic = "force-dynamic";
@@ -112,7 +112,7 @@ export default async function ReferralsPage() {
               <tbody>
                 {recent.map((r, i) => (
                   <tr key={i}>
-                    <td>{when(r.created_at)}</td>
+                    <td>{whenAdmin(r.created_at)}</td>
                     <td>{r.referrer ? `@${r.referrer}` : "-"}</td>
                     <td>
                       {r.referred ? `@${r.referred}` : <span className="mono">{r.referred_id}</span>}

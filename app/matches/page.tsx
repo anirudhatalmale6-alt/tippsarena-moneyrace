@@ -1,6 +1,6 @@
 /** Match import (spec §13). */
 import { query } from "@/lib/db.ts";
-import { when } from "@/lib/templates.ts";
+import { whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
 import { actionImportFixtures } from "../actions.ts";
 
@@ -126,7 +126,7 @@ export default async function FixturesPage({
               <tbody>
                 {upcoming.map((f) => (
                   <tr key={f.id}>
-                    <td>{when(f.kickoff_at, tz)}</td>
+                    <td>{whenAdmin(f.kickoff_at, tz)}</td>
                     <td className="wrap">
                       {f.home_team} — {f.away_team}
                     </td>

@@ -1,6 +1,6 @@
 /** Participants (spec §28), searchable by username, Telegram id or competition. */
 import { query } from "@/lib/db.ts";
-import { when } from "@/lib/templates.ts";
+import { whenAdmin } from "@/lib/templates.ts";
 import { Shell, requireAdmin } from "../shell.tsx";
 
 export const dynamic = "force-dynamic";
@@ -103,7 +103,7 @@ export default async function ParticipantsPage({
                   <td className="wrap">
                     <a href={`/competitions/${r.competition_id}`}>{r.competition}</a>
                   </td>
-                  <td>{when(r.joined_at)}</td>
+                  <td>{whenAdmin(r.joined_at)}</td>
                   <td>{r.completed ? "✅" : "—"}</td>
                   <td>{r.points}</td>
                   <td>{r.rank ?? "-"}</td>

@@ -136,6 +136,31 @@ export function when(
 }
 
 /**
+ * The same instant, for the dashboard.
+ *
+ * `when` is German because it goes into the channel and the bot. The dashboard
+ * is English, and "Sa., 29.08." in an otherwise English table is exactly the
+ * kind of half-translated screen he asked me to get rid of. en-GB with a
+ * spelled-out month also removes the 29/08 vs 08/29 ambiguity for good.
+ */
+export function whenAdmin(
+  date: Date | string | null,
+  timeZone = "Europe/Berlin",
+): string {
+  if (!date) return "-";
+  const value = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone,
+  }).format(value);
+}
+
+/**
  * A wall-clock time typed by the operator, turned into a real instant.
  *
  * A <input type="datetime-local"> gives "2026-08-29T15:25" with no timezone.

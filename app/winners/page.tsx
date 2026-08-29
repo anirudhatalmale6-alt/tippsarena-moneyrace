@@ -5,7 +5,7 @@
  * to record that he has paid it.
  */
 import { query } from "@/lib/db.ts";
-import { money, when } from "@/lib/templates.ts";
+import { money, whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
 import { actionMarkPaid } from "../actions.ts";
 
@@ -103,8 +103,8 @@ export default async function WinnersPage({
                     <td>
                       <span className={`badge ${badge(r.status)}`}>{r.status}</span>
                     </td>
-                    <td>{when(r.created_at)}</td>
-                    <td>{r.paid_at ? when(r.paid_at) : "-"}</td>
+                    <td>{whenAdmin(r.created_at)}</td>
+                    <td>{r.paid_at ? whenAdmin(r.paid_at) : "-"}</td>
                     <td>
                       {r.status === "pending" ? (
                         <form action={actionMarkPaid}>

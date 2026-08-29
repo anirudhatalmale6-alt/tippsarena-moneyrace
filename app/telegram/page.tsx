@@ -1,7 +1,7 @@
 /** Telegram: message templates and publishing (spec §30, §31, §32). */
 import { query } from "@/lib/db.ts";
 import { listTemplates } from "@/lib/templates.ts";
-import { when } from "@/lib/templates.ts";
+import { whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
 import { actionRetryNotification, actionSaveTemplate, actionSendTemplate } from "../actions.ts";
 
@@ -172,7 +172,7 @@ export default async function TelegramPage({
                   <tr key={n.id}>
                     <td className="wrap">{n.competition}</td>
                     <td>{n.kind}</td>
-                    <td>{when(n.due_at)}</td>
+                    <td>{whenAdmin(n.due_at)}</td>
                     <td>{n.attempts}</td>
                     <td className="wrap muted">{n.last_error ?? "-"}</td>
                     <td>
@@ -210,7 +210,7 @@ export default async function TelegramPage({
               <tbody>
                 {sent.map((m) => (
                   <tr key={m.id}>
-                    <td>{when(m.sent_at)}</td>
+                    <td>{whenAdmin(m.sent_at)}</td>
                     <td>
                       <span className={`badge ${m.status === "sent" ? "green" : "red"}`}>
                         {m.status}

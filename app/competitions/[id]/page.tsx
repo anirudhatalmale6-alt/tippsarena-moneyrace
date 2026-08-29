@@ -5,7 +5,7 @@
 import { notFound } from "next/navigation";
 import { competitionFixtures, leaderboard } from "@/lib/competitions.ts";
 import { one, query } from "@/lib/db.ts";
-import { money, utcToZonedInput, when } from "@/lib/templates.ts";
+import { money, utcToZonedInput, whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, StatusBadge, requireAdmin } from "../../shell.tsx";
 import {
   actionDrawGiveaway,
@@ -121,7 +121,7 @@ export default async function CompetitionPage({
         <div className="card">
           <div className="label">Lock</div>
           <div className="value" style={{ fontSize: 17 }}>
-            {when(competition.locks_at, tz)}
+            {whenAdmin(competition.locks_at, tz)}
           </div>
         </div>
       </div>
@@ -178,7 +178,7 @@ export default async function CompetitionPage({
 
       {draw ? (
         <Notice>
-          🎁 Drawn on {when(draw.drawn_at, tz)} from {draw.pool_size} participants.
+          🎁 Drawn on {whenAdmin(draw.drawn_at, tz)} from {draw.pool_size} participants.
           Winner: {draw.username ? `@${draw.username}` : "(no username)"}
         </Notice>
       ) : null}
@@ -306,7 +306,7 @@ export default async function CompetitionPage({
                     <td className="wrap">
                       {f.home_team} — {f.away_team}
                     </td>
-                    <td>{when(f.kickoff_at, tz)}</td>
+                    <td>{whenAdmin(f.kickoff_at, tz)}</td>
                     <td>
                       <span className={`badge ${f.outcome ? "green" : ""}`}>{f.status}</span>
                     </td>
@@ -372,7 +372,7 @@ export default async function CompetitionPage({
                 <span>
                   <strong>{f.home_team}</strong> — <strong>{f.away_team}</strong>
                   <div className="hint">
-                    {when(f.kickoff_at, tz)} · {f.league_name ?? "?"}
+                    {whenAdmin(f.kickoff_at, tz)} · {f.league_name ?? "?"}
                   </div>
                 </span>
               </label>

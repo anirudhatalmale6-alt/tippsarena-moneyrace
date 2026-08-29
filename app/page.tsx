@@ -1,6 +1,6 @@
 /** Dashboard home (spec §26). */
 import { query } from "@/lib/db.ts";
-import { money, when } from "@/lib/templates.ts";
+import { money, whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, StatusBadge, requireAdmin } from "./shell.tsx";
 
 export const dynamic = "force-dynamic";
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
                     <td><StatusBadge status={c.status} /></td>
                     <td>{money(c.prize_amount, c.currency)}</td>
                     <td>{c.participants}</td>
-                    <td>{when(c.locks_at)}</td>
+                    <td>{whenAdmin(c.locks_at)}</td>
                     <td>
                       <a className="button secondary small" href={`/competitions/${c.id}`}>
                         Open
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
         ) : (
           recent.map((row, i) => (
             <div key={i} style={{ padding: "5px 0" }}>
-              <span className="muted mono">{when(row.created_at)}</span> {row.summary}
+              <span className="muted mono">{whenAdmin(row.created_at)}</span> {row.summary}
             </div>
           ))
         )}

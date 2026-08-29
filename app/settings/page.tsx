@@ -1,6 +1,6 @@
 /** Settings (spec §38, §43, §44) - and the rules text, which is not hard-coded. */
 import { query } from "@/lib/db.ts";
-import { when } from "@/lib/templates.ts";
+import { whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
 import { actionLogout, actionSaveSettings } from "../actions.ts";
 
@@ -186,7 +186,7 @@ export default async function SettingsPage({
               <tbody>
                 {audits.map((a, i) => (
                   <tr key={i}>
-                    <td>{when(a.created_at)}</td>
+                    <td>{whenAdmin(a.created_at)}</td>
                     <td className="mono muted">{a.action}</td>
                     <td className="wrap">{a.summary}</td>
                   </tr>

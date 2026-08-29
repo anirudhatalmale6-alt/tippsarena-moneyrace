@@ -1,6 +1,6 @@
 /** Competitions list (spec §27). */
 import { query } from "@/lib/db.ts";
-import { money, when } from "@/lib/templates.ts";
+import { money, whenAdmin } from "@/lib/templates.ts";
 import { Shell, StatusBadge, requireAdmin } from "../shell.tsx";
 
 export const dynamic = "force-dynamic";
@@ -96,8 +96,8 @@ export default async function CompetitionsPage({
                     <td>{money(c.prize_amount, c.currency)}</td>
                     <td>{c.matches}</td>
                     <td>{c.participants}</td>
-                    <td>{when(c.opens_at)}</td>
-                    <td>{when(c.locks_at)}</td>
+                    <td>{whenAdmin(c.opens_at)}</td>
+                    <td>{whenAdmin(c.locks_at)}</td>
                     <td>
                       <div className="actions">
                         <a className="button secondary small" href={`/competitions/${c.id}`}>
