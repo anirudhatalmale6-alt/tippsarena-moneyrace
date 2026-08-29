@@ -28,6 +28,22 @@ export const L = {
   completeMissing: "⚠️ FEHLENDE TIPPS ABGEBEN",
   yourPicks: "DEINE TIPPS",
 
+  // giveaways
+  enterGiveaway: "🎁 AM GIVEAWAY TEILNEHMEN",
+  myEntry: "🏆 MEINE TEILNAHME",
+  entered: "Du bist dabei!",
+  alreadyEntered: "Du bist bereits dabei.",
+  giveawayClosed: "Dieses Giveaway ist bereits beendet.",
+  youAreIn: "Du bist dabei.",
+  youWon: "Du hast gewonnen! Wir haben dir eine Nachricht geschickt.",
+  drawPending: "🔔 Wir informieren dich, sobald der Gewinner feststeht.",
+  notEntered: "Du nimmst an diesem Giveaway noch nicht teil.",
+  notDrawn: "Teilnahme registriert · Auslosung ausstehend",
+
+  // exact score
+  howDoesItEnd: "Wie endet das Spiel?",
+  submitScore: "✅ TIPP ABGEBEN",
+
   // predicting
   draw: "Unentschieden",
   back: "◀️ ZURÜCK",

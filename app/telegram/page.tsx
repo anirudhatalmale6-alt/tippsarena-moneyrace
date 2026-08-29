@@ -229,7 +229,8 @@ export default async function TelegramPage({
                         ? "-"
                         : `${b.sent}/${b.recipients}${b.failed ? ` (${b.failed} unreachable)` : ""}`}
                     </td>
-                    <td className="wrap muted">{b.error ?? b.body}</td>
+                    {/* message content, not dashboard chrome: it is German on purpose */}
+                    <td className="wrap muted lp-content">{b.error ?? b.body}</td>
                   </tr>
                 ))}
               </tbody>
@@ -304,7 +305,7 @@ export default async function TelegramPage({
                         {m.status}
                       </span>
                     </td>
-                    <td className="wrap muted">{m.error ?? m.body}</td>
+                    <td className="wrap muted lp-content">{m.error ?? m.body}</td>
                   </tr>
                 ))}
               </tbody>

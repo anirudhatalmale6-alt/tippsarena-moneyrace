@@ -42,6 +42,17 @@ export async function queueBroadcast(input: {
   competitionId?: number | null;
   templateKey?: string | null;
   adminUserId?: number | null;
+  /**
+   * Hold it until this moment. The worker only claims broadcasts whose
+   * created_at has passed, so a future value means "not yet".
+   *
+   * This exists because of a real accident: the giveaway tests called the
+   * announcement code against the live database, the row was due immediately,
+   * and the running worker posted six test messages to his real channel before
+   * the test could clean up. Setting the time AFTER the insert leaves a window;
+   * the only safe version is that the row is never due in the first place.
+   */
+  notBefore?: Date;
 }): Promise<QueuedBroadcast> {
   const body = input.body.trim();
   if (!body) throw new Error("The message is empty - nothing was sent");
@@ -51,8 +62,9 @@ export async function queueBroadcast(input: {
 
   const rows = await query<{ id: number }>(
     `INSERT INTO broadcasts
-       (competition_id, audience, template_key, body, buttons, recipients, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7)
+       (competition_id, audience, template_key, body, buttons, recipients,
+        created_by, created_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7, COALESCE($8::timestamptz, now()))
      RETURNING id`,
     [
       input.competitionId ?? null,
@@ -62,6 +74,7 @@ export async function queueBroadcast(input: {
       JSON.stringify(input.buttons ?? []),
       recipients,
       input.adminUserId ?? null,
+      input.notBefore ?? null,
     ],
   );
   return { id: rows[0].id, recipients };

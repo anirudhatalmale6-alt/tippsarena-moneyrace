@@ -102,9 +102,55 @@ export async function setManualResult(
   log.info(`manual result set on fixture ${fixtureId}: ${homeGoals}-${awayGoals}`);
 }
 
-/** Hand a result back to the API's control. */
+/**
+ * Hand a result back to the API's control.
+ *
+ * Clearing the flag is not enough. `fixturesNeedingResults` only looks at
+ * fixtures whose outcome is still NULL, so a hand-typed score left behind after
+ * un-flagging would keep the match out of the poll for ever - the API would
+ * never get the chance to correct it, and the competition would be scored
+ * against a number somebody typed.
+ *
+ * So: if the provider has not actually reported the match finished, the score
+ * goes with the flag. A genuinely finished match keeps what it has until the
+ * next poll refreshes it.
+ *
+ * "Has the provider said finished?" is asked of `raw`, which only the API
+ * upsert ever writes - NOT of `status`, because setManualResult sets status to
+ * 'FT' itself. Asking the status column would be asking the hand-typed row to
+ * vouch for itself, and it says yes every time.
+ */
+const PROVIDER_FINISHED =
+  `raw #>> '{fixture,status,short}' IN ('FT','AET','PEN')`;
+
 export async function clearManualResult(fixtureId: number): Promise<void> {
-  await query(`UPDATE fixtures SET manual = FALSE WHERE id = $1`, [fixtureId]);
+  await query(
+    `UPDATE fixtures
+        SET manual = FALSE,
+            home_goals  = CASE WHEN ${PROVIDER_FINISHED} THEN home_goals  ELSE NULL END,
+            away_goals  = CASE WHEN ${PROVIDER_FINISHED} THEN away_goals  ELSE NULL END,
+            outcome     = CASE WHEN ${PROVIDER_FINISHED} THEN outcome     ELSE NULL END,
+            status      = CASE WHEN ${PROVIDER_FINISHED} THEN status
+                               ELSE COALESCE(raw #>> '{fixture,status,short}', 'NS') END,
+            finished_at = CASE WHEN ${PROVIDER_FINISHED} THEN finished_at ELSE NULL END,
+            updated_at  = now()
+      WHERE id = $1`,
+    [fixtureId],
+  );
+}
+
+/**
+ * A hand-typed result for a match that has not kicked off yet is almost always
+ * a mis-click, and it is the expensive kind: `manual` locks the API out for
+ * good, so the invented score is the one the competition is scored against.
+ * The dashboard asks before storing one.
+ */
+export async function kickoffInFuture(fixtureId: number): Promise<boolean> {
+  const row = await one<{ future: boolean }>(
+    "SELECT kickoff_at > now() AS future FROM fixtures WHERE id = $1",
+    [fixtureId],
+  );
+  return Boolean(row?.future);
 }
 
 /**

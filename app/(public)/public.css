@@ -184,3 +184,146 @@
 @media (max-width: 460px) {
   .lp-grid, .lp-grid.lp-2, .lp-grid.lp-4 { grid-template-columns: 1fr; }
 }
+
+/* ============================================================ ad pages
+   /moneyrace and /dach are paid-traffic pages: a Facebook click, a phone, a
+   thumb, and about three seconds. Everything below exists to shorten the path
+   from that click to the Telegram chat - one action, repeated, never competing
+   with a second one. No web fonts and no images: the whole page is one HTML
+   response and this stylesheet, because a page that waits is a page that
+   loses the click it paid for. */
+
+.lp-ad { --lp-accent: #c6f24e; }
+
+/* ---- the ticker. Two identical halves scrolling as one, so it never gaps. */
+.lp-ticker {
+  background: var(--lp-accent); color: #0a1400; overflow: hidden;
+  white-space: nowrap; font-weight: 800; font-size: 12.5px;
+  letter-spacing: 1.4px; text-transform: uppercase; padding: 8px 0;
+}
+.lp-ticker div { display: inline-block; animation: lp-slide 26s linear infinite; }
+.lp-ticker span { padding: 0 22px; }
+@keyframes lp-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* Someone who has asked for less motion gets a static bar, not a stopped one. */
+@media (prefers-reduced-motion: reduce) {
+  .lp-ticker div { animation: none; }
+}
+
+/* ---- hero */
+.lp-ad .lp-hero {
+  padding: 40px 0 40px;
+  background:
+    radial-gradient(760px 380px at 50% -60px, rgba(198,242,78,.20), transparent 72%),
+    radial-gradient(900px 500px at 50% 40%, rgba(34,197,94,.10), transparent 70%),
+    linear-gradient(180deg, #080d13 0%, var(--lp-bg) 100%);
+}
+.lp-ad .lp-hero h1 {
+  font-size: clamp(31px, 7.4vw, 60px); line-height: 1.02;
+  letter-spacing: -1.2px; text-transform: uppercase;
+}
+.lp-ad .lp-hero h1 em { color: var(--lp-accent); font-style: normal; }
+.lp-eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--lp-muted); margin-bottom: 12px;
+}
+.lp-pill {
+  display: inline-block; border: 1px solid var(--lp-line); border-radius: 999px;
+  padding: 7px 16px; font-size: 12.5px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--lp-muted); margin-bottom: 22px;
+}
+
+/* ---- the money panel: the one number the whole page is about */
+.lp-pot {
+  position: relative; margin: 26px auto 0; max-width: 520px;
+  background: #0c1219; border: 1px solid rgba(198,242,78,.35);
+  border-radius: 20px; padding: 26px 22px 22px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 6px rgba(198,242,78,.05);
+}
+.lp-pot .lp-amount {
+  font-size: clamp(46px, 13vw, 84px); font-weight: 800; line-height: .95;
+  letter-spacing: -2.5px; color: var(--lp-accent);
+  font-variant-numeric: tabular-nums;
+}
+.lp-pot .lp-for { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--lp-muted); }
+.lp-flag {
+  position: absolute; top: -14px; right: -10px; transform: rotate(7deg);
+  background: var(--lp-accent); color: #0a1400; font-weight: 800;
+  font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 14px; border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.5);
+}
+
+/* ---- countdown */
+.lp-clock { display: flex; gap: 8px; justify-content: center; margin-top: 18px; }
+.lp-clock div {
+  min-width: 62px; background: #0a1017; border: 1px solid var(--lp-line);
+  border-radius: 12px; padding: 9px 6px;
+}
+.lp-clock b {
+  display: block; font-size: 25px; font-weight: 800; line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.lp-clock small {
+  display: block; font-size: 10px; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--lp-muted);
+}
+.lp-clock.lp-over b { color: var(--lp-muted); }
+
+/* ---- the one button, everywhere */
+.lp-ad .lp-cta {
+  background: var(--lp-accent); color: #0a1400;
+  font-size: 18px; padding: 18px 38px; text-transform: uppercase;
+  letter-spacing: .6px;
+  box-shadow: 0 12px 34px rgba(198,242,78,.28);
+}
+.lp-ad .lp-cta:hover { background: #d4ff5e; }
+.lp-ad .lp-cta.lp-ghost {
+  background: transparent; color: var(--lp-text); box-shadow: none;
+}
+
+/* ---- pain points */
+.lp-pains { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lp-pains li {
+  background: var(--lp-card); border: 1px solid var(--lp-line);
+  border-radius: 12px; padding: 14px 16px 14px 46px; position: relative;
+  color: var(--lp-text); font-size: 15.5px;
+}
+.lp-pains li::before {
+  content: "✓"; position: absolute; left: 16px; top: 13px;
+  color: var(--lp-accent); font-weight: 800;
+}
+
+/* ---- quote */
+.lp-quote {
+  background: var(--lp-card); border-left: 3px solid var(--lp-accent);
+  border-radius: 0 14px 14px 0; padding: 22px 24px;
+}
+.lp-quote p { margin: 0; font-size: 17px; line-height: 1.6; }
+.lp-quote cite {
+  display: block; margin-top: 12px; font-style: normal; font-size: 12.5px;
+  letter-spacing: 1.6px; text-transform: uppercase; color: var(--lp-muted);
+}
+
+/* ---- sticky bar. The thumb is at the bottom of the phone, so the button is
+   too. Desktop keeps the in-page buttons and never sees this. */
+.lp-stick {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: rgba(8,13,19,.94); border-top: 1px solid var(--lp-line);
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  backdrop-filter: blur(8px); display: none;
+}
+.lp-stick .lp-cta { display: block; width: 100%; text-align: center; padding: 15px; }
+@media (max-width: 760px) {
+  .lp-stick { display: block; }
+  /* Room for the bar, so it never covers the last line of the footer. */
+  .lp-ad .lp-foot { padding-bottom: 104px; }
+  .lp-flag { right: 6px; }
+}
+
+/* ---- legal. Facebook wants the distance from Meta stated, and it has to be
+   readable rather than hidden - a disclaimer nobody can read is not one. */
+.lp-legal {
+  border-top: 1px solid var(--lp-line); margin-top: 26px; padding-top: 20px;
+  font-size: 11.5px; line-height: 1.65; color: #6f7f90; text-align: left;
+}
+.lp-legal strong { color: var(--lp-muted); }

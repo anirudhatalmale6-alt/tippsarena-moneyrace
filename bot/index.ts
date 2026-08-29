@@ -27,6 +27,7 @@ import {
   type Competition,
   type CompetitionFixture,
 } from "../lib/competitions.ts";
+import { enterGiveaway } from "../lib/giveaway.ts";
 import { money, render, when, escapeHtml } from "../lib/templates.ts";
 import {
   parseStartPayload,
@@ -156,10 +157,16 @@ bot.callbackQuery("competitions", async (ctx) => {
   }
   const tz = await timezone();
   const keyboard = new InlineKeyboard();
+  const ICON: Record<string, string> = {
+    giveaway: "🎁",
+    exact_score: "🎯",
+    moneyrace: "🏁",
+  };
   for (const competition of open) {
     keyboard
       .text(
-        `${competition.name} — ${money(competition.prize_amount, competition.currency)}`,
+        `${ICON[competition.type] ?? "🏁"} ${competition.name} — ` +
+          `${money(competition.prize_amount, competition.currency)}`,
         `comp_${competition.id}`,
       )
       .row();
@@ -211,8 +218,18 @@ async function showCompetition(
     // funnel, and the operator sees the warning in the log.
   }
 
-  const fixtures = await competitionFixtures(competitionId);
   const tz = await timezone();
+
+  // The competition type decides the whole interface from here on. A giveaway
+  // has no matches, no predictions and no lock, so none of the words below
+  // ("0 Spiele", "0 Tipps", "Tippschluss") mean anything in one - and printing
+  // them anyway is what made it look broken.
+  if (competition.type === "giveaway") {
+    await showGiveaway(ctx, user, competition);
+    return;
+  }
+
+  const fixtures = await competitionFixtures(competitionId);
   const participant = await joinCompetition(competitionId, user.id);
 
   // Somebody who has already finished must not be dropped straight back into
@@ -222,6 +239,23 @@ async function showCompetition(
   // say plainly that it counts once, and make changing it a deliberate step.
   if (participant.completed) {
     await showEntry(ctx, participant.id, competition, fixtures, tz);
+    return;
+  }
+
+  if (competition.type === "exact_score") {
+    const intro = await render("exact_intro", {
+      name: competition.name,
+      prize: money(competition.prize_amount, competition.currency),
+      match: fixtures.length
+        ? `${fixtures[0].home_team} — ${fixtures[0].away_team}`
+        : "-",
+      lock_time: when(competition.locks_at, tz),
+    });
+    const keyboard = new InlineKeyboard().text(
+      L.startPicks,
+      `play_${competitionId}_0`,
+    );
+    await ctx.reply(intro.text, { parse_mode: "HTML", reply_markup: keyboard });
     return;
   }
 
@@ -239,6 +273,134 @@ async function showCompetition(
   await ctx.reply(intro.text, { parse_mode: "HTML", reply_markup: keyboard });
 }
 
+// --------------------------------------------------------------- giveaways
+/**
+ * The giveaway screen: prize, number of winners, one button.
+ *
+ * Looking at it does NOT enter you. `joinCompetition` is deliberately not
+ * called here - entering is the button, and only the button.
+ */
+async function showGiveaway(
+  ctx: any,
+  user: User,
+  competition: Competition,
+): Promise<void> {
+  const already = await one<{ id: number }>(
+    "SELECT id FROM participants WHERE competition_id = $1 AND user_id = $2",
+    [competition.id, user.id],
+  );
+
+  if (already) {
+    await showGiveawayEntry(ctx, competition);
+    return;
+  }
+
+  const intro = await render("giveaway_intro", {
+    name: competition.name,
+    prize: money(competition.prize_amount, competition.currency),
+    winner_count: competition.winner_count,
+    description: competition.description ?? "",
+  });
+
+  const keyboard = new InlineKeyboard()
+    .text(L.enterGiveaway, `give_${competition.id}`).row()
+    .text(L.rules, "rules").row()
+    .text(L.backToMenu, "menu");
+
+  await ctx.reply(intro.text, { parse_mode: "HTML", reply_markup: keyboard });
+}
+
+/** The confirmation, and the same screen on every later visit. */
+async function showGiveawayEntry(
+  ctx: any,
+  competition: Competition,
+  justEntered = false,
+): Promise<void> {
+  const message = await render(
+    justEntered ? "giveaway_entered" : "giveaway_already_entered",
+    {
+      name: competition.name,
+      prize: money(competition.prize_amount, competition.currency),
+    },
+  );
+
+  const keyboard = new InlineKeyboard()
+    .text(L.myEntry, `give_status_${competition.id}`).row()
+    .text(L.rules, "rules").row()
+    .text(L.backToMenu, "menu");
+
+  await ctx.reply(message.text, { parse_mode: "HTML", reply_markup: keyboard });
+}
+
+bot.callbackQuery(/^give_(\d+)$/, async (ctx) => {
+  const competitionId = Number(ctx.match![1]);
+  const { user } = await upsertUser(ctx.from!);
+  const competition = await getCompetition(competitionId);
+
+  if (!competition || competition.type !== "giveaway") {
+    await ctx.answerCallbackQuery();
+    await ctx.reply(L.notFound, { reply_markup: await mainMenu() });
+    return;
+  }
+  if (!isOpenForPredictions(competition)) {
+    await ctx.answerCallbackQuery({ text: L.giveawayClosed, show_alert: true });
+    const closed = await render("predictions_locked");
+    await ctx.reply(closed.text, {
+      parse_mode: "HTML",
+      reply_markup: await mainMenu(),
+    });
+    return;
+  }
+  // The gate again, at the moment it matters: the screen he came from may have
+  // been sitting on his phone since before he left the channel.
+  if (competition.requires_membership) {
+    const member = await isChannelMember(user.telegram_id);
+    if (member === false) {
+      await ctx.answerCallbackQuery();
+      await rememberMembership(user.id, false);
+      const prompt = await render("membership_required");
+      await ctx.reply(prompt.text, {
+        parse_mode: "HTML",
+        reply_markup: await keyboardFor(prompt.buttons, { competitionId }),
+      });
+      return;
+    }
+    if (member === true) await rememberMembership(user.id, true);
+  }
+
+  const { isNew } = await enterGiveaway(competitionId, user.id);
+  await ctx.answerCallbackQuery({ text: isNew ? L.entered : L.alreadyEntered });
+  await showGiveawayEntry(ctx, competition, isNew);
+});
+
+bot.callbackQuery(/^give_status_(\d+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const competitionId = Number(ctx.match![1]);
+  const { user } = await upsertUser(ctx.from!);
+  const competition = await getCompetition(competitionId);
+  if (!competition) return;
+
+  const entry = await one<{ joined_at: Date; is_winner: boolean }>(
+    "SELECT joined_at, is_winner FROM participants WHERE competition_id = $1 AND user_id = $2",
+    [competitionId, user.id],
+  );
+  const tz = await timezone();
+
+  // Their own entry and nothing else. A participant list is admin-only (§9):
+  // the entrants are other people's data, and nobody here needs to see it.
+  const text = entry
+    ? `🎁 <b>${escapeHtml(competition.name)}</b>\n\n` +
+      `✅ ${L.youAreIn}\n` +
+      `🕒 ${when(entry.joined_at, tz)}\n` +
+      (entry.is_winner ? `\n🏆 <b>${L.youWon}</b>` : `\n${L.drawPending}`)
+    : `${L.notEntered}`;
+
+  await ctx.reply(text, {
+    parse_mode: "HTML",
+    reply_markup: new InlineKeyboard().text(L.backToMenu, "menu"),
+  });
+});
+
 /** The "you are already in" screen, with the picks they gave. */
 async function showEntry(
   ctx: any,
@@ -253,10 +415,20 @@ async function showEntry(
     D: () => L.draw,
     A: (f) => f.away_team,
   };
+  const exact = competition.type === "exact_score";
 
   const lines = fixtures.map((fixture) => {
-    const pick = made.get(fixture.competition_fixture_id)?.pick;
-    const chosen = pick ? PICK_LABEL[pick](fixture) : "—";
+    const answer = made.get(fixture.competition_fixture_id);
+    // An exact-score entry is read back as the scoreline he typed. Showing
+    // "Mainz" there would be true and useless - it is not what he chose.
+    const chosen = exact
+      ? answer?.homeGoals !== null && answer?.homeGoals !== undefined &&
+        answer?.awayGoals !== null && answer?.awayGoals !== undefined
+        ? `${answer.homeGoals}:${answer.awayGoals}`
+        : "—"
+      : answer?.pick
+      ? PICK_LABEL[answer.pick](fixture)
+      : "—";
     return (
       `${escapeHtml(fixture.home_team)} — ${escapeHtml(fixture.away_team)}\n` +
       `   ➜ <b>${escapeHtml(chosen)}</b>`
@@ -318,6 +490,20 @@ async function askMatch(
   const fixture = fixtures[index];
   const current = existing.get(fixture.competition_fixture_id);
 
+  // An exact-score competition asks for a scoreline, never for home/draw/away.
+  if (competition.type === "exact_score") {
+    await askExactScore(
+      ctx,
+      competition,
+      fixtures,
+      index,
+      current?.homeGoals ?? 0,
+      current?.awayGoals ?? 0,
+      false,
+    );
+    return;
+  }
+
   const tick = (pick: string) => (current?.pick === pick ? " ✅" : "");
   const keyboard = new InlineKeyboard()
     .text(
@@ -345,6 +531,154 @@ async function askMatch(
 
   await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
 }
+
+// ------------------------------------------------------------ exact score
+const MAX_GOALS = 20;
+
+/**
+ * The scoreline picker: two counters and a submit button.
+ *
+ * The score in progress lives in the callback data, not in the database and not
+ * in memory. Two consequences that both matter: nothing is written until he
+ * presses TIPP ABGEBEN, so a half-adjusted counter is never a stored
+ * prediction; and the bot can be restarted mid-tap without losing where he was.
+ */
+async function askExactScore(
+  ctx: any,
+  competition: Competition,
+  fixtures: CompetitionFixture[],
+  index: number,
+  home: number,
+  away: number,
+  edit: boolean,
+): Promise<void> {
+  const fixture = fixtures[index];
+  const tz = await timezone();
+  const h = Math.min(MAX_GOALS, Math.max(0, home));
+  const a = Math.min(MAX_GOALS, Math.max(0, away));
+  const at = `${competition.id}_${index}_${h}_${a}`;
+
+  const keyboard = new InlineKeyboard()
+    .text("➖", `exh_${at}_-1`)
+    .text(`${escapeHtml(fixture.home_team)}: ${h}`, "noop")
+    .text("➕", `exh_${at}_1`)
+    .row()
+    .text("➖", `exa_${at}_-1`)
+    .text(`${escapeHtml(fixture.away_team)}: ${a}`, "noop")
+    .text("➕", `exa_${at}_1`)
+    .row()
+    .text(L.submitScore, `exs_${at}`)
+    .row();
+
+  if (index > 0) keyboard.text(L.back, `play_${competition.id}_${index - 1}`);
+  if (index < fixtures.length - 1) {
+    keyboard.text(L.skip, `play_${competition.id}_${index + 1}`);
+  }
+
+  const text =
+    `⚽ <b>${escapeHtml(fixture.home_team)} — ${escapeHtml(fixture.away_team)}</b>\n` +
+    `🕒 ${when(fixture.kickoff_at, tz)}\n\n` +
+    `<b>${L.howDoesItEnd}</b>\n\n` +
+    `🎯 ${escapeHtml(fixture.home_team)} <b>${h}</b> : <b>${a}</b> ${escapeHtml(fixture.away_team)}`;
+
+  if (edit) {
+    // editMessageText throws when the text and keyboard are both unchanged -
+    // which happens on every ➖ at zero. Not an error worth showing anyone.
+    try {
+      await ctx.editMessageText(text, { parse_mode: "HTML", reply_markup: keyboard });
+      return;
+    } catch {
+      return;
+    }
+  }
+  await ctx.reply(text, { parse_mode: "HTML", reply_markup: keyboard });
+}
+
+bot.callbackQuery("noop", async (ctx) => {
+  await ctx.answerCallbackQuery();
+});
+
+bot.callbackQuery(/^ex([ha])_(\d+)_(\d+)_(\d+)_(\d+)_(-?\d+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const which = ctx.match![1];
+  const competitionId = Number(ctx.match![2]);
+  const index = Number(ctx.match![3]);
+  let home = Number(ctx.match![4]);
+  let away = Number(ctx.match![5]);
+  const delta = Number(ctx.match![6]);
+
+  if (which === "h") home += delta;
+  else away += delta;
+
+  const competition = await getCompetition(competitionId);
+  if (!competition) return;
+  const fixtures = await competitionFixtures(competitionId);
+  if (!fixtures[index]) return;
+
+  await askExactScore(ctx, competition, fixtures, index, home, away, true);
+});
+
+bot.callbackQuery(/^exs_(\d+)_(\d+)_(\d+)_(\d+)$/, async (ctx) => {
+  const competitionId = Number(ctx.match![1]);
+  const index = Number(ctx.match![2]);
+  const home = Math.min(MAX_GOALS, Math.max(0, Number(ctx.match![3])));
+  const away = Math.min(MAX_GOALS, Math.max(0, Number(ctx.match![4])));
+
+  const { user } = await upsertUser(ctx.from!);
+  const competition = await getCompetition(competitionId);
+  const fixtures = await competitionFixtures(competitionId);
+  const fixture = fixtures[index];
+  if (!competition || !fixture) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
+
+  const participant = await joinCompetition(competitionId, user.id);
+
+  try {
+    await savePrediction(
+      competitionId,
+      participant.id,
+      fixture.competition_fixture_id,
+      {
+        // The outcome is stored alongside the scoreline, derived from it. The
+        // scoring code already knows how to pay for a right outcome and add a
+        // bonus for the exact score, so an exact-score competition is that same
+        // machinery configured differently - not a second scoring engine.
+        pick: home > away ? "H" : home < away ? "A" : "D",
+        homeGoals: home,
+        awayGoals: away,
+      },
+    );
+  } catch (err) {
+    if (err instanceof PredictionsLockedError) {
+      await ctx.answerCallbackQuery({ text: L.lockedAlert, show_alert: true });
+      const locked = await render("predictions_locked");
+      await ctx.reply(locked.text, {
+        parse_mode: "HTML",
+        reply_markup: await mainMenu(),
+      });
+      return;
+    }
+    throw err;
+  }
+
+  await ctx.answerCallbackQuery({ text: L.saved });
+
+  const saved = await render("exact_saved", {
+    match: `${fixture.home_team} — ${fixture.away_team}`,
+    score: `${home}:${away}`,
+    name: competition.name,
+  });
+  const keyboard = new InlineKeyboard();
+  if (index < fixtures.length - 1) {
+    keyboard.text(L.skip, `play_${competitionId}_${index + 1}`).row();
+  }
+  keyboard.text(L.changePicks, `play_${competitionId}_${index}`).row();
+  keyboard.text(L.backToMenu, "menu");
+
+  await ctx.reply(saved.text, { parse_mode: "HTML", reply_markup: keyboard });
+});
 
 bot.callbackQuery(/^pick_(\d+)_(\d+)_([HDA])$/, async (ctx) => {
   const competitionId = Number(ctx.match![1]);
@@ -461,12 +795,29 @@ bot.callbackQuery("results", async (ctx) => {
     await ctx.reply(L.noResults, { reply_markup: await mainMenu() });
     return;
   }
-  const lines = rows.map(
-    (r) =>
+  // One line per competition, worded for the kind of competition it was.
+  // "0/0 richtig · 0 Punkte" under a giveaway is not a result, it is a bug
+  // wearing a result's clothes.
+  const lines = rows.map((r) => {
+    if (r.type === "giveaway") {
+      return (
+        `🎁 <b>${escapeHtml(r.name)}</b>\n` +
+        `   ${r.is_winner ? `🏆 ${L.youWon}` : L.notDrawn}`
+      );
+    }
+    if (r.type === "exact_score") {
+      return (
+        `🎯 <b>${escapeHtml(r.name)}</b>\n` +
+        `   ${r.scores ?? "—"}` +
+        (r.rank ? ` · Platz #${r.rank}` : ` · ${L.pendingEvaluation}`)
+      );
+    }
+    return (
       `🏁 <b>${escapeHtml(r.name)}</b>\n` +
       `   ${r.correct_count}/${r.total} richtig · ${r.points} Punkte` +
-      (r.rank ? ` · Platz #${r.rank}` : ` · ${L.pendingEvaluation}`),
-  );
+      (r.rank ? ` · Platz #${r.rank}` : ` · ${L.pendingEvaluation}`)
+    );
+  });
   await ctx.reply(`📊 <b>${L.myResults}</b>\n\n${lines.join("\n\n")}`, {
     parse_mode: "HTML",
     reply_markup: await mainMenu(),
@@ -477,8 +828,11 @@ bot.callbackQuery("results", async (ctx) => {
 bot.callbackQuery("leaderboard", async (ctx) => {
   await ctx.answerCallbackQuery();
   const recent = await one<{ id: number; name: string }>(
+    // Giveaways are excluded: a giveaway has no points, so its "leaderboard"
+    // would be a table of zeros in an order that means nothing.
     `SELECT id, name FROM competitions
       WHERE status IN ('open','locked','evaluating','finished')
+        AND type <> 'giveaway'
       ORDER BY COALESCE(locks_at, created_at) DESC LIMIT 1`,
   );
   if (!recent) {

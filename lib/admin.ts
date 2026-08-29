@@ -399,21 +399,46 @@ export async function drawGiveaway(
   competitionId: number,
   adminUserId: number | null = null,
 ): Promise<DrawResult> {
-  const pool = await query<{ user_id: number }>(
-    `SELECT pa.user_id FROM participants pa
-      WHERE pa.competition_id = $1
-      ORDER BY pa.id`,
-    [competitionId],
-  );
-  if (!pool.length) throw new Error("No participants - there is nobody to draw");
-
+  let winnerUserId = 0;
+  let poolSize = 0;
   const seed = crypto.randomUUID();
-  // Uniform over the pool, from the platform's cryptographic source rather than
-  // Math.random.
-  const index = crypto.getRandomValues(new Uint32Array(1))[0] % pool.length;
-  const winnerUserId = pool[index].user_id;
 
   await tx(async (client) => {
+    // The row lock is the whole concurrency answer. Two admins pressing DRAW at
+    // the same moment both pass any check made outside a transaction; here the
+    // second one waits, then finds the draw the first one wrote and stops. A
+    // giveaway winner must never be silently replaced (his §5).
+    const { rows: locked } = await client.query(
+      "SELECT id, type FROM competitions WHERE id = $1 FOR UPDATE",
+      [competitionId],
+    );
+    if (!locked[0]) throw new Error("Competition not found");
+
+    const { rows: existing } = await client.query(
+      "SELECT id FROM draws WHERE competition_id = $1",
+      [competitionId],
+    );
+    if (existing.length) {
+      throw new Error(
+        "A winner has already been drawn for this giveaway. Drawing again would replace them.",
+      );
+    }
+
+    // Read the pool INSIDE the transaction: somebody entering while the draw is
+    // being prepared must either be in the snapshot or not exist for it, never
+    // be counted in the pool size and missing from the snapshot.
+    const { rows: pool } = await client.query(
+      "SELECT user_id FROM participants WHERE competition_id = $1 ORDER BY id",
+      [competitionId],
+    );
+    if (!pool.length) throw new Error("No participants - there is nobody to draw");
+
+    poolSize = pool.length;
+    // Uniform over the pool, from the platform's cryptographic source rather
+    // than Math.random.
+    const index = crypto.getRandomValues(new Uint32Array(1))[0] % pool.length;
+    winnerUserId = pool[index].user_id;
+
     await client.query(
       `INSERT INTO draws
          (competition_id, winner_user_id, pool_size, pool_snapshot, seed, drawn_by)
@@ -422,7 +447,7 @@ export async function drawGiveaway(
         competitionId,
         winnerUserId,
         pool.length,
-        JSON.stringify(pool.map((p) => p.user_id)),
+        JSON.stringify(pool.map((p: { user_id: number }) => p.user_id)),
         seed,
         adminUserId,
       ],
@@ -439,8 +464,34 @@ export async function drawGiveaway(
   });
 
   await audit(adminUserId, "giveaway.draw",
-    `Winner drawn from ${pool.length} participants`, "competition", competitionId);
-  return { winnerUserId, poolSize: pool.length, seed };
+    `Winner drawn from ${poolSize} participants (draw ${seed})`,
+    "competition", competitionId);
+  return { winnerUserId, poolSize, seed };
+}
+
+/**
+ * Where a giveaway is in his §12 list, said in his words.
+ *
+ * Derived rather than stored: the underlying status, the draw and the prize row
+ * already hold every fact this needs, and a seventh status column would be a
+ * second copy of the truth that could disagree with them.
+ */
+export function giveawayStage(competition: {
+  status: string;
+  published_at: Date | string | null;
+  opens_at: Date | string | null;
+  winner_announced_at?: Date | string | null;
+}, hasWinner: boolean, prizeStatus: string | null): string {
+  if (competition.status === "cancelled") return "Cancelled";
+  if (prizeStatus === "paid") return "Completed";
+  if (hasWinner) return "Winner drawn";
+  if (competition.status === "finished") return "Ended";
+  if (competition.status === "open") return "Active";
+  if (competition.published_at) {
+    const opens = competition.opens_at ? new Date(competition.opens_at) : null;
+    return opens && opens.getTime() > Date.now() ? "Scheduled" : "Opening";
+  }
+  return "Draft";
 }
 
 // ---------------------------------------------------------------- prizes

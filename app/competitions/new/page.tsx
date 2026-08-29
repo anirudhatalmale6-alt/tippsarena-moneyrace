@@ -96,10 +96,30 @@ export default async function NewCompetitionPage({
 
       <form action={actionCreateCompetition}>
         <input type="hidden" name="template_id" value={chosen?.id ?? ""} />
-        <input type="hidden" name="type" value={chosen?.type ?? "moneyrace"} />
+
+        {/* The type decides the whole interface a player sees, so it is chosen
+            here and it is explicit. A template sets it; without one it has to
+            be picked deliberately rather than defaulted into a MoneyRace. */}
+        <div className="panel">
+          <strong>2. What kind of competition?</strong>
+          <div className="row" style={{ marginTop: 10 }}>
+            <div>
+              <label htmlFor="type">Type</label>
+              <select id="type" name="type" defaultValue={chosen?.type ?? "moneyrace"}>
+                <option value="moneyrace">🏁 MoneyRace — several matches, home / draw / away</option>
+                <option value="exact_score">🎯 Exact score — one match, the precise result</option>
+                <option value="giveaway">🎁 Giveaway — no football, one button, a random draw</option>
+              </select>
+            </div>
+          </div>
+          <div className="hint" style={{ marginTop: 8 }}>
+            A giveaway needs no matches and no lock time for predictions — only a
+            closing time. An exact-score competition is normally a single match.
+          </div>
+        </div>
 
         <div className="panel">
-          <strong>2. Basics</strong>
+          <strong>3. Basics</strong>
           <div className="row">
             <div>
               <label htmlFor="name">Name</label>
@@ -142,7 +162,7 @@ export default async function NewCompetitionPage({
         </div>
 
         <div className="panel">
-          <strong>3. Times</strong>
+          <strong>4. Times</strong>
           <div className="hint">
             All times in {tz}. The lock has to be before the first kick-off.
           </div>
@@ -168,7 +188,7 @@ export default async function NewCompetitionPage({
         </div>
 
         <div className="panel">
-          <strong>4. Points and entry</strong>
+          <strong>5. Points and entry</strong>
           <div className="row">
             <div>
               <label htmlFor="points_correct">Points for the right outcome</label>
@@ -204,7 +224,7 @@ export default async function NewCompetitionPage({
         </div>
 
         <div className="panel">
-          <strong>5. Choose the matches</strong>
+          <strong>6. Choose the matches</strong>
           <div className="hint" style={{ marginBottom: 8 }}>
             {defaults.match_count
               ? `Template suggests ${defaults.match_count} matches. `

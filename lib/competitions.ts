@@ -93,6 +93,8 @@ export interface CompetitionFixture {
   home_goals: number | null;
   away_goals: number | null;
   outcome: "H" | "D" | "A" | null;
+  /** True when the score was typed in the dashboard rather than polled. */
+  manual: boolean;
 }
 
 export async function competitionFixtures(
@@ -101,7 +103,7 @@ export async function competitionFixtures(
   return query<CompetitionFixture>(
     `SELECT cf.id AS competition_fixture_id, f.id AS fixture_id, cf.position,
             f.home_team, f.away_team, f.kickoff_at, f.status,
-            f.home_goals, f.away_goals, f.outcome
+            f.home_goals, f.away_goals, f.outcome, f.manual
        FROM competition_fixtures cf
        JOIN fixtures f ON f.id = cf.fixture_id
       WHERE cf.competition_id = $1

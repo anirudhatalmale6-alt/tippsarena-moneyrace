@@ -216,10 +216,14 @@ export async function profile(userId: number): Promise<UserProfile> {
 export interface ResultLine {
   competition_id: number;
   name: string;
+  type: string;
   points: number;
   correct_count: number;
   total: number;
   rank: number | null;
+  is_winner: boolean;
+  /** Exact-score entries, read back as "2:1 ✅". Null for a 1X2 competition. */
+  scores: string | null;
 }
 
 /** "MEINE ERGEBNISSE" (spec §22) - the races that are actually over. */
@@ -228,9 +232,16 @@ export async function recentResults(
   limit = 10,
 ): Promise<ResultLine[]> {
   return query<ResultLine>(
-    `SELECT c.id AS competition_id, c.name, pa.points, pa.correct_count, pa.rank,
+    `SELECT c.id AS competition_id, c.name, c.type, pa.points, pa.correct_count,
+            pa.rank, pa.is_winner,
             (SELECT COUNT(*) FROM competition_fixtures cf
-              WHERE cf.competition_id = c.id) AS total
+              WHERE cf.competition_id = c.id) AS total,
+            (SELECT string_agg(pr.home_goals || ':' || pr.away_goals || ' ' ||
+                     CASE WHEN pr.is_correct IS NULL THEN '⏳'
+                          WHEN pr.is_exact THEN '✅'
+                          ELSE '❌' END, ', ' ORDER BY pr.id)
+               FROM predictions pr
+              WHERE pr.participant_id = pa.id AND pr.home_goals IS NOT NULL) AS scores
        FROM participants pa
        JOIN competitions c ON c.id = pa.competition_id
       WHERE pa.user_id = $1

@@ -23,7 +23,12 @@ import {
   setCompetitionFixtures,
 } from "@/lib/admin.ts";
 import { queueBroadcast, type Audience } from "@/lib/broadcast.ts";
-import { setManualResult, clearManualResult } from "@/lib/fixtures.ts";
+import {
+  announceGiveawayWinner,
+  createGiveawayPrize,
+  notifyGiveawayWinner,
+} from "@/lib/giveaway.ts";
+import { setManualResult, clearManualResult, kickoffInFuture } from "@/lib/fixtures.ts";
 import { evaluateCompetition } from "@/lib/competitions.ts";
 import { saveTemplate, zonedToUtc } from "@/lib/templates.ts";
 import { log } from "@/lib/log.ts";
@@ -107,8 +112,13 @@ export async function actionUpdateCompetition(form: FormData): Promise<void> {
         SET name = $2, description = $3, prize_amount = $4, currency = $5,
             winner_count = $6, requires_membership = $7,
             opens_at = $8, locks_at = $9, ends_at = $10,
-            scoring = jsonb_build_object('correct_outcome', $11::numeric,
-                                         'exact_score', $12::numeric),
+            -- A giveaway's form has no points boxes at all, so writing zeros
+            -- from the missing fields would quietly wipe a scoring config if
+            -- the type were ever changed back.
+            scoring = CASE WHEN type = 'giveaway' THEN scoring
+                      ELSE jsonb_build_object('correct_outcome', $11::numeric,
+                                              'exact_score', $12::numeric) END,
+            announce_winner_publicly = $13,
             updated_at = now()
       WHERE id = $1`,
     [
@@ -124,6 +134,11 @@ export async function actionUpdateCompetition(form: FormData): Promise<void> {
       localDate(form, "ends_at", tz),
       num(form, "points_correct", 1),
       num(form, "points_exact", 0),
+      // Only a giveaway's form carries this checkbox. For every other type the
+      // stored value is left where it was rather than turned off by absence.
+      before[0]?.type === "giveaway"
+        ? form.get("announce_winner_publicly") === "on"
+        : (before[0]?.announce_winner_publicly ?? true),
     ],
   );
   await audit(adminId, "competition.update", `Competition #${id} changed`,
@@ -228,6 +243,15 @@ export async function actionManualResult(form: FormData): Promise<void> {
     if (home < 0 || away < 0) {
       redirect(`/competitions/${competitionId}?error=Result+incomplete`);
     }
+    // Typing a result for a match that has not kicked off locks the API out of
+    // that fixture for good, and the invented score is what the competition is
+    // then scored against. Refused unless he says he means it.
+    if (text(form, "confirm") !== "1" && (await kickoffInFuture(fixtureId))) {
+      redirect(
+        `/competitions/${competitionId}?confirm_result=${fixtureId}` +
+          `&home=${home}&away=${away}`,
+      );
+    }
     await setManualResult(fixtureId, home, away);
     await audit(adminId, "fixture.manual_result",
       `Result for match #${fixtureId} set by hand to ${home}:${away}`,
@@ -245,12 +269,70 @@ export async function actionDrawGiveaway(form: FormData): Promise<void> {
   const id = num(form, "id");
   try {
     const result = await drawGiveaway(id, adminId);
+    // The prize row is created here, not by the worker: a giveaway never goes
+    // through evaluateCompetition, so nothing else would ever write it and the
+    // winner would be missing from the list of what he owes.
+    await createGiveawayPrize(id);
     redirect(`/competitions/${id}?drawn=${result.poolSize}`);
   } catch (err) {
     if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
     const message = err instanceof Error ? err.message : String(err);
     redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
   }
+}
+
+/** Tell the winner privately. Separate from the draw, and retryable. */
+export async function actionNotifyWinner(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const id = num(form, "id");
+  try {
+    const outcome = await notifyGiveawayWinner(id, adminId);
+    redirect(
+      outcome.ok
+        ? `/competitions/${id}?notified=1`
+        : `/competitions/${id}?notify_failed=${encodeURIComponent(outcome.error!)}`,
+    );
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
+  }
+}
+
+/** Publish the result in the channel. Separate again - he may not want to. */
+export async function actionAnnounceWinner(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const id = num(form, "id");
+  try {
+    await announceGiveawayWinner(id, adminId);
+    redirect(`/competitions/${id}?winner_announced=1`);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
+  }
+}
+
+/** Mark a prize paid and write his own note against it. */
+export async function actionPrizeNote(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const competitionId = num(form, "competition_id");
+  const prizeId = num(form, "prize_id");
+  const note = text(form, "notes");
+  const markPaid = form.get("mark_paid") === "on";
+
+  await query(
+    `UPDATE prizes
+        SET notes = $2,
+            status  = CASE WHEN $3 THEN 'paid' ELSE status END,
+            paid_at = CASE WHEN $3 THEN COALESCE(paid_at, now()) ELSE paid_at END
+      WHERE id = $1`,
+    [prizeId, note || null, markPaid],
+  );
+  await audit(adminId, "prize.note",
+    markPaid ? `Prize #${prizeId} marked as paid` : `Note added to prize #${prizeId}`,
+    "prize", prizeId);
+  redirect(`/competitions/${competitionId}?saved=1`);
 }
 
 // ---------------------------------------------------------------- prizes
@@ -358,7 +440,22 @@ export async function actionAnnounce(form: FormData): Promise<void> {
   const adminId = await admin();
   const id = num(form, "id");
   const audience = (text(form, "audience") || "both") as Audience;
-  const key = text(form, "key") || "channel_competition_new";
+
+  // The template follows the competition type. Announcing a giveaway with the
+  // MoneyRace template is what put "⚽ 0 Spiele · 0 Tipps" under a €20 prize
+  // draw in his channel - the announcement has to obey the same rule as every
+  // other screen.
+  const [row] = await query<{ type: string }>(
+    "SELECT type FROM competitions WHERE id = $1",
+    [id],
+  );
+  const byType: Record<string, string> = {
+    giveaway: "channel_giveaway",
+    exact_score: "channel_competition_new",
+    moneyrace: "channel_competition_new",
+  };
+  const key = text(form, "key") || byType[row?.type ?? "moneyrace"] ||
+    "channel_competition_new";
 
   try {
     const built = await renderBroadcastBody(key, id);

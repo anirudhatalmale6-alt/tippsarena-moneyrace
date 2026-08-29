@@ -1,198 +1,170 @@
 /**
- * tippsarena.com/moneyrace - the Facebook ad landing page.
+ * tippsarena.com/moneyrace - the paid-traffic page for the prize money.
  *
- * Built for one job: turn a paid click into a /start in the bot. That means the
- * call to action is above the fold and repeated three times, the page names the
- * prize and the deadline in the first screen, and every objection ("what does
- * it cost", "is this betting", "how long does it take") is answered before the
- * last button rather than after it.
+ * One promise, one number, one button. The number is the prize actually sitting
+ * on the open competition and the deadline is its real lock time, both read
+ * from the database at request time, so the page cannot advertise a race that
+ * closed yesterday.
  *
- * Every figure on this page is read out of the database. If there is no open
- * competition the page does not invent one - it says the next round is being
- * prepared and still sends the click into the bot, which is where the next
- * announcement will reach them.
+ * Campaign code fb_moneyrace: every click arrives at the bot carrying it, and
+ * the Analytics page groups by it, so he can tell this page apart from /dach
+ * without a tracking pixel.
  */
 import type { Metadata } from "next";
-import { botLink, nextCompetition, publicStats } from "@/lib/public.ts";
+import { botLink, channelLink, nextCompetition, publicStats } from "@/lib/public.ts";
 import { Footer, Header, Section, euro, germanWhen } from "../parts.tsx";
+import { Countdown } from "../countdown.tsx";
+import { Cta, Legal, Pains, Quote, Ticker } from "../ad.tsx";
+import { StickyCta } from "../sticky.tsx";
+import "../public.css";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "TippsArena MoneyRace — Tippen, gewinnen, kostenlos",
+  title: "TippsArena MoneyRace — Tippe Bundesliga, gewinne echtes Geld",
   description:
-    "Tippe die Fußballspiele des Wochenendes und spiele um echtes Preisgeld. "
-    + "Kostenlos, kein Einsatz, direkt in Telegram. Dauert 60 Sekunden.",
-  openGraph: {
-    title: "TippsArena MoneyRace — Tippen, gewinnen, kostenlos",
-    description:
-      "Tippe die Spiele des Wochenendes und spiele um echtes Preisgeld. "
-      + "Kostenlos, kein Einsatz, direkt in Telegram.",
-    type: "website",
-    locale: "de_DE",
-  },
+    "Kostenlos mittippen und echtes Preisgeld gewinnen. Kein Einsatz, keine Wette, keine Anmeldung. Läuft komplett in Telegram.",
 };
 
 export default async function MoneyRacePage() {
-  const [competition, stats, cta] = await Promise.all([
-    nextCompetition(),
-    publicStats(),
-    botLink("fb_moneyrace"),
-  ]);
+  const competition = await nextCompetition();
+  const stats = await publicStats();
+  const link = await botLink("fb_moneyrace");
+  const channel = await channelLink();
 
   const prize = competition
     ? euro(competition.prize_amount, competition.currency)
-    : null;
+    : euro(stats.prize_open || 0);
+  const hasRace = Boolean(competition?.locks_at);
 
   return (
-    <>
+    <div className="lp lp-ad">
+      <Ticker
+        items={[
+          "100 % kostenlos",
+          "Kein Einsatz",
+          "Keine Wette",
+          "Echtes Preisgeld",
+          "Läuft in Telegram",
+          "In 30 Sekunden dabei",
+        ]}
+      />
       <Header active="/moneyrace" />
 
       {/* ------------------------------------------------------------ hero */}
-      <div className="lp-hero">
+      <section className="lp-hero">
         <div className="lp-wrap">
-          <span className="lp-kicker">Kostenlos · Kein Einsatz</span>
+          <div className="lp-eyebrow">TippsArena MoneyRace</div>
           <h1>
-            Tippe das Wochenende.<br />
-            Gewinne <em>echtes Preisgeld</em>.
+            Tippe die Bundesliga.
+            <br />
+            Gewinn <em>echtes Geld</em>.
           </h1>
           <p className="lp-sub">
-            {prize
-              ? `${prize} liegen in der laufenden Runde. Du tippst nur, wer gewinnt — Heim, Unentschieden oder Auswärts. Mehr nicht.`
-              : "Du tippst nur, wer gewinnt — Heim, Unentschieden oder Auswärts. Mehr nicht. Die nächste Runde startet in Kürze."}
+            Kein Einsatz. Keine Wette. Keine Anmeldung. Du tippst, wer gewinnt —
+            und wer am meisten richtig hat, bekommt das Preisgeld ausgezahlt.
           </p>
 
-          <div className="lp-ctas">
-            <a className="lp-cta" href={cta}>
-              🏁 JETZT KOSTENLOS MITSPIELEN
-            </a>
+          <div className="lp-pot">
+            <div className="lp-flag">Gratis dabei</div>
+            <div className="lp-for">Aktuelles Preisgeld</div>
+            <div className="lp-amount">{prize}</div>
+            {competition ? (
+              <>
+                <div className="lp-meta" style={{ marginTop: 10 }}>
+                  {competition.name}
+                </div>
+                {hasRace ? (
+                  <>
+                    <Countdown target={new Date(competition.locks_at!).toISOString()} />
+                    <div className="lp-note">
+                      Tippschluss: {germanWhen(competition.locks_at)}
+                    </div>
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <div className="lp-meta" style={{ marginTop: 10 }}>
+                Die nächste Runde startet in Kürze — sei im Bot, wenn sie aufgeht.
+              </div>
+            )}
+          </div>
+
+          <div className="lp-ctas" style={{ marginTop: 26 }}>
+            <Cta href={link}>
+              {hasRace ? "🏁 Jetzt kostenlos mittippen" : "🏁 Kostenlos dabei sein"}
+            </Cta>
           </div>
           <p className="lp-note">
-            Läuft in Telegram · Anmeldung dauert 10 Sekunden · Kein Geld, keine
-            Kreditkarte, keine Wette
+            Ein Klick. Telegram öffnet sich. Kein Konto, keine E-Mail, keine
+            Kreditkarte.
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* --------------------------------------------------------- the prize */}
-      {competition ? (
-        <Section>
-          <div className="lp-prize">
-            <div className="lp-badge lp-live">Läuft gerade</div>
-            <div className="lp-amount" style={{ marginTop: 10 }}>
-              {prize}
-            </div>
-            <div className="lp-meta">
-              {competition.name}
-              <br />
-              Tippschluss: <strong>{germanWhen(competition.locks_at)}</strong>
-              {competition.participants > 0 ? (
-                <>
-                  <br />
-                  {competition.participants} Teilnehmer sind schon dabei
-                </>
-              ) : null}
-            </div>
-            <div className="lp-ctas" style={{ marginTop: 18 }}>
-              <a className="lp-cta" href={cta}>
-                TIPPS ABGEBEN
-              </a>
-            </div>
-          </div>
-        </Section>
-      ) : null}
-
-      {/* ------------------------------------------------------- how it works */}
-      <Section
-        title="In 60 Sekunden dabei"
-        lead="Kein Formular, kein Konto, keine App. Nur Telegram."
-      >
+      {/* ------------------------------------------------------- three steps */}
+      <Section title="In 30 Sekunden dabei">
         <div className="lp-grid">
           <div className="lp-card">
             <span className="lp-step">1</span>
-            <h3>Bot starten</h3>
+            <h3>Bot öffnen</h3>
             <p>
-              Ein Tipp auf den Button öffnet den TippsArena-Bot in Telegram.
-              Fertig, du bist angemeldet.
+              Ein Klick auf den Button. Telegram startet den TippsArena-Bot — mehr
+              passiert nicht.
             </p>
           </div>
           <div className="lp-card">
             <span className="lp-step">2</span>
-            <h3>Spiele tippen</h3>
+            <h3>Tippen</h3>
             <p>
-              Du bekommst die Spiele einzeln. Pro Spiel ein Tipp: Heim,
-              Unentschieden oder Auswärts.
+              Heim, Unentschieden oder Auswärts. Ein Spiel nach dem anderen, mit
+              einem Daumen, in unter einer Minute.
             </p>
           </div>
           <div className="lp-card">
             <span className="lp-step">3</span>
-            <h3>Preisgeld kassieren</h3>
+            <h3>Gewinnen</h3>
             <p>
-              Nach dem letzten Abpfiff wird automatisch gewertet. Wer die
-              meisten Punkte hat, gewinnt.
+              Die Ergebnisse kommen automatisch rein. Wer am meisten richtig hat,
+              bekommt das Preisgeld.
             </p>
           </div>
         </div>
       </Section>
 
-      {/* ------------------------------------------------------------ numbers */}
-      {stats.players > 0 || stats.competitions_finished > 0 ? (
-        <Section>
-          <div className="lp-grid lp-4">
-            <div className="lp-card lp-stat">
-              <div className="lp-n">{stats.players}</div>
-              <div className="lp-l">Spieler</div>
-            </div>
-            <div className="lp-card lp-stat">
-              <div className="lp-n">{stats.competitions_finished}</div>
-              <div className="lp-l">Runden gespielt</div>
-            </div>
-            <div className="lp-card lp-stat">
-              <div className="lp-n">{euro(stats.prize_open)}</div>
-              <div className="lp-l">Preisgeld im Rennen</div>
-            </div>
-            <div className="lp-card lp-stat">
-              <div className="lp-n">0 €</div>
-              <div className="lp-l">Einsatz</div>
-            </div>
-          </div>
-        </Section>
-      ) : null}
+      {/* ------------------------------------------------------------ pains */}
+      <Section
+        title="Warum TippsArena?"
+        lead="Weil du beim Tippen nichts verlieren kannst, was dir gehört."
+      >
+        <Pains
+          items={[
+            "Du zahlst nichts ein. Es gibt keinen Einsatz und nichts zu verlieren.",
+            "Es ist keine Wettannahme — du spielst gegen die anderen Tipper, nicht gegen einen Buchmacher.",
+            "Kein Konto, keine E-Mail, keine Kreditkarte. Telegram reicht.",
+            "Du brauchst keine Ahnung von Quoten oder Statistik. Nur eine Meinung, wer gewinnt.",
+            "Eine Runde dauert weniger als eine Minute — auch neben der Arbeit.",
+            "Die Ergebnisse kommen direkt vom offiziellen Ergebnisdienst. Niemand rechnet hier von Hand.",
+          ]}
+        />
+      </Section>
 
-      {/* ---------------------------------------------------------- objections */}
-      <Section title="Der Haken? Gibt es nicht.">
+      {/* ------------------------------------------------------------ proof */}
+      <Section title="Fair und nachvollziehbar">
         <div className="lp-grid lp-2">
+          <Quote
+            text="Jede Runde hat einen festen Tippschluss. Danach kann kein Tipp mehr geändert werden — auch nicht von uns. Die Ergebnisse kommen automatisch vom Ergebnisdienst, und die Tabelle rechnet sich selbst."
+            who="So funktioniert TippsArena"
+          />
           <div className="lp-card">
-            <h3>💸 Kostet nichts</h3>
-            <p>
-              Kein Einsatz, kein Abo, keine Zahlungsdaten. Du spielst um das
-              Preisgeld, nicht mit deinem eigenen Geld.
+            <h3>Die Tabelle ist öffentlich</h3>
+            <p style={{ marginBottom: 14 }}>
+              Jede Runde und jede Platzierung steht auf der Leaderboard-Seite —
+              mit abgekürzten Namen, damit niemand öffentlich bloßgestellt wird.
             </p>
-          </div>
-          <div className="lp-card">
-            <h3>🎯 Keine Wette</h3>
-            <p>
-              Kein Wettanbieter, keine Quoten, kein Risiko. Ein Tippspiel unter
-              Fans — wer am besten tippt, gewinnt.
-            </p>
-          </div>
-          <div className="lp-card">
-            <h3>⏱️ Dauert eine Minute</h3>
-            <p>
-              Die Spiele kommen einzeln, du tippst mit einem Tap. Vom Start bis
-              zum letzten Tipp vergeht kaum mehr als eine Minute.
-            </p>
-          </div>
-          <div className="lp-card">
-            <h3>⚖️ Nachvollziehbar</h3>
-            <p>
-              Nach Tippschluss ist kein Tipp mehr änderbar, gewertet wird
-              automatisch nach den offiziellen Ergebnissen. Die Tabelle steht{" "}
-              <a href="/leaderboard" style={{ color: "#22c55e" }}>
-                öffentlich hier
-              </a>
-              .
-            </p>
+            <a className="lp-cta lp-ghost" href="/leaderboard">
+              Leaderboard ansehen
+            </a>
           </div>
         </div>
       </Section>
@@ -201,63 +173,71 @@ export default async function MoneyRacePage() {
       <Section title="Häufige Fragen">
         <div className="lp-faq">
           <details>
-            <summary>Muss ich wirklich nichts bezahlen?</summary>
+            <summary>Kostet das wirklich nichts?</summary>
             <p>
-              Nein. Die Teilnahme ist kostenlos und bleibt es. Es gibt keinen
-              Einsatz und keine Bezahlseite.
+              Nein. Es gibt keinen Einsatz, keine Gebühr und keine Bezahlseite.
+              Du tippst kostenlos mit und kannst gewinnen.
             </p>
           </details>
           <details>
-            <summary>Wie wird gewertet?</summary>
+            <summary>Ist das eine Sportwette?</summary>
             <p>
-              Pro richtig getipptem Spielausgang gibt es einen Punkt. Bei
-              Punktgleichheit entscheidet, wer seine Tipps früher abgegeben hat.
-              Die Ergebnisse kommen automatisch vom offiziellen Datenanbieter.
+              Nein. Es wird kein Einsatz angenommen und keine Quote ausgezahlt.
+              Du tippst gegen die anderen Teilnehmer; wer am meisten richtig
+              liegt, bekommt das Preisgeld.
             </p>
           </details>
           <details>
-            <summary>Kann ich meine Tipps noch ändern?</summary>
+            <summary>Wie bekomme ich das Geld?</summary>
             <p>
-              Bis zum Tippschluss ja, so oft du willst. Danach ist alles
-              gesperrt — auch für uns. Deine Teilnahme zählt einmal, egal wie
-              oft du den Bot öffnest.
+              Der Gewinner wird direkt im Bot benachrichtigt und meldet sich bei
+              uns. Die Auszahlung wird persönlich abgewickelt.
             </p>
           </details>
           <details>
-            <summary>Wie bekomme ich das Preisgeld?</summary>
+            <summary>Kann ich meine Tipps ändern?</summary>
             <p>
-              Der Gewinner wird im Kanal bekannt gegeben und über den Bot
-              kontaktiert. Die Auszahlung wird direkt mit dir abgestimmt.
+              Ja, bis zum Tippschluss so oft du willst. Danach ist die Runde
+              gesperrt — für alle gleichzeitig, ohne Ausnahme.
             </p>
           </details>
           <details>
             <summary>Brauche ich Telegram?</summary>
             <p>
-              Ja, das ganze Spiel läuft dort. Telegram ist kostenlos und in
-              einer Minute installiert.
+              Ja. Telegram ist kostenlos und in zwei Minuten installiert. Danach
+              läuft alles darin — es gibt nichts weiter zu installieren.
             </p>
           </details>
         </div>
       </Section>
 
-      {/* ----------------------------------------------------------- last cta */}
-      <Section>
-        <div className="lp-prize">
-          <h2 style={{ margin: "0 0 6px" }}>
-            {competition ? "Die Runde läuft. Bis Tippschluss." : "Die nächste Runde startet bald."}
+      {/* ----------------------------------------------------------- closing */}
+      <section className="lp-section" style={{ textAlign: "center" }}>
+        <div className="lp-wrap">
+          <h2 style={{ marginBottom: 10 }}>
+            {hasRace ? `${prize} liegen bereit.` : "Sei bei der nächsten Runde dabei."}
           </h2>
-          <p className="lp-meta" style={{ marginBottom: 18 }}>
-            {competition
-              ? `${prize} · Tippschluss ${germanWhen(competition.locks_at)}`
-              : "Starte den Bot — du bekommst die nächste Runde als Erster."}
+          <p className="lp-sub">
+            {hasRace
+              ? `Tippschluss ist ${germanWhen(competition!.locks_at)}. Danach geht nichts mehr.`
+              : "Wir sagen dir im Bot Bescheid, sobald die nächste Runde aufgeht."}
           </p>
-          <a className="lp-cta" href={cta}>
-            🏁 JETZT KOSTENLOS MITSPIELEN
-          </a>
+          <div className="lp-ctas">
+            <Cta href={link}>🏁 Jetzt kostenlos mittippen</Cta>
+            {channel ? (
+              <Cta href={channel} ghost>
+                Kanal ansehen
+              </Cta>
+            ) : null}
+          </div>
         </div>
-      </Section>
+      </section>
 
       <Footer />
-    </>
+      <div className="lp-wrap">
+        <Legal />
+      </div>
+      <StickyCta href={link} label="🏁 Jetzt kostenlos mittippen" />
+    </div>
   );
 }

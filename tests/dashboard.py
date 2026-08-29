@@ -84,7 +84,10 @@ def german_in(text):
 # page, and textContent would otherwise pick it up.
 CHROME_ONLY = """() => {
   const copy = document.body.cloneNode(true);
-  copy.querySelectorAll('textarea, input, select, option, script, style')
+  // .lp-content holds message bodies the operator SENT to players. They are
+  // German by design and are content, not chrome - reading them would make
+  // this check fail every time he broadcasts anything.
+  copy.querySelectorAll('textarea, input, select, option, script, style, .lp-content')
       .forEach(el => el.remove());
   return copy.textContent;
 }"""
@@ -370,6 +373,56 @@ with sync_playwright() as p:
         check(f"{path} call to action points somewhere real",
               all(h and (h.startswith("https://t.me/") or h.startswith("/")) for h in ctas),
               str(ctas))
+
+    # ---------------------------------------------------- the ad pages
+    # /moneyrace and /dach are paid traffic. What has to be true of both: the
+    # sticky bar is hidden at the top and shows after scrolling, the legal
+    # block Meta requires is present and readable, and the two pages do NOT say
+    # the same thing - he asked for a second angle, not a second copy.
+    heros = {}
+    for path in ("/moneyrace", "/dach"):
+        pp.goto(f"{SITE}{path}", wait_until="load")
+        pp.wait_for_timeout(700)
+
+        hidden = pp.eval_on_selector_all(
+            ".lp-stick", "els => els.map(e => getComputedStyle(e).display)")
+        check(f"{path} does not double up its button at the top",
+              hidden == ["none"], str(hidden))
+        pp.mouse.wheel(0, 900)
+        pp.wait_for_timeout(500)
+        shown = pp.eval_on_selector_all(
+            ".lp-stick", "els => els.map(e => getComputedStyle(e).display)")
+        check(f"{path} brings the button back once you scroll",
+              shown == ["block"], str(shown))
+
+        text = pp.inner_text("body")
+        check(f"{path} states its independence from Meta",
+              "Meta Platforms" in text)
+        check(f"{path} says no stake is taken", "kein einsatz" in text.lower())
+        check(f"{path} states the age limit", "18" in text)
+        # An invented statistic on his brand is his problem long after it is my
+        # line of code. Nothing on these pages may claim a rate nobody measured.
+        for invented in ("win rate", "gewinnquote", "% erfolg"):
+            check(f"{path} claims no unmeasured {invented}",
+                  invented not in text.lower())
+
+        # The PRIMARY buttons all have to be the same one action. The ghost
+        # button to the channel is deliberately a second, quieter offer, so it
+        # is excluded rather than allowed to break the rule.
+        primary = pp.eval_on_selector_all(
+            "a.lp-cta:not(.lp-ghost)", "els => els.map(e => e.href)")
+        check(f"{path} sends every primary button to the same place",
+              len(set(primary)) == 1, str(sorted(set(primary))))
+        campaign = "fb_moneyrace" if path == "/moneyrace" else "fb_dach"
+        check(f"{path} carries its own campaign code",
+              all(campaign in c for c in primary), str(primary))
+        check(f"{path} has more than one chance to press it", len(primary) >= 3,
+              str(len(primary)))
+        heros[path] = pp.inner_text("h1")
+
+    check("the two ad pages do not share a headline",
+          heros["/moneyrace"] != heros["/dach"],
+          f'{heros["/moneyrace"]!r} vs {heros["/dach"]!r}')
 
     check("no javascript errors anywhere", not errors, "; ".join(errors[:3]))
     browser.close()
