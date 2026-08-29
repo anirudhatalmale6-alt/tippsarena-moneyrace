@@ -1,0 +1,26 @@
+{
+  "name": "tippsarena-moneyrace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TippsArena MoneyRace - Telegram prediction and giveaway platform",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "migrate": "node scripts/migrate.ts",
+    "bot": "node bot/index.ts",
+    "worker": "node worker/index.ts",
+    "admin": "node admin/server.ts",
+    "seed:admin": "node scripts/create-admin.ts",
+    "import:fixtures": "node scripts/import-fixtures.ts",
+    "test": "node tests/run.ts && node tests/bot.ts",
+    "test:logic": "node tests/run.ts",
+    "test:bot": "node tests/bot.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "grammy": "^1.30.0",
+    "pg": "^8.13.0"
+  }
+}
