@@ -55,10 +55,11 @@ applied, each file in its own transaction.
 `.env` is in `.gitignore` and is not in this repository. Nothing in the repo
 contains a token, a password or a key.
 
-## Creating a competition before the dashboard exists
+## Creating a competition from the command line
 
-The script calls exactly the same functions the dashboard buttons will, so
-anything proven here is proven for both.
+The dashboard does all of this with buttons. The script exists because it calls
+exactly the same functions, so anything proven here is proven for both - and it
+is handy for scripting a season.
 
 ```bash
 node scripts/create-competition.ts \
@@ -152,7 +153,7 @@ refused after the lock.
 Both suites create their own data and delete it again, so they can be run twice
 back to back and must give the same answer.
 
-The dashboard is checked separately by driving a real browser through it — log
+`tests/dashboard.py` drives a real browser through the dashboard — log
 in, walk all ten pages, pick a template, save settings, and confirm nothing
 scrolls sideways on a phone. Two things that bit during that: `networkidle` can
 return while React is still hydrating, so a click lands on a button React owns
