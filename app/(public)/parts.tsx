@@ -9,8 +9,20 @@ export function Header({ active }: { active?: string }) {
   );
   return (
     <header className="lp-wrap lp-top">
-      <a className="lp-logo" href="/moneyrace">
-        TIPPS<span>ARENA</span>
+      <a className="lp-logo lp-logo-row" href="/moneyrace">
+        {/* His mark, not a generic wordmark. eager + explicit size so it never
+            reflows the header while the page is being read. */}
+        <img
+          className="lp-mark"
+          src="/brand/mark-white.png"
+          alt=""
+          width={34}
+          height={34}
+          loading="eager"
+        />
+        <span className="lp-word">
+          TIPPS<span>ARENA</span>
+        </span>
       </a>
       <nav>
         {link("/moneyrace", "MoneyRace")}

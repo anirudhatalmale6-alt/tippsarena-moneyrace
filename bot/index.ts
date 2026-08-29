@@ -73,6 +73,20 @@ async function keyboardFor(
         keyboard.url(button.text, `https://t.me/${username}${payload}`).row();
         break;
       }
+      // g_ rather than c_: this one MEANS "enter me", so the tap in the channel
+      // is the entry. c_ opens the competition and waits for a second tap,
+      // which is one tap too many when the button already said TEILNEHMEN.
+      case "giveaway_deeplink": {
+        const username = await botUsername();
+        const payload = vars.competitionId ? `?start=g_${vars.competitionId}` : "";
+        keyboard.url(button.text, `https://t.me/${username}${payload}`).row();
+        break;
+      }
+      case "enter_giveaway":
+        if (vars.competitionId) {
+          keyboard.text(button.text, `give_${vars.competitionId}`).row();
+        }
+        break;
       case "url":
         if (button.url) keyboard.url(button.text, button.url).row();
         break;
@@ -121,6 +135,15 @@ async function mainMenu(): Promise<InlineKeyboard> {
 bot.command("start", async (ctx) => {
   const payload = parseStartPayload(ctx.match as string);
   const { user } = await upsertUser(ctx.from!, payload);
+
+  // start=g_<id> comes from a giveaway button that already said TEILNEHMEN.
+  // Pressing it IS entering - anything else makes the person press the same
+  // word twice and conclude the first press did not work.
+  const enter = /^g_(\d+)$/.exec(payload.raw ?? "");
+  if (enter) {
+    await enterGiveawayNow(ctx, user, Number(enter[1]));
+    return;
+  }
 
   // start=c_<id> comes from a channel announcement button: take them straight
   // into that competition rather than making them find it in a menu.
@@ -332,18 +355,25 @@ async function showGiveawayEntry(
   await ctx.reply(message.text, { parse_mode: "HTML", reply_markup: keyboard });
 }
 
-bot.callbackQuery(/^give_(\d+)$/, async (ctx) => {
-  const competitionId = Number(ctx.match![1]);
-  const { user } = await upsertUser(ctx.from!);
+/**
+ * Enter a giveaway and say so. One implementation, two ways in.
+ *
+ * Both the button inside the bot and the deep link from a channel post or a
+ * broadcast land here, so they cannot behave differently - and the difference
+ * that mattered was that one of them used to need a second tap.
+ */
+async function enterGiveawayNow(
+  ctx: any,
+  user: User,
+  competitionId: number,
+): Promise<void> {
   const competition = await getCompetition(competitionId);
 
   if (!competition || competition.type !== "giveaway") {
-    await ctx.answerCallbackQuery();
     await ctx.reply(L.notFound, { reply_markup: await mainMenu() });
     return;
   }
   if (!isOpenForPredictions(competition)) {
-    await ctx.answerCallbackQuery({ text: L.giveawayClosed, show_alert: true });
     const closed = await render("predictions_locked");
     await ctx.reply(closed.text, {
       parse_mode: "HTML",
@@ -356,7 +386,6 @@ bot.callbackQuery(/^give_(\d+)$/, async (ctx) => {
   if (competition.requires_membership) {
     const member = await isChannelMember(user.telegram_id);
     if (member === false) {
-      await ctx.answerCallbackQuery();
       await rememberMembership(user.id, false);
       const prompt = await render("membership_required");
       await ctx.reply(prompt.text, {
@@ -369,8 +398,27 @@ bot.callbackQuery(/^give_(\d+)$/, async (ctx) => {
   }
 
   const { isNew } = await enterGiveaway(competitionId, user.id);
-  await ctx.answerCallbackQuery({ text: isNew ? L.entered : L.alreadyEntered });
   await showGiveawayEntry(ctx, competition, isNew);
+}
+
+bot.callbackQuery(/^give_(\d+)$/, async (ctx) => {
+  const competitionId = Number(ctx.match![1]);
+  const { user } = await upsertUser(ctx.from!);
+  const competition = await getCompetition(competitionId);
+
+  if (competition?.type === "giveaway" && isOpenForPredictions(competition)) {
+    const existing = await one<{ id: number }>(
+      "SELECT id FROM participants WHERE competition_id = $1 AND user_id = $2",
+      [competitionId, user.id],
+    );
+    await ctx.answerCallbackQuery({
+      text: existing ? L.alreadyEntered : L.entered,
+    });
+  } else {
+    await ctx.answerCallbackQuery();
+  }
+
+  await enterGiveawayNow(ctx, user, competitionId);
 });
 
 bot.callbackQuery(/^give_status_(\d+)$/, async (ctx) => {

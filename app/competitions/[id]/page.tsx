@@ -4,7 +4,7 @@
  */
 import { notFound } from "next/navigation";
 import { competitionFixtures, leaderboard } from "@/lib/competitions.ts";
-import { publishReadiness, visibility } from "@/lib/admin.ts";
+import { deleteImpact, publishReadiness, visibility } from "@/lib/admin.ts";
 import { AUDIENCES, audienceSize } from "@/lib/broadcast.ts";
 import { giveawayEntrants, giveawayWinner } from "@/lib/giveaway.ts";
 import { GiveawayPanel } from "./giveaway.tsx";
@@ -13,6 +13,7 @@ import { money, utcToZonedInput, whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, StatusBadge, requireAdmin } from "../../shell.tsx";
 import {
   actionAnnounce,
+  actionDeleteCompetition,
   actionDrawGiveaway,
   actionDuplicate,
   actionEvaluate,
@@ -76,6 +77,7 @@ export default async function CompetitionPage({
 
   const scoring = competition.scoring ?? {};
   const readiness = await publishReadiness(id);
+  const impact = flags.confirm_delete ? await deleteImpact(id) : null;
   const seen = visibility(competition);
   const reach = await audienceSize();
   const channelSet = Boolean(await getSetting<string>("channel_chat_id", null));
@@ -131,6 +133,59 @@ export default async function CompetitionPage({
         )
       ) : null}
       {flags.error ? <Notice kind="bad">{flags.error}</Notice> : null}
+      {impact ? (
+        <Notice kind="bad">
+          <strong>Delete “{impact.name}” for good?</strong>
+          <div style={{ marginTop: 6 }}>
+            This cannot be undone. It would also delete:
+          </div>
+          <ul style={{ margin: "6px 0 10px 18px", lineHeight: 1.7 }}>
+            <li>{impact.participants} participant(s)</li>
+            <li>{impact.predictions} prediction(s) they gave</li>
+            <li>
+              {impact.prizes} prize record(s)
+              {impact.prizes_unpaid > 0
+                ? ` — ${impact.prizes_unpaid} of them NOT yet marked as paid`
+                : ""}
+            </li>
+          </ul>
+          {impact.posted > 0 ? (
+            <p className="hint">
+              {impact.posted} message(s) about it have already been sent to
+              Telegram. Deleting it here does not remove those — they stay in the
+              channel.
+            </p>
+          ) : null}
+          {impact.serious ? (
+            <p style={{ margin: "8px 0" }}>
+              ⚠️ Real people are in this one. <strong>Cancelling</strong> is almost
+              always the better answer: it takes the competition out of the bot
+              straight away and keeps the record of who took part.
+            </p>
+          ) : null}
+          <div className="actions" style={{ marginTop: 10 }}>
+            <a className="button" href={`/competitions/${id}`}>
+              Keep it
+            </a>
+            <form action={actionDeleteCompetition}>
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="confirm" value={id} />
+              <button className="secondary danger" type="submit">
+                YES, DELETE IT
+              </button>
+            </form>
+            {impact.serious ? (
+              <form action={actionSetStatus}>
+                <input type="hidden" name="id" value={id} />
+                <input type="hidden" name="status" value="cancelled" />
+                <button className="secondary" type="submit">
+                  Cancel it instead
+                </button>
+              </form>
+            ) : null}
+          </div>
+        </Notice>
+      ) : null}
       {flags.confirm_result ? (
         <Notice kind="warn">
           <strong>That match has not kicked off yet.</strong>
@@ -304,6 +359,15 @@ export default async function CompetitionPage({
           <a className="button secondary" href={`/leaderboards?competition=${id}`}>
             LEADERBOARD
           </a>
+
+          {/* Last in the row and never pre-confirmed: the first press only
+              asks, and shows what would go with it. */}
+          <form action={actionDeleteCompetition}>
+            <input type="hidden" name="id" value={id} />
+            <button className="secondary danger" type="submit">
+              🗑 DELETE
+            </button>
+          </form>
         </div>
       </div>
 

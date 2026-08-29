@@ -130,6 +130,23 @@ async function tapAs(who: ReturnType<typeof person>, data: string): Promise<Sent
   return [...sent];
 }
 
+async function startAs(who: ReturnType<typeof person>, payload: string): Promise<Sent[]> {
+  sent.length = 0;
+  const text = `/start ${payload}`;
+  await bot.handleUpdate({
+    update_id: updateId++,
+    message: {
+      message_id: updateId,
+      date: Math.floor(Date.now() / 1000),
+      chat: who.chat,
+      from: who.from,
+      text,
+      entities: [{ type: "bot_command", offset: 0, length: 6 }],
+    },
+  } as any);
+  return [...sent];
+}
+
 const texts = (calls: Sent[]) =>
   calls
     .filter((c) => c.method === "sendMessage" || c.method === "editMessageText")
@@ -209,6 +226,40 @@ async function main(): Promise<void> {
   const peeked = await one<{ n: number }>(
     "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1", [give]);
   check("...and looking at it does not enter you", peeked?.n, 0);
+
+  // --- ONE TAP from the channel.
+  // He pressed TEILNEHMEN in the bot's message, landed on a screen with another
+  // TEILNEHMEN, and reasonably concluded the first press had not worked. The
+  // deep link the announcement carries now means "enter me", not "show me".
+  const oneTap = await newGiveaway("onetap");
+  let started = await startAs(A, `g_${oneTap}`);
+  let startedBody = texts(started).join("\n");
+  truthy("the giveaway link enters you on the first tap",
+    startedBody.includes("DU BIST DABEI!"));
+  const tapped = await one<{ n: number }>(
+    "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1", [oneTap]);
+  check("...with one participant recorded", tapped?.n, 1);
+  check("...and no second TEILNEHMEN to press",
+    buttonTexts(started).some((t) => t.includes("AM GIVEAWAY TEILNEHMEN")), false);
+
+  started = await startAs(A, `g_${oneTap}`);
+  truthy("...and following the link again says already in",
+    texts(started).join("\n").includes("BEREITS DABEI"));
+  check("...still one participant",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1",
+      [oneTap]))?.n, 1);
+
+  // A closed giveaway must not take an entry through the link either.
+  const shut = await newGiveaway("shutlink");
+  await query(
+    "UPDATE competitions SET locks_at = now() - interval '1 minute' WHERE id = $1",
+    [shut]);
+  await startAs(B, `g_${shut}`);
+  check("a closed giveaway takes nobody through the link",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1",
+      [shut]))?.n, 0);
 
   // --- User A enters
   calls = await tapAs(A, `give_${give}`);

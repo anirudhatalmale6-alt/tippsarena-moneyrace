@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import { botLink, channelLink, nextCompetition, publicStats } from "@/lib/public.ts";
 import { Footer, Header, Section, euro, germanWhen } from "../parts.tsx";
 import { Countdown } from "../countdown.tsx";
-import { Cta, Legal, Pains, Quote, Ticker } from "../ad.tsx";
+import { Cta, Facts, Legal, Mark, Pains, Preview, Quote, Ticker } from "../ad.tsx";
 import { StickyCta } from "../sticky.tsx";
 import "../public.css";
 
@@ -49,6 +49,7 @@ export default async function DachPage() {
       {/* ------------------------------------------------------------ hero */}
       <section className="lp-hero">
         <div className="lp-wrap">
+          <Mark />
           <div className="lp-eyebrow">Deutschland · Österreich · Schweiz</div>
           <h1>
             Jeder am Tisch weiß es besser.
@@ -70,6 +71,14 @@ export default async function DachPage() {
             Ein Klick, Telegram öffnet sich, du bist drin. Keine E-Mail, keine
             Kreditkarte, keine Registrierung.
           </p>
+
+          <Facts
+            items={[
+              ["0 €", "Einsatz"],
+              ["< 1 Min", "pro Runde"],
+              ["Jede Woche", "eine neue Runde"],
+            ]}
+          />
 
           {hasRace ? (
             <div className="lp-pot" style={{ marginTop: 30 }}>
@@ -99,6 +108,21 @@ export default async function DachPage() {
             "Eine Runde dauert unter einer Minute. Kein Zeitfresser.",
             "Bundesliga, 2. Liga und die großen europäischen Spiele — die, über die alle reden.",
             "Keine App installieren, kein Konto anlegen: Telegram hast du schon.",
+          ]}
+        />
+      </Section>
+
+      {/* -------------------------------------------------- what it looks like */}
+      <Section
+        title="So sieht es im Bot aus"
+        lead="Kein Formular, keine Anmeldung. Ein Chat, drei Knöpfe."
+      >
+        <Preview
+          lines={[
+            ["⚽ <b>Spieltag 3</b><br/>5 Spiele. Tippschluss Samstag 15:25.", false],
+            ["⚽ <b>Union Berlin — Frankfurt</b><br/>Wer gewinnt?", false],
+            ["🤝 Unentschieden", true],
+            ["✅ Gespeichert. Noch 4 Spiele.", false],
           ]}
         />
       </Section>

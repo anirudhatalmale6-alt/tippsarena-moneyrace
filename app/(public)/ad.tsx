@@ -98,3 +98,59 @@ export function Legal() {
     </div>
   );
 }
+
+/** The mark, leading the hero. */
+export function Mark({ size = 116 }: { size?: number }) {
+  return (
+    <img
+      className="lp-mark"
+      src="/brand/mark-white.png"
+      alt="TippsArena"
+      width={size}
+      height={size}
+      style={{ width: size }}
+      loading="eager"
+    />
+  );
+}
+
+/**
+ * Three counted facts under the button.
+ *
+ * Every one comes from the database. The site he sent as a reference puts an
+ * "87% WIN RATE" here; his says how much money is actually on the table, which
+ * is both true and checkable.
+ */
+export function Facts({ items }: { items: Array<[string, string]> }) {
+  return (
+    <div className="lp-facts">
+      {items.map(([value, label]) => (
+        <div key={label}>
+          <b>{value}</b>
+          <small>{label}</small>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * What the bot looks like, drawn in CSS.
+ *
+ * People do not click into a Telegram bot they cannot picture. A real
+ * screenshot would be truer but it is another request in front of the fold, and
+ * these pages are paid-for phone traffic.
+ */
+export function Preview({ lines }: { lines: Array<[string, boolean]> }) {
+  return (
+    <div className="lp-phone">
+      {lines.map(([text, mine], i) => (
+        <div
+          className={`lp-bubble${mine ? " lp-me" : ""}`}
+          key={i}
+          dangerouslySetInnerHTML={{ __html: text }}
+        />
+      ))}
+    </div>
+  );
+}

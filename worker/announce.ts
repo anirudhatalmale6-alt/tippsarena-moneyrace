@@ -41,6 +41,12 @@ async function buildKeyboard(
       const payload = competitionId ? `?start=c_${competitionId}` : "";
       keyboard.url(button.text, `https://t.me/${username}${payload}`).row();
       used += 1;
+    } else if (button.action === "giveaway_deeplink") {
+      // Entry in one tap: the button already says TEILNEHMEN, so landing on a
+      // screen with a second TEILNEHMEN reads as the first one not working.
+      const payload = competitionId ? `?start=g_${competitionId}` : "";
+      keyboard.url(button.text, `https://t.me/${username}${payload}`).row();
+      used += 1;
     } else if (button.action === "url" && button.url) {
       keyboard.url(button.text, button.url).row();
       used += 1;

@@ -17,7 +17,8 @@
 import { api } from "../worker/announce.ts";
 import { runBroadcastById } from "../worker/broadcast.ts";
 import { queueBroadcast, audienceSize } from "../lib/broadcast.ts";
-import { publishReadiness, visibility } from "../lib/admin.ts";
+import { deleteCompetition, deleteImpact, publishReadiness, visibility } from "../lib/admin.ts";
+import { announcementTemplate, competitionVars, plural } from "../lib/messagevars.ts";
 import { closePool, one, query } from "../lib/db.ts";
 
 let failures: string[] = [];
@@ -98,6 +99,8 @@ async function queueForTest(body: string, audience: any): Promise<number> {
 
 async function cleanup(): Promise<void> {
   await query("DELETE FROM broadcasts WHERE body LIKE $1", [`%${MARK}%`]);
+  await query("DELETE FROM competitions WHERE name LIKE $1", [`%${MARK}%`]);
+  await query("DELETE FROM users WHERE username LIKE $1", [`%${MARK}%`]);
   await query("DELETE FROM users WHERE telegram_id = ANY($1::bigint[])", [TEST_IDS]);
 }
 
@@ -253,6 +256,111 @@ async function main(): Promise<void> {
   } else {
     console.log("SKIP  channel checks - a channel is configured on this database");
   }
+
+  // ============================================ deleting a competition
+  // He asked for this because a mis-typed competition should not sit in the
+  // list for ever. It is genuinely destructive, so what matters is that the
+  // counts he is shown BEFORE pressing are the real ones.
+  const [{ id: doomed }] = await query<{ id: number }>(
+    `INSERT INTO competitions (name, type, status, prize_amount, winner_count,
+                               requires_membership, locks_at)
+     VALUES ($1,'moneyrace','open',50,1,false, now() + interval '2 hours')
+     RETURNING id`,
+    [`${MARK} doomed`],
+  );
+  let impact = await deleteImpact(doomed);
+  check("an empty competition reports nothing attached",
+    [impact!.participants, impact!.predictions, impact!.prizes], [0, 0, 0]);
+  check("...and is not flagged as serious", impact!.serious, false);
+
+  // Put a real person and a real prize in it.
+  const victim = (await query<{ id: number }>(
+    `INSERT INTO users (telegram_id, username) VALUES ($1, $2)
+     ON CONFLICT (telegram_id) DO UPDATE SET username = EXCLUDED.username
+     RETURNING id`,
+    [-960000001, `${MARK}-user`],
+  ))[0];
+  const part = (await query<{ id: number }>(
+    "INSERT INTO participants (competition_id, user_id) VALUES ($1,$2) RETURNING id",
+    [doomed, victim.id],
+  ))[0];
+  await query(
+    "INSERT INTO prizes (competition_id, user_id, rank, amount) VALUES ($1,$2,1,50)",
+    [doomed, victim.id],
+  );
+
+  impact = await deleteImpact(doomed);
+  check("a competition with somebody in it counts them", impact!.participants, 1);
+  check("...counts the unpaid prize", impact!.prizes_unpaid, 1);
+  check("...and IS flagged as serious", impact!.serious, true);
+
+  await deleteCompetition(doomed, null);
+  check("the competition is gone",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM competitions WHERE id = $1", [doomed]))?.n, 0);
+  check("...and its participants went with it",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM participants WHERE id = $1", [part.id]))?.n, 0);
+  check("...and its prizes",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM prizes WHERE competition_id = $1", [doomed]))?.n, 0);
+  // The audit row must survive - and carry the numbers, because after the
+  // delete there is nothing left to count.
+  const trace = await one<{ summary: string }>(
+    `SELECT summary FROM audit_logs WHERE action = 'competition.delete'
+       AND entity_id = $1 ORDER BY created_at DESC LIMIT 1`,
+    [String(doomed)],
+  );
+  truthy("...but the audit record stays", trace !== null);
+  truthy("...saying how many people were in it",
+    /1 participant/.test(trace!.summary));
+  await query("DELETE FROM users WHERE id = $1", [victim.id]);
+  await query("DELETE FROM audit_logs WHERE entity_id = $1 AND action = 'competition.delete'",
+    [String(doomed)]);
+
+  check("deleting something that is not there is refused",
+    await deleteImpact(999_999_999), null);
+
+  // ================================== announcement wording follows the type
+  check("a giveaway is announced as a giveaway",
+    announcementTemplate("giveaway"), "channel_giveaway");
+  check("an exact-score round gets its own text",
+    announcementTemplate("exact_score"), "channel_exact_new");
+  check("a moneyrace gets the moneyrace text",
+    announcementTemplate("moneyrace"), "channel_competition_new");
+  check("...and a reminder is a reminder whatever the type",
+    announcementTemplate("giveaway", "reminder"), "channel_reminder");
+
+  // "1 Spiele" and "1 Tipps" are what he actually saw. German plurals cannot be
+  // done with a number and a placeholder, so the words are built here.
+  check("one match is a Spiel", plural(1, "Spiel", "Spiele"), "1 Spiel");
+  check("...and five are Spiele", plural(5, "Spiel", "Spiele"), "5 Spiele");
+  check("one tip is a Tipp", plural(1, "Tipp", "Tipps"), "1 Tipp");
+  check("...and zero are Tipps", plural(0, "Tipp", "Tipps"), "0 Tipps");
+
+  const [{ id: worded }] = await query<{ id: number }>(
+    `INSERT INTO competitions (name, type, status, prize_amount, winner_count,
+                               requires_membership, locks_at)
+     VALUES ($1,'exact_score','open',100,1,false, now() + interval '2 hours')
+     RETURNING id`,
+    [`${MARK} worded`],
+  );
+  const f = (await query<{ id: number }>(
+    `INSERT INTO fixtures (provider, external_id, home_team, away_team, kickoff_at, status)
+     VALUES ('test', $1, 'FSV Mainz 05', 'SC Paderborn 07', now() + interval '3 hours', 'NS')
+     RETURNING id`,
+    [-Math.floor(Math.random() * 9_000_000) - 1],
+  ))[0];
+  await query(
+    "INSERT INTO competition_fixtures (competition_id, fixture_id, position) VALUES ($1,$2,1)",
+    [worded, f.id],
+  );
+  const vars = await competitionVars(worded);
+  check("a one-match round says Spiel, not Spiele", vars.matches, "1 Spiel");
+  check("...and names the match itself", vars.match, "FSV Mainz 05 — SC Paderborn 07");
+  check("...with the prize formatted", vars.prize, "100 €");
+  await query("DELETE FROM competitions WHERE id = $1", [worded]);
+  await query("DELETE FROM fixtures WHERE id = $1", [f.id]);
 
   // ---- an empty message is refused before it is stored
   let refused = false;

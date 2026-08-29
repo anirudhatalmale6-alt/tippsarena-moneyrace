@@ -193,11 +193,17 @@
    response and this stylesheet, because a page that waits is a page that
    loses the click it paid for. */
 
-.lp-ad { --lp-accent: #c6f24e; }
+/* His brand orange, sampled from the logo file rather than guessed. The pages
+   used a lime that belonged to the site he sent me as a reference, not to him. */
+.lp-ad {
+  --lp-accent: #ff6e03;
+  --lp-accent-2: #ff8c3a;
+  --lp-ink: #14100c;   /* what goes ON the orange: near-black, not white */
+}
 
 /* ---- the ticker. Two identical halves scrolling as one, so it never gaps. */
 .lp-ticker {
-  background: var(--lp-accent); color: #0a1400; overflow: hidden;
+  background: var(--lp-accent); color: var(--lp-ink); overflow: hidden;
   white-space: nowrap; font-weight: 800; font-size: 12.5px;
   letter-spacing: 1.4px; text-transform: uppercase; padding: 8px 0;
 }
@@ -213,8 +219,8 @@
 .lp-ad .lp-hero {
   padding: 40px 0 40px;
   background:
-    radial-gradient(760px 380px at 50% -60px, rgba(198,242,78,.20), transparent 72%),
-    radial-gradient(900px 500px at 50% 40%, rgba(34,197,94,.10), transparent 70%),
+    radial-gradient(760px 380px at 50% -60px, rgba(255,110,3,.26), transparent 72%),
+    radial-gradient(900px 500px at 50% 40%, rgba(255,110,3,.08), transparent 70%),
     linear-gradient(180deg, #080d13 0%, var(--lp-bg) 100%);
 }
 .lp-ad .lp-hero h1 {
@@ -235,9 +241,9 @@
 /* ---- the money panel: the one number the whole page is about */
 .lp-pot {
   position: relative; margin: 26px auto 0; max-width: 520px;
-  background: #0c1219; border: 1px solid rgba(198,242,78,.35);
+  background: #0c1219; border: 1px solid rgba(255,110,3,.42);
   border-radius: 20px; padding: 26px 22px 22px;
-  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 6px rgba(198,242,78,.05);
+  box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 7px rgba(255,110,3,.06);
 }
 .lp-pot .lp-amount {
   font-size: clamp(46px, 13vw, 84px); font-weight: 800; line-height: .95;
@@ -247,7 +253,7 @@
 .lp-pot .lp-for { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--lp-muted); }
 .lp-flag {
   position: absolute; top: -14px; right: -10px; transform: rotate(7deg);
-  background: var(--lp-accent); color: #0a1400; font-weight: 800;
+  background: var(--lp-accent); color: var(--lp-ink); font-weight: 800;
   font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
   padding: 8px 14px; border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0,0,0,.5);
@@ -271,12 +277,13 @@
 
 /* ---- the one button, everywhere */
 .lp-ad .lp-cta {
-  background: var(--lp-accent); color: #0a1400;
+  background: linear-gradient(180deg, var(--lp-accent-2), var(--lp-accent));
+  color: var(--lp-ink);
   font-size: 18px; padding: 18px 38px; text-transform: uppercase;
   letter-spacing: .6px;
-  box-shadow: 0 12px 34px rgba(198,242,78,.28);
+  box-shadow: 0 12px 34px rgba(255,110,3,.34);
 }
-.lp-ad .lp-cta:hover { background: #d4ff5e; }
+.lp-ad .lp-cta:hover { background: linear-gradient(180deg, #ff9c52, #ff7d1c); }
 .lp-ad .lp-cta.lp-ghost {
   background: transparent; color: var(--lp-text); box-shadow: none;
 }
@@ -327,3 +334,55 @@
   font-size: 11.5px; line-height: 1.65; color: #6f7f90; text-align: left;
 }
 .lp-legal strong { color: var(--lp-muted); }
+
+
+/* ---------------------------------------------------------------- his mark
+   The logo is the strongest thing the brand owns - a Bavarian character nobody
+   confuses with a betting site. It leads the hero rather than sitting in a
+   corner, and it is the white cut-out because these pages are dark. */
+.lp-mark { display: block; margin: 0 auto 18px; width: 116px; height: auto; }
+.lp-ad .lp-logo span { color: var(--lp-accent); }
+.lp-top .lp-mark { width: 40px; margin: 0 10px 0 0; display: inline-block; vertical-align: middle; }
+.lp-logo-row { display: flex; align-items: center; gap: 10px; }
+/* One flex item, or the wordmark is laid out as two words with a gap. */
+.lp-word { white-space: nowrap; }
+
+/* ------------------------------------------------------------- proof strip
+   Three facts, side by side, directly under the button. Every one of them is
+   read from the database, so none of them can go stale or be wrong. */
+.lp-facts {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  max-width: 560px; margin: 22px auto 0;
+}
+.lp-facts div {
+  background: rgba(255,255,255,.03); border: 1px solid var(--lp-line);
+  border-radius: 12px; padding: 12px 8px;
+}
+.lp-facts b {
+  display: block; font-size: 19px; color: var(--lp-accent); line-height: 1.2;
+}
+.lp-facts small {
+  display: block; font-size: 11px; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--lp-muted); margin-top: 3px;
+}
+
+/* ------------------------------------------------------------ phone mockup
+   What the thing actually looks like, drawn in CSS rather than shipped as a
+   screenshot: nobody clicks an app they cannot picture, and a real image would
+   be another request in front of the fold. */
+.lp-phone {
+  max-width: 300px; margin: 0 auto; background: #0e141b;
+  border: 8px solid #1d2733; border-radius: 30px; padding: 14px 12px 18px;
+  box-shadow: 0 26px 60px rgba(0,0,0,.6);
+}
+.lp-bubble {
+  background: #17212b; border-radius: 12px; padding: 10px 12px;
+  margin-bottom: 8px; font-size: 13.5px; text-align: left; line-height: 1.45;
+}
+.lp-bubble.lp-me { background: var(--lp-accent); color: var(--lp-ink); font-weight: 700; }
+.lp-bubble b { color: var(--lp-accent); }
+.lp-bubble.lp-me b { color: var(--lp-ink); }
+
+@media (max-width: 460px) {
+  .lp-facts { grid-template-columns: 1fr; max-width: 300px; }
+}

@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import { botLink, channelLink, nextCompetition, publicStats } from "@/lib/public.ts";
 import { Footer, Header, Section, euro, germanWhen } from "../parts.tsx";
 import { Countdown } from "../countdown.tsx";
-import { Cta, Legal, Pains, Quote, Ticker } from "../ad.tsx";
+import { Cta, Facts, Legal, Mark, Pains, Preview, Quote, Ticker } from "../ad.tsx";
 import { StickyCta } from "../sticky.tsx";
 import "../public.css";
 
@@ -54,6 +54,7 @@ export default async function MoneyRacePage() {
       {/* ------------------------------------------------------------ hero */}
       <section className="lp-hero">
         <div className="lp-wrap">
+          <Mark />
           <div className="lp-eyebrow">TippsArena MoneyRace</div>
           <h1>
             Tippe die Bundesliga.
@@ -99,8 +100,32 @@ export default async function MoneyRacePage() {
             Ein Klick. Telegram öffnet sich. Kein Konto, keine E-Mail, keine
             Kreditkarte.
           </p>
+
+          <Facts
+            items={[
+              [prize, "Preisgeld"],
+              ["0 €", "Einsatz"],
+              ["< 1 Min", "Zeitaufwand"],
+            ]}
+          />
         </div>
       </section>
+
+      {/* -------------------------------------------------- what it looks like */}
+      <Section
+        title="So sieht es im Bot aus"
+        lead="Kein Formular, keine Anmeldung. Ein Chat, drei Knöpfe."
+      >
+        <Preview
+          lines={[
+            ["🏁 <b>Bundesliga MoneyRace</b><br/>💰 Preisgeld: <b>" +
+              prize + "</b><br/>🔒 Tippschluss: Samstag 15:25", false],
+            ["⚽ <b>Bayern München — Dortmund</b><br/>Wer gewinnt?", false],
+            ["🔴 Bayern München", true],
+            ["✅ Gespeichert. Noch 4 Spiele.", false],
+          ]}
+        />
+      </Section>
 
       {/* ------------------------------------------------------- three steps */}
       <Section title="In 30 Sekunden dabei">

@@ -15,9 +15,10 @@
 import { config } from "../lib/config.ts";
 import { getSetting, one, query } from "../lib/db.ts";
 import { log } from "../lib/log.ts";
-import { evaluateCompetition, leaderboard } from "../lib/competitions.ts";
+import { evaluateCompetition } from "../lib/competitions.ts";
 import { refreshPendingResults } from "../lib/fixtures.ts";
-import { money, render, when } from "../lib/templates.ts";
+import { render } from "../lib/templates.ts";
+import { announcementTemplate, competitionVars } from "../lib/messagevars.ts";
 import { sendToChannel } from "./announce.ts";
 import { runBroadcasts } from "./broadcast.ts";
 
@@ -203,34 +204,20 @@ async function sendDueNotifications(): Promise<void> {
   }
 }
 
-const TEMPLATE_FOR: Record<string, string> = {
-  opened: "channel_competition_new",
-  reminder: "channel_reminder",
-  locked: "channel_locked",
-  results: "channel_results",
-  winner: "channel_winner",
-};
-
 async function sendCompetitionMessage(
   competitionId: number,
   kind: string,
 ): Promise<void> {
-  const templateKey = TEMPLATE_FOR[kind];
-  if (!templateKey) throw new Error(`no template for notification kind "${kind}"`);
-
-  const competition = await one<any>(
-    "SELECT * FROM competitions WHERE id = $1",
+  const competition = await one<{ type: string }>(
+    "SELECT type FROM competitions WHERE id = $1",
     [competitionId],
   );
   if (!competition) throw new Error(`competition ${competitionId} is gone`);
 
-  const tz = (await getSetting<string>("timezone", "Europe/Berlin"))!;
-  const counts = await one<{ matches: number; participants: number }>(
-    `SELECT
-       (SELECT COUNT(*)::int FROM competition_fixtures WHERE competition_id = $1) AS matches,
-       (SELECT COUNT(*)::int FROM participants WHERE competition_id = $1) AS participants`,
-    [competitionId],
-  );
+  // The template follows the TYPE as well as the kind: a giveaway announced
+  // with the MoneyRace text says "0 Spiele, 0 Tipps", which is how it looked
+  // broken in the first place.
+  const templateKey = announcementTemplate(competition.type, kind);
 
   let winnerName = "";
   if (kind === "winner") {
@@ -250,32 +237,8 @@ async function sendCompetitionMessage(
     winnerName = winner.username ? `@${winner.username}` : (winner.first_name ?? "");
   }
 
-  let board = "";
-  if (kind === "results") {
-    const rows = await leaderboard(competitionId, 10);
-    const medals = ["🥇", "🥈", "🥉"];
-    board = rows
-      .map((r, i) => {
-        const who = r.username ? `@${r.username}` : (r.first_name ?? "?");
-        return `${medals[i] ?? `${i + 1}️⃣`} ${who} — ${r.points} Punkte`;
-      })
-      .join("\n");
-  }
-
-  const reminderHours = (await getSetting<number>("reminder_hours_before_lock", 1))!;
-
-  const message = await render(templateKey, {
-    name: competition.name,
-    prize: money(competition.prize_amount, competition.currency),
-    match_count: counts?.matches ?? 0,
-    participants: counts?.participants ?? 0,
-    winner_count: competition.winner_count,
-    lock_time: when(competition.locks_at, tz),
-    hours: reminderHours,
-    winner: winnerName,
-    leaderboard: board,
-    description: competition.description ?? "",
-  });
+  const vars = await competitionVars(competitionId, { winner: winnerName });
+  const message = await render(templateKey, vars);
 
   await sendToChannel(competitionId, message);
 }

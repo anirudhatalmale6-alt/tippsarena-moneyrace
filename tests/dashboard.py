@@ -257,23 +257,68 @@ with sync_playwright() as p:
           faded and all(c != "rgb(46, 160, 67)" for c in faded), str(faded))
     page.screenshot(path=str(OUT / "desk_blocked.png"))
 
-    # #58 has both, so the same button must be live.
-    page.goto(f"{BASE}/competitions/58", wait_until="load")
-    ready = page.eval_on_selector_all(
-        "button", "els => els.filter(e => /PUBLISH/i.test(e.textContent)).map(e => e.disabled)")
-    check("a draft that is ready can be published", ready == [False], str(ready))
-    # A draft is not announceable: the advert would point at a locked door.
-    check("...but a draft cannot be announced yet",
-          "ANNOUNCE" not in page.inner_text("body"))
+    # Rather than naming a competition - his data moves, and a lock time that
+    # passes turns a correct page into a failing check - walk what is actually
+    # there and assert the RULES that must hold for every one of them.
+    page.goto(f"{BASE}/competitions", wait_until="load")
+    ids = page.eval_on_selector_all(
+        "tbody tr td a[href^='/competitions/']",
+        "els => els.map(e => e.getAttribute('href'))")
+    check("there are competitions to walk", len(ids) > 0, str(ids))
 
-    # The live one is where the announce control belongs.
-    page.goto(f"{BASE}/competitions/8", wait_until="load")
-    check("a live competition can be announced", "ANNOUNCE" in page.inner_text("body"))
-    live_audiences = page.eval_on_selector_all(
-        "#audience option", "els => els.map(e => e.value)")
-    check("...to the channel, to bot users, or both",
-          sorted(live_audiences) == ["both", "channel", "users"], str(live_audiences))
+    checked_blocked = checked_ready = checked_live = checked_draft = 0
+    for href in ids[:8]:
+        page.goto(f"{BASE}{href}", wait_until="load")
+        body = page.inner_text("body")
+        publish = page.eval_on_selector_all(
+            "button",
+            "els => els.filter(e => /PUBLISH/i.test(e.textContent)).map(e => e.disabled)")
+        blocked = "It cannot go live yet" in body
+
+        if publish:
+            if blocked:
+                check(f"{href}: a blocked draft cannot be published", publish == [True],
+                      str(publish))
+                checked_blocked += 1
+            else:
+                check(f"{href}: a ready draft can be published", publish == [False],
+                      str(publish))
+                checked_ready += 1
+
+        # ANNOUNCE belongs to live competitions and nowhere else - an advert for
+        # something nobody can enter points at a locked door.
+        live = "Live in the bot" in body
+        has_announce = "ANNOUNCE" in body
+        check(f"{href}: announce is offered only when it is live", live == has_announce,
+              f"live={live} announce={has_announce}")
+        if live:
+            checked_live += 1
+            audiences = page.eval_on_selector_all(
+                "#audience option", "els => els.map(e => e.value)")
+            check(f"{href}: announce reaches channel, users or both",
+                  sorted(audiences) == ["both", "channel", "users"], str(audiences))
+        if publish:
+            checked_draft += 1
+
+    # A loop that examined nothing passes every assertion inside it.
+    check("...and at least one draft was examined", checked_draft > 0,
+          f"blocked={checked_blocked} ready={checked_ready} live={checked_live}")
     page.screenshot(path=str(OUT / "desk_ready.png"))
+
+    # --- deleting a competition. Read-only: the first press only ASKS, and this
+    # never presses the second button - #59 is his own draft.
+    page.goto(f"{BASE}/competitions/59", wait_until="load")
+    check("a competition can be deleted", "DELETE" in page.inner_text("body"))
+    page.get_by_role("button", name="🗑 DELETE").click()
+    settle(page)
+    warn = page.inner_text("body")
+    check("...but the first press only asks", "confirm_delete" in page.url, page.url)
+    check("...naming the competition", "Delete" in warn and "for good" in warn)
+    check("...and what would go with it", "participant(s)" in warn)
+    check("...and that it cannot be undone", "cannot be undone" in warn.lower())
+    still = page.goto(f"{BASE}/competitions/59", wait_until="load")
+    check("...and nothing was deleted", still.status == 200, str(still.status))
+    page.screenshot(path=str(OUT / "desk_delete.png"))
 
     # --- broadcasting
     page.goto(f"{BASE}/telegram", wait_until="load")
@@ -394,6 +439,19 @@ with sync_playwright() as p:
             ".lp-stick", "els => els.map(e => getComputedStyle(e).display)")
         check(f"{path} brings the button back once you scroll",
               shown == ["block"], str(shown))
+
+        # His brand, not the reference site's. The lime was borrowed; the orange
+        # is sampled from his own logo file.
+        accent = pp.eval_on_selector(
+            ".lp-ticker", "e => getComputedStyle(e).backgroundColor")
+        check(f"{path} uses his orange, not the borrowed lime",
+              accent == "rgb(255, 110, 3)", accent)
+        marks = pp.eval_on_selector_all(
+            "img.lp-mark", "els => els.map(e => e.naturalWidth)")
+        # naturalWidth is 0 for a broken image, and a broken logo still passes
+        # any check that only looks for the <img> tag.
+        check(f"{path} actually paints his logo",
+              len(marks) >= 2 and all(w > 0 for w in marks), str(marks))
 
         text = pp.inner_text("body")
         check(f"{path} states its independence from Meta",

@@ -356,6 +356,79 @@ export async function publishCompetition(
     `Competition "${competition.name}" published`, "competition", competitionId);
 }
 
+/**
+ * What deleting this competition would destroy.
+ *
+ * Asked before the button is pressed, not after, because a delete has no undo
+ * and the numbers are the only thing that tells him whether this is the empty
+ * mistake he meant to remove or the live round with people in it.
+ */
+export interface DeleteImpact {
+  name: string;
+  status: string;
+  participants: number;
+  predictions: number;
+  prizes: number;
+  prizes_unpaid: number;
+  posted: number;
+  /** True when real people or real money are attached. */
+  serious: boolean;
+}
+
+export async function deleteImpact(competitionId: number): Promise<DeleteImpact | null> {
+  const row = await one<DeleteImpact>(
+    `SELECT c.name, c.status,
+            (SELECT COUNT(*)::int FROM participants p WHERE p.competition_id = c.id) AS participants,
+            (SELECT COUNT(*)::int FROM predictions pr
+               JOIN participants p ON p.id = pr.participant_id
+              WHERE p.competition_id = c.id) AS predictions,
+            (SELECT COUNT(*)::int FROM prizes z WHERE z.competition_id = c.id) AS prizes,
+            (SELECT COUNT(*)::int FROM prizes z
+              WHERE z.competition_id = c.id AND z.status <> 'paid') AS prizes_unpaid,
+            (SELECT COUNT(*)::int FROM telegram_messages t
+              WHERE t.competition_id = c.id AND t.status = 'sent') AS posted
+       FROM competitions c WHERE c.id = $1`,
+    [competitionId],
+  );
+  if (!row) return null;
+  return { ...row, serious: row.participants > 0 || row.prizes_unpaid > 0 };
+}
+
+/**
+ * Delete a competition and everything hanging off it.
+ *
+ * He asked for this because a mis-typed competition should not have to sit in
+ * the list for ever. It is genuinely destructive - participants, predictions,
+ * prizes and draws go with it - so the dashboard makes him confirm against the
+ * counts above, and the audit row is written BEFORE the delete, with the
+ * numbers in it, because afterwards there is nothing left to count.
+ *
+ * Cancelling is offered alongside and is almost always the better answer for
+ * anything real: it hides the competition from players and keeps the record.
+ */
+export async function deleteCompetition(
+  competitionId: number,
+  adminUserId: number | null = null,
+): Promise<void> {
+  const impact = await deleteImpact(competitionId);
+  if (!impact) throw new Error("Competition not found");
+
+  await audit(
+    adminUserId,
+    "competition.delete",
+    `Deleted "${impact.name}" (${impact.status}) with ${impact.participants} ` +
+      `participant(s), ${impact.predictions} prediction(s) and ${impact.prizes} prize(s)`,
+    "competition",
+    competitionId,
+    impact,
+  );
+  // Everything that references a competition is ON DELETE CASCADE except
+  // telegram_messages and prizes' user_id, which are SET NULL - the record of
+  // what was actually sent to Telegram outlives the competition on purpose.
+  await query("DELETE FROM competitions WHERE id = $1", [competitionId]);
+  log.info(`competition ${competitionId} "${impact.name}" deleted`);
+}
+
 /** Copy a competition, without its participants (spec §16). */
 export async function duplicateCompetition(
   competitionId: number,

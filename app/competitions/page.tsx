@@ -2,7 +2,7 @@
 import { query } from "@/lib/db.ts";
 import { visibility } from "@/lib/admin.ts";
 import { money, whenAdmin } from "@/lib/templates.ts";
-import { Shell, StatusBadge, requireAdmin } from "../shell.tsx";
+import { Notice, Shell, StatusBadge, requireAdmin } from "../shell.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ const STATUS_ORDER = "CASE status WHEN 'open' THEN 0 WHEN 'draft' THEN 1 WHEN 'l
 export default async function CompetitionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; deleted?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
@@ -54,6 +54,10 @@ export default async function CompetitionsPage({
         </a>
       }
     >
+      {params.deleted ? (
+        <Notice>The competition and everything belonging to it are gone.</Notice>
+      ) : null}
+
       <div className="actions" style={{ marginBottom: 14 }}>
         {filters.map(([value, label]) => (
           <a

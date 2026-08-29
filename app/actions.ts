@@ -15,6 +15,7 @@ import { query, setSetting } from "@/lib/db.ts";
 import {
   audit,
   createCompetition,
+  deleteCompetition,
   drawGiveaway,
   duplicateCompetition,
   importFixtures,
@@ -181,6 +182,31 @@ export async function actionDuplicate(form: FormData): Promise<void> {
   const name = text(form, "name") || `Copy of #${id}`;
   const newId = await duplicateCompetition(id, name, adminId);
   redirect(`/competitions/${newId}?created=1`);
+}
+
+/**
+ * Delete a competition.
+ *
+ * Two steps on purpose: the first press shows what would be destroyed, the
+ * second does it. `confirm` is the id itself rather than a flag, so a stale
+ * form from another competition cannot delete this one.
+ */
+export async function actionDeleteCompetition(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const id = num(form, "id");
+
+  if (text(form, "confirm") !== String(id)) {
+    redirect(`/competitions/${id}?confirm_delete=1`);
+  }
+  try {
+    await deleteCompetition(id, adminId);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
+  }
+  revalidatePath("/competitions");
+  redirect("/competitions?deleted=1");
 }
 
 export async function actionSetStatus(form: FormData): Promise<void> {
@@ -405,33 +431,9 @@ async function renderBroadcastBody(
   key: string,
   competitionId: number | null,
 ): Promise<{ text: string; buttons: any[] }> {
-  const { render, money, when } = await import("@/lib/templates.ts");
-
-  const [competition] = competitionId
-    ? await query<any>("SELECT * FROM competitions WHERE id = $1", [competitionId])
-    : [null];
-
-  const counts = competitionId
-    ? (
-        await query<{ matches: number; participants: number }>(
-          `SELECT
-             (SELECT COUNT(*)::int FROM competition_fixtures WHERE competition_id = $1) AS matches,
-             (SELECT COUNT(*)::int FROM participants WHERE competition_id = $1) AS participants`,
-          [competitionId],
-        )
-      )[0]
-    : { matches: 0, participants: 0 };
-
-  const tz = await timezone();
-  const message = await render(key, {
-    name: competition?.name ?? "",
-    prize: competition ? money(competition.prize_amount, competition.currency) : "",
-    lock_time: competition ? when(competition.locks_at, tz) : "",
-    match_count: counts?.matches ?? 0,
-    participants: counts?.participants ?? 0,
-    winner_count: competition?.winner_count ?? 1,
-    description: competition?.description ?? "",
-  });
+  const { render } = await import("@/lib/templates.ts");
+  const { competitionVars } = await import("@/lib/messagevars.ts");
+  const message = await render(key, await competitionVars(competitionId));
   return { text: message.text, buttons: message.buttons };
 }
 
@@ -441,21 +443,15 @@ export async function actionAnnounce(form: FormData): Promise<void> {
   const id = num(form, "id");
   const audience = (text(form, "audience") || "both") as Audience;
 
-  // The template follows the competition type. Announcing a giveaway with the
-  // MoneyRace template is what put "⚽ 0 Spiele · 0 Tipps" under a €20 prize
-  // draw in his channel - the announcement has to obey the same rule as every
-  // other screen.
+  // The template follows the competition type, chosen by the same function the
+  // worker uses. Announcing a giveaway with the MoneyRace template is what put
+  // "⚽ 0 Spiele · 0 Tipps" under a €20 prize draw in his channel.
   const [row] = await query<{ type: string }>(
     "SELECT type FROM competitions WHERE id = $1",
     [id],
   );
-  const byType: Record<string, string> = {
-    giveaway: "channel_giveaway",
-    exact_score: "channel_competition_new",
-    moneyrace: "channel_competition_new",
-  };
-  const key = text(form, "key") || byType[row?.type ?? "moneyrace"] ||
-    "channel_competition_new";
+  const { announcementTemplate } = await import("@/lib/messagevars.ts");
+  const key = text(form, "key") || announcementTemplate(row?.type ?? "moneyrace");
 
   try {
     const built = await renderBroadcastBody(key, id);

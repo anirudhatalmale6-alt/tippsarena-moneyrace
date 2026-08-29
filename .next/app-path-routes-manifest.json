@@ -1,20 +1,20 @@
 {
-  "/_not-found/page": "/_not-found",
   "/icon.svg/route": "/icon.svg",
+  "/_not-found/page": "/_not-found",
+  "/competitions/[id]/page": "/competitions/[id]",
   "/analytics/page": "/analytics",
   "/competitions/page": "/competitions",
   "/login/page": "/login",
   "/leaderboards/page": "/leaderboards",
+  "/matches/page": "/matches",
   "/participants/page": "/participants",
   "/referrals/page": "/referrals",
-  "/matches/page": "/matches",
-  "/competitions/new/page": "/competitions/new",
-  "/competitions/[id]/page": "/competitions/[id]",
   "/winners/page": "/winners",
-  "/settings/page": "/settings",
   "/page": "/",
+  "/settings/page": "/settings",
+  "/competitions/new/page": "/competitions/new",
   "/telegram/page": "/telegram",
+  "/(public)/dach/page": "/dach",
   "/(public)/leaderboard/page": "/leaderboard",
-  "/(public)/moneyrace/page": "/moneyrace",
-  "/(public)/dach/page": "/dach"
+  "/(public)/moneyrace/page": "/moneyrace"
 }
