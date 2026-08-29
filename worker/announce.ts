@@ -13,7 +13,11 @@ import type { TemplateButton } from "../lib/templates.ts";
 
 // Its own Api rather than the bot instance: the worker is a separate process
 // and must not start a second long-poll against the same token.
-const api = new Api(config.botToken);
+// Exported so the tests can install a transformer on it and assert on what
+// WOULD have been sent. Without that they would have to either talk to Telegram
+// for real or not test this path at all, and the people in the users table are
+// his actual customers.
+export const api = new Api(config.botToken);
 
 export interface RenderedMessage {
   text: string;

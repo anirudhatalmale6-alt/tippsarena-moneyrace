@@ -55,8 +55,35 @@ export default async function DashboardPage() {
     "SELECT created_at, summary FROM audit_logs ORDER BY created_at DESC LIMIT 8",
   );
 
+  // A competition that was created but never published is invisible to players,
+  // and nothing on this screen used to say so. It is the single most likely
+  // reason for "I made one and it is not in the bot", so it goes at the top.
+  const unpublished = await query<{ id: number; name: string }>(
+    `SELECT id, name FROM competitions
+      WHERE status = 'draft' AND published_at IS NULL
+      ORDER BY created_at DESC LIMIT 10`,
+  );
+
   return (
     <Shell title="Dashboard" active="/">
+      {unpublished.length ? (
+        <Notice kind="warn">
+          <strong>
+            ⚪ {unpublished.length} competition{unpublished.length > 1 ? "s are" : " is"}{" "}
+            not visible in the bot
+          </strong>
+          <div style={{ marginTop: 4 }}>
+            Creating a competition saves it as a draft. Players only see it after you
+            open it and press PUBLISH.
+          </div>
+          {unpublished.map((c) => (
+            <div key={c.id} style={{ marginTop: 4 }}>
+              → <a href={`/competitions/${c.id}`}>{c.name}</a>
+            </div>
+          ))}
+        </Notice>
+      ) : null}
+
       {stuck.length ? (
         <Notice kind="warn">
           <strong>⚠️ Evaluation pending</strong>

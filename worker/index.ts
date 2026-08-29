@@ -19,6 +19,7 @@ import { evaluateCompetition, leaderboard } from "../lib/competitions.ts";
 import { refreshPendingResults } from "../lib/fixtures.ts";
 import { money, render, when } from "../lib/templates.ts";
 import { sendToChannel } from "./announce.ts";
+import { runBroadcasts } from "./broadcast.ts";
 
 const TICK_MS = Number(process.env.WORKER_TICK_MS ?? 60_000);
 
@@ -294,6 +295,14 @@ async function tick(): Promise<void> {
 
   await evaluateDue();
   await sendDueNotifications();
+
+  try {
+    await runBroadcasts();
+  } catch (err) {
+    // A broadcast that cannot go out must not stop competitions from opening,
+    // locking or being scored on the next tick.
+    log.error("broadcast queue failed", err);
+  }
 }
 
 async function main(): Promise<void> {
@@ -315,4 +324,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { tick, openDue, lockDue, evaluateDue, sendDueNotifications, createPrizes };
+export { tick, openDue, lockDue, evaluateDue, sendDueNotifications, createPrizes, runBroadcasts };

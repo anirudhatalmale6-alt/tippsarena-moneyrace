@@ -22,6 +22,7 @@ import {
   publishCompetition,
   setCompetitionFixtures,
 } from "@/lib/admin.ts";
+import { queueBroadcast, type Audience } from "@/lib/broadcast.ts";
 import { setManualResult, clearManualResult } from "@/lib/fixtures.ts";
 import { evaluateCompetition } from "@/lib/competitions.ts";
 import { saveTemplate, zonedToUtc } from "@/lib/templates.ts";
@@ -307,6 +308,109 @@ export async function actionSendTemplate(form: FormData): Promise<void> {
     if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
     const message2 = err instanceof Error ? err.message : String(err);
     redirect(`/telegram?error=${encodeURIComponent(message2)}`);
+  }
+}
+
+// ---------------------------------------------------------------- broadcasts
+/**
+ * Build the text of a broadcast and put it in the queue.
+ *
+ * Rendering happens here, once, and the finished text is stored - so what he
+ * previewed and approved is byte for byte what goes out, even if he edits the
+ * template a minute later while it is still sending.
+ */
+async function renderBroadcastBody(
+  key: string,
+  competitionId: number | null,
+): Promise<{ text: string; buttons: any[] }> {
+  const { render, money, when } = await import("@/lib/templates.ts");
+
+  const [competition] = competitionId
+    ? await query<any>("SELECT * FROM competitions WHERE id = $1", [competitionId])
+    : [null];
+
+  const counts = competitionId
+    ? (
+        await query<{ matches: number; participants: number }>(
+          `SELECT
+             (SELECT COUNT(*)::int FROM competition_fixtures WHERE competition_id = $1) AS matches,
+             (SELECT COUNT(*)::int FROM participants WHERE competition_id = $1) AS participants`,
+          [competitionId],
+        )
+      )[0]
+    : { matches: 0, participants: 0 };
+
+  const tz = await timezone();
+  const message = await render(key, {
+    name: competition?.name ?? "",
+    prize: competition ? money(competition.prize_amount, competition.currency) : "",
+    lock_time: competition ? when(competition.locks_at, tz) : "",
+    match_count: counts?.matches ?? 0,
+    participants: counts?.participants ?? 0,
+    winner_count: competition?.winner_count ?? 1,
+    description: competition?.description ?? "",
+  });
+  return { text: message.text, buttons: message.buttons };
+}
+
+/** The one-click "tell everyone about this competition" on the detail page. */
+export async function actionAnnounce(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const id = num(form, "id");
+  const audience = (text(form, "audience") || "both") as Audience;
+  const key = text(form, "key") || "channel_competition_new";
+
+  try {
+    const built = await renderBroadcastBody(key, id);
+    const queued = await queueBroadcast({
+      body: built.text,
+      buttons: built.buttons,
+      audience,
+      competitionId: id,
+      templateKey: key,
+      adminUserId: adminId,
+    });
+    await audit(adminId, "broadcast.queue",
+      `Announcement queued (${audience}, ${queued.recipients} recipients)`,
+      "competition", id);
+    redirect(`/competitions/${id}?announced=${queued.recipients}&to=${audience}`);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
+  }
+}
+
+/** The free-text / template broadcast on the Telegram page. */
+export async function actionBroadcast(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const audience = (text(form, "audience") || "channel") as Audience;
+  const competitionId = num(form, "competition_id") || null;
+  const key = text(form, "key");
+  const typed = text(form, "body");
+
+  try {
+    // A typed message wins over the template: if he wrote something in the box
+    // he means to send that, not the template the dropdown happens to show.
+    const built = typed
+      ? { text: typed, buttons: [] as any[] }
+      : await renderBroadcastBody(key, competitionId);
+
+    const queued = await queueBroadcast({
+      body: built.text,
+      buttons: built.buttons,
+      audience,
+      competitionId,
+      templateKey: typed ? null : key,
+      adminUserId: adminId,
+    });
+    await audit(adminId, "broadcast.queue",
+      `Broadcast queued (${audience}, ${queued.recipients} recipients)`);
+    redirect(`/telegram?queued=${queued.recipients}&to=${audience}`);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/telegram?error=${encodeURIComponent(message)}`);
   }
 }
 

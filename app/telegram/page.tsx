@@ -1,9 +1,10 @@
 /** Telegram: message templates and publishing (spec §30, §31, §32). */
 import { query } from "@/lib/db.ts";
+import { AUDIENCES, audienceSize, recentBroadcasts } from "@/lib/broadcast.ts";
 import { listTemplates } from "@/lib/templates.ts";
 import { whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
-import { actionRetryNotification, actionSaveTemplate, actionSendTemplate } from "../actions.ts";
+import { actionBroadcast, actionRetryNotification, actionSaveTemplate } from "../actions.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,8 @@ export default async function TelegramPage({
     "SELECT value #>> '{}' AS value FROM settings WHERE key = 'channel_chat_id'",
   );
   const channelSet = Boolean(channel[0]?.value);
+  const reach = await audienceSize();
+  const broadcasts = await recentBroadcasts();
 
   const pending = await query<{
     id: number; kind: string; due_at: Date; attempts: number;
@@ -63,12 +66,24 @@ export default async function TelegramPage({
     <Shell title="Telegram" active="/telegram">
       {params.saved ? <Notice>Template saved.</Notice> : null}
       {params.sent_ok ? <Notice>Sent to the channel.</Notice> : null}
+      {params.queued !== undefined ? (
+        <Notice>
+          Queued
+          {params.to === "channel"
+            ? " for the channel"
+            : ` for ${params.queued} bot user(s)${params.to === "both" ? " and the channel" : ""}`}
+          . It goes out within the next minute — watch the Broadcasts table below.
+        </Notice>
+      ) : null}
       {params.retry ? <Notice>Will be tried again.</Notice> : null}
       {params.error ? <Notice kind="bad">{params.error}</Notice> : null}
       {!channelSet ? (
         <Notice kind="warn">
-          No channel is set yet. Announcements wait until a channel ID is entered under{" "}
-          <a href="/settings">Settings</a> — nothing is lost in the meantime.
+          <strong>No channel is connected yet.</strong> Post any message in your
+          TippsArena channel and the bot picks the channel up by itself — or enter the
+          ID by hand under <a href="/settings">Settings</a>. Channel announcements wait
+          until then and nothing is lost. Direct messages to bot users are not
+          affected and go out straight away.
         </Notice>
       ) : null}
 
@@ -118,12 +133,26 @@ export default async function TelegramPage({
         ) : null}
       </div>
 
-      <h2>Publish now</h2>
-      <form action={actionSendTemplate} className="panel">
+      <h2>Broadcast</h2>
+      <form action={actionBroadcast} className="panel">
         <div className="row">
           <div>
+            <label htmlFor="audience">Send to</label>
+            <select id="audience" name="audience" defaultValue={channelSet ? "both" : "users"}>
+              {AUDIENCES.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label htmlFor="key">Template</label>
-            <select id="key" name="key" defaultValue={selected?.key ?? ""}>
+            {/* Not `selected` and not simply the first one: sorted by name the
+                first channel template is "competition closed", and a send button
+                pre-loaded with an announcement that a competition is over is a
+                mistake waiting to be made. */}
+            <select id="key" name="key" defaultValue="channel_competition_new">
               {templates
                 .filter((t) => t.key.startsWith("channel_"))
                 .map((t) => (
@@ -145,10 +174,69 @@ export default async function TelegramPage({
             </select>
           </div>
         </div>
-        <button type="submit" disabled={!channelSet}>
-          📢 PUBLISH
-        </button>
+
+        {/* id is not "body": the template editor above already owns that one,
+            and two elements with the same id make its <label> point at whichever
+            the browser finds first. */}
+        <label htmlFor="broadcast_body">Or write it yourself</label>
+        <textarea
+          id="broadcast_body"
+          name="body"
+          placeholder="Leave this empty to send the template above."
+          style={{ minHeight: 110 }}
+        />
+        <div className="hint">
+          Anything typed here is sent instead of the template, exactly as written.
+          HTML allowed: &lt;b&gt;bold&lt;/b&gt;, &lt;i&gt;italic&lt;/i&gt;. A direct
+          message reaches {reach} user(s) — everyone who has ever started the bot.
+          {channelSet ? "" : " The channel is not connected yet, so the channel half will wait."}
+        </div>
+        <button type="submit">📢 SEND</button>
       </form>
+
+      <h2>Broadcasts</h2>
+      <div className="panel">
+        {broadcasts.length === 0 ? (
+          <p className="muted">Nothing broadcast yet.</p>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>To</th>
+                  <th>Status</th>
+                  <th>Delivered</th>
+                  <th className="wrap">Text</th>
+                </tr>
+              </thead>
+              <tbody>
+                {broadcasts.map((b) => (
+                  <tr key={b.id}>
+                    <td>{whenAdmin(b.created_at)}</td>
+                    <td className="muted">{b.audience}</td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          b.status === "done" ? "green" : b.status === "failed" ? "red" : ""
+                        }`}
+                      >
+                        {b.status}
+                      </span>
+                    </td>
+                    <td>
+                      {b.audience === "channel"
+                        ? "-"
+                        : `${b.sent}/${b.recipients}${b.failed ? ` (${b.failed} unreachable)` : ""}`}
+                    </td>
+                    <td className="wrap muted">{b.error ?? b.body}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <h2>Queued announcements</h2>
       <div className="panel">
@@ -193,7 +281,7 @@ export default async function TelegramPage({
         )}
       </div>
 
-      <h2>Gesendet</h2>
+      <h2>Sent</h2>
       <div className="panel">
         {sent.length === 0 ? (
           <p className="muted">Nothing sent yet.</p>

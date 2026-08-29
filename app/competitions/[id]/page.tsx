@@ -4,10 +4,13 @@
  */
 import { notFound } from "next/navigation";
 import { competitionFixtures, leaderboard } from "@/lib/competitions.ts";
-import { one, query } from "@/lib/db.ts";
+import { publishReadiness, visibility } from "@/lib/admin.ts";
+import { AUDIENCES, audienceSize } from "@/lib/broadcast.ts";
+import { getSetting, one, query } from "@/lib/db.ts";
 import { money, utcToZonedInput, whenAdmin } from "@/lib/templates.ts";
 import { Notice, Shell, StatusBadge, requireAdmin } from "../../shell.tsx";
 import {
+  actionAnnounce,
   actionDrawGiveaway,
   actionDuplicate,
   actionEvaluate,
@@ -72,6 +75,10 @@ export default async function CompetitionPage({
     : [];
 
   const scoring = competition.scoring ?? {};
+  const readiness = await publishReadiness(id);
+  const seen = visibility(competition);
+  const reach = await audienceSize();
+  const channelSet = Boolean(await getSetting<string>("channel_chat_id", null));
 
   return (
     <Shell
@@ -84,6 +91,15 @@ export default async function CompetitionPage({
       {flags.published ? (
         <Notice>
           Published. The channel announcement goes out within the next minute.
+        </Notice>
+      ) : null}
+      {flags.announced !== undefined ? (
+        <Notice>
+          Announcement queued
+          {flags.to === "channel"
+            ? " for the channel"
+            : ` for ${flags.announced} bot user(s)${flags.to === "both" ? " and the channel" : ""}`}
+          . It goes out within the next minute.
         </Notice>
       ) : null}
       {flags.drawn ? (
@@ -126,15 +142,88 @@ export default async function CompetitionPage({
         </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 18 }}>
-        <div className="actions">
-          {competition.status === "draft" || !competition.published_at ? (
+      {/* --------------------------------------------------- is it live? */}
+      <div
+        className="panel"
+        style={{
+          marginTop: 18,
+          borderColor: seen.visible ? "var(--green)" : "var(--amber, #d99a2b)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 20 }}>{seen.visible ? "🟢" : "⚪"}</span>
+          <strong style={{ fontSize: 17 }}>{seen.label}</strong>
+          <span className="muted">{seen.detail}</span>
+        </div>
+
+        {!seen.visible && competition.status === "draft" ? (
+          <div style={{ marginTop: 12 }}>
+            {readiness.ready ? (
+              <p className="hint" style={{ marginBottom: 10 }}>
+                Everything it needs is in place. Press PUBLISH and it appears in the
+                bot under &quot;Enter a competition&quot;.
+              </p>
+            ) : (
+              <>
+                <p className="hint" style={{ marginBottom: 6 }}>
+                  It cannot go live yet:
+                </p>
+                <ul style={{ margin: "0 0 12px 18px", lineHeight: 1.7 }}>
+                  {readiness.blockers.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {readiness.warnings.map((warning) => (
+              <p className="hint" key={warning}>
+                ⚠️ {warning}
+              </p>
+            ))}
             <form action={actionPublish}>
               <input type="hidden" name="id" value={id} />
-              <button type="submit">PUBLISH</button>
+              <button type="submit" disabled={!readiness.ready}>
+                PUBLISH — MAKE IT VISIBLE IN THE BOT
+              </button>
             </form>
-          ) : null}
+          </div>
+        ) : null}
 
+        {/* --------------------------------------------------- announce it.
+            Only once it is actually live: an advert for a competition nobody
+            can enter yet sends everyone to a locked door, and there is no way
+            to unsend it. */}
+        {competition.status === "open" ? (
+          <form action={actionAnnounce} style={{ marginTop: 16 }}>
+            <input type="hidden" name="id" value={id} />
+            <input type="hidden" name="key" value="channel_competition_new" />
+            <label htmlFor="audience">Announce this competition to</label>
+            <select id="audience" name="audience" defaultValue="both">
+              {AUDIENCES.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <div className="hint" style={{ marginTop: 6 }}>
+              {reach} user(s) have started the bot and can be reached by direct
+              message.{" "}
+              {channelSet
+                ? "The channel is connected."
+                : "No channel is connected yet, so the channel half waits until one is."}{" "}
+              The text comes from the &quot;{"{"}new competition{"}"}&quot; template on the{" "}
+              <a href="/telegram">Telegram</a> page — edit it there first if you want
+              to change the wording.
+            </div>
+            <button className="secondary" type="submit" style={{ marginTop: 10 }}>
+              📢 ANNOUNCE
+            </button>
+          </form>
+        ) : null}
+      </div>
+
+      <div className="panel" style={{ marginTop: 18 }}>
+        <div className="actions">
           <form action={actionDuplicate}>
             <input type="hidden" name="id" value={id} />
             <input

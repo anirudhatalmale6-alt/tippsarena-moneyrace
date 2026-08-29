@@ -43,6 +43,9 @@ GERMAN = [
     "Vorlage", "Anstoß", "Währung", "Zeitzone", "Einladung", "Ergebnis",
     "Auswertung", "Entwurf", "Geöffnet", "Gesperrt", "Beendet", "Abmelden",
     "Speichern", "Löschen", "Fehler", "Suche", "Wann", "Noch keine",
+    # A heading on the Telegram page that survived the first translation pass
+    # because no word on this list happened to be a substring of it.
+    "Gesendet",
     # German weekday abbreviations: dates were formatted de-DE before.
     "Sa.,", "So.,", "Mo.,", "Di.,", "Mi.,", "Do.,", "Fr.,",
 ]
@@ -113,20 +116,41 @@ with sync_playwright() as p:
     page.goto(f"{BASE}/", wait_until="load")
     check("an anonymous visitor is sent to the login page", "/login" in page.url, page.url)
 
-    # --- wrong password
-    page.fill("#email", "trifun@tippsarena.com")
-    page.fill("#password", "definitely-not-it")
-    page.click("button[type=submit]")
-    settle(page)
-    check("a wrong password is refused",
-          "error" in page.url or "is wrong" in page.inner_text("body"))
+    # --- wrong password. Submitted twice for the same cold-start reason as the
+    # real login below: the first POST after a restart can outrun the server.
+    def wrong():
+        page.goto(f"{BASE}/login", wait_until="load")
+        page.fill("#email", "trifun@tippsarena.com")
+        page.fill("#password", "definitely-not-it")
+        page.click("button[type=submit]")
+        settle(page)
+        return "error" in page.url or "is wrong" in page.inner_text("body")
+
+    refused = False
+    for attempt in range(3):
+        refused = wrong()
+        if refused:
+            break
+        page.wait_for_timeout(4000)
+    check("a wrong password is refused", refused, page.url)
 
     # --- real login
-    page.goto(f"{BASE}/login", wait_until="load")
-    page.fill("#email", "trifun@tippsarena.com")
-    page.fill("#password", PW)
-    page.click("button[type=submit]")
-    settle(page)
+    # Two attempts, because the GET warm-up above does not warm the server-action
+    # POST path: the very first form submission after a restart can be slower
+    # than the click that triggered it. A login that is genuinely broken still
+    # fails the second time, so nothing is masked.
+    def login():
+        page.goto(f"{BASE}/login", wait_until="load")
+        page.fill("#email", "trifun@tippsarena.com")
+        page.fill("#password", PW)
+        page.click("button[type=submit]")
+        settle(page)
+        return page.url.rstrip("/") == BASE
+
+    for attempt in range(3):
+        if login():
+            break
+        page.wait_for_timeout(4000)
     check("the right password gets in", page.url.rstrip("/") == BASE, page.url)
 
     visible = page.inner_text("body")
@@ -181,6 +205,99 @@ with sync_playwright() as p:
     check("settings save and come back", "saved" in page.url, page.url)
     check("...with the value still in the box",
           page.input_value("#brand_name") == "TippsArena")
+
+    # --- "why is my competition not in the bot?"
+    # He created three competitions, every one of them said "draft", and nothing
+    # on any screen connected that word to "players cannot see it". These check
+    # the answer is now written down in three places. Read-only throughout:
+    # nothing here presses PUBLISH or SEND on his real data.
+    page.goto(f"{BASE}/", wait_until="load")
+    home = page.inner_text("body")
+    check("the dashboard warns about competitions that are not live",
+          "not visible in the bot" in home.lower(), home[:200])
+    check("...and says a draft is not enough",
+          "press publish" in home.lower())
+
+    page.goto(f"{BASE}/competitions", wait_until="load")
+    listing = page.inner_text("body")
+    # Table headings are uppercased in CSS and inner_text applies that, so the
+    # comparison has to be case-insensitive or a correct page fails.
+    check("the competition list answers 'is it in the bot?'",
+          "in the bot?" in listing.lower())
+    check("...and spells out that a draft is not",
+          "not visible" in listing.lower())
+    check("...and marks the open one as live",
+          "live in the bot" in listing.lower())
+    # The column has to stay one line per row: the full sentence wrapped it into
+    # six lines and made the table unreadable, which no status-code or
+    # text-presence check would ever have noticed.
+    tall = page.eval_on_selector_all(
+        "tbody tr", "els => els.map(e => e.getBoundingClientRect().height)")
+    check("...without making every row enormous", max(tall) < 120, f"{max(tall)}px")
+
+    # #59 is his own draft with no lock time and no matches. Its page has to say
+    # both of those before the click, not throw an error after it.
+    page.goto(f"{BASE}/competitions/59", wait_until="load")
+    detail = page.inner_text("body")
+    check("a draft that cannot publish says why (lock time)",
+          "lock time" in detail.lower())
+    check("...and why (matches)", "no matches" in detail.lower())
+    disabled = page.eval_on_selector_all(
+        "button", "els => els.filter(e => /PUBLISH/i.test(e.textContent)).map(e => e.disabled)")
+    check("...and its PUBLISH button is not clickable", disabled == [True], str(disabled))
+    # A disabled button that still looks pressable is worse than no button: he
+    # clicks it, nothing happens, and the dashboard looks broken.
+    faded = page.eval_on_selector_all(
+        "button:disabled",
+        "els => els.map(e => getComputedStyle(e).backgroundColor)")
+    check("...and it does not look pressable",
+          faded and all(c != "rgb(46, 160, 67)" for c in faded), str(faded))
+    page.screenshot(path=str(OUT / "desk_blocked.png"))
+
+    # #58 has both, so the same button must be live.
+    page.goto(f"{BASE}/competitions/58", wait_until="load")
+    ready = page.eval_on_selector_all(
+        "button", "els => els.filter(e => /PUBLISH/i.test(e.textContent)).map(e => e.disabled)")
+    check("a draft that is ready can be published", ready == [False], str(ready))
+    # A draft is not announceable: the advert would point at a locked door.
+    check("...but a draft cannot be announced yet",
+          "ANNOUNCE" not in page.inner_text("body"))
+
+    # The live one is where the announce control belongs.
+    page.goto(f"{BASE}/competitions/8", wait_until="load")
+    check("a live competition can be announced", "ANNOUNCE" in page.inner_text("body"))
+    live_audiences = page.eval_on_selector_all(
+        "#audience option", "els => els.map(e => e.value)")
+    check("...to the channel, to bot users, or both",
+          sorted(live_audiences) == ["both", "channel", "users"], str(live_audiences))
+    page.screenshot(path=str(OUT / "desk_ready.png"))
+
+    # --- broadcasting
+    page.goto(f"{BASE}/telegram", wait_until="load")
+    tg = page.inner_text("body")
+    check("the Telegram page has a broadcast form", "Broadcast" in tg)
+    audiences = page.eval_on_selector_all(
+        "#audience option", "els => els.map(e => e.value)")
+    check("...with all three audiences",
+          sorted(audiences) == ["both", "channel", "users"], str(audiences))
+    check("...and a box to write the message himself",
+          page.locator("#broadcast_body").count() == 1)
+    # Two elements sharing an id makes a <label for> point at whichever the
+    # browser finds first, so the count is one on purpose.
+    check("...and the template editor still has its own box",
+          page.locator("#body").count() == 1)
+    # The table only has headings once something has been broadcast; before that
+    # the panel says so. Either is correct - a panel that is missing entirely is
+    # not, and that is what this catches.
+    # Sorted by name the first channel template is "competition closed"; a SEND
+    # button pre-loaded with that is one stray click from telling everyone a
+    # running competition is over.
+    check("...and does not default to announcing a competition is over",
+          page.input_value("#key") == "channel_competition_new",
+          page.input_value("#key"))
+    check("...and a place where past broadcasts are listed",
+          "delivered" in tg.lower() or "nothing broadcast yet" in tg.lower())
+    page.screenshot(path=str(OUT / "desk_broadcast.png"))
 
     # --- the old German routes must not still be serving a second copy
     for dead in ["/wettbewerbe", "/spiele", "/teilnehmer", "/gewinner",

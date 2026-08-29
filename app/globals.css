@@ -96,6 +96,18 @@ h2 { font-size: 17px; margin: 26px 0 10px; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* A button that cannot be pressed has to look like it. PUBLISH is disabled
+   until a competition has a lock time and its matches, and a full-green button
+   that silently does nothing reads as a broken dashboard. */
+button:disabled,
+button:disabled:hover {
+  background: var(--panel-2);
+  color: var(--muted);
+  border-color: var(--line);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
 tr:last-child td { border-bottom: none; }
 td.wrap, th.wrap { white-space: normal; }
 

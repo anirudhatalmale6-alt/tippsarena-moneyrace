@@ -1,5 +1,6 @@
 /** Competitions list (spec §27). */
 import { query } from "@/lib/db.ts";
+import { visibility } from "@/lib/admin.ts";
 import { money, whenAdmin } from "@/lib/templates.ts";
 import { Shell, StatusBadge, requireAdmin } from "../shell.tsx";
 
@@ -20,10 +21,11 @@ export default async function CompetitionsPage({
     id: number; name: string; type: string; status: string;
     prize_amount: number; currency: string;
     opens_at: Date | null; locks_at: Date | null; ends_at: Date | null;
+    published_at: Date | null;
     participants: number; matches: number;
   }>(
     `SELECT c.id, c.name, c.type, c.status, c.prize_amount, c.currency,
-            c.opens_at, c.locks_at, c.ends_at,
+            c.opens_at, c.locks_at, c.ends_at, c.published_at,
             (SELECT COUNT(*)::int FROM participants p WHERE p.competition_id = c.id) AS participants,
             (SELECT COUNT(*)::int FROM competition_fixtures f WHERE f.competition_id = c.id) AS matches
        FROM competitions c
@@ -76,6 +78,7 @@ export default async function CompetitionsPage({
                 <tr>
                   <th className="wrap">Name</th>
                   <th>Type</th>
+                  <th>In the bot?</th>
                   <th>Status</th>
                   <th>Prize money</th>
                   <th>Matches</th>
@@ -92,6 +95,28 @@ export default async function CompetitionsPage({
                       <a href={`/competitions/${c.id}`}>{c.name}</a>
                     </td>
                     <td className="muted">{c.type}</td>
+                    <td>
+                      {(() => {
+                        // Plain words, because "draft" did not tell him that
+                        // players cannot see it - and that is the one thing this
+                        // table has to answer at a glance. The label only: the
+                        // full sentence wrapped this column into six lines and
+                        // made every row four times as tall. It is on the
+                        // competition's own page, one click away.
+                        const seen = visibility(c);
+                        return (
+                          <span
+                            style={{
+                              color: seen.visible ? "var(--green)" : "var(--amber)",
+                              whiteSpace: "nowrap",
+                            }}
+                            title={seen.detail}
+                          >
+                            {seen.visible ? "🟢" : "⚪"} {seen.label}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td><StatusBadge status={c.status} /></td>
                     <td>{money(c.prize_amount, c.currency)}</td>
                     <td>{c.matches}</td>

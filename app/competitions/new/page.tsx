@@ -259,8 +259,9 @@ export default async function NewCompetitionPage({
           </a>
         </div>
         <div className="hint" style={{ marginTop: 8 }}>
-          You publish on the next page — that is also when the channel
-          announcement goes out.
+          <strong>A draft is not in the bot yet.</strong> The next page has a PUBLISH
+          button — that is the step that makes it visible to players and sends the
+          announcement.
         </div>
       </form>
     </Shell>
