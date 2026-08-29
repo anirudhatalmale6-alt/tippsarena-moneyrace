@@ -19,6 +19,7 @@ the brief cannot drift apart.
 Run:  python3 referenz.py
 """
 from PIL import Image, ImageDraw
+import os
 import pathlib
 import shutil
 import sys
@@ -30,10 +31,15 @@ from brand import (  # noqa: E402
 )
 
 OUT = pathlib.Path(__file__).resolve().parent / "out"
+# One directory per process. Two renders sharing a frames directory has now
+# broken a render twice: the second one's rmtree deletes the first one's frames
+# while it is still writing them, and the failure surfaces 450 frames later as a
+# missing file. A pid in the path makes the collision impossible rather than
+# unlikely.
 SCRATCH = pathlib.Path(
     "/tmp/claude-1004/-home-freelancer/9dbe74e0-4297-4b96-ba61-8a7c42919c50"
     "/scratchpad/frames"
-)
+) / f"run-{os.getpid()}"
 OUT.mkdir(exist_ok=True)
 
 PRIZE = "149,97 €"
