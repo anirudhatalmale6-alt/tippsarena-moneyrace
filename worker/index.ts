@@ -141,8 +141,30 @@ async function queueNotification(
   );
 }
 
+let warnedAboutChannel = false;
+
 /** Send whatever announcements have come due, one at a time, then mark them. */
 async function sendDueNotifications(): Promise<void> {
+  // A channel that has not been configured yet is not a delivery failure, and
+  // it must not eat the retry budget: publish five competitions before setting
+  // the channel and all five announcements would give up for good. Skip
+  // instead, and say so once rather than every minute.
+  const channel = await getSetting<string>("channel_chat_id", null);
+  if (!channel) {
+    if (!warnedAboutChannel) {
+      const waiting = await one<{ n: number }>(
+        "SELECT COUNT(*)::int AS n FROM notifications WHERE sent_at IS NULL AND due_at <= now()",
+      );
+      log.warn(
+        `channel_chat_id is not set - ${waiting?.n ?? 0} announcement(s) are ` +
+          `waiting and will go out as soon as it is`,
+      );
+      warnedAboutChannel = true;
+    }
+    return;
+  }
+  warnedAboutChannel = false;
+
   const due = await query<{
     id: number;
     competition_id: number;

@@ -11,7 +11,7 @@
  * Written to be run twice back to back: the database half cleans up after
  * itself, so a second run must give the same answer as the first.
  */
-import { closePool, one, query } from "../lib/db.ts";
+import { closePool, getSetting, one, query, setSetting } from "../lib/db.ts";
 import {
   competitionFixtures,
   evaluateCompetition,
@@ -437,6 +437,49 @@ function truthy(name: string, got: unknown): void {
       [`${tag}%`],
     ))?.n,
     0);
+}
+
+// ================================================== announcements and config
+// A channel that is not configured yet must not burn a notification's retries.
+// Publish five competitions before setting the channel and all five
+// announcements would otherwise give up for good, silently.
+{
+  const { sendDueNotifications } = await import("../worker/index.ts");
+  const tag = `notif-${process.pid}-${Date.now()}`;
+
+  // Through setSetting, not a raw UPDATE: the column is JSONB NOT NULL, so a
+  // JSON null read back into JS and written straight out again becomes an SQL
+  // NULL and is rejected. setSetting stringifies, which is what the dashboard
+  // will do too.
+  const previous = await getSetting<string>("channel_chat_id", null);
+  await setSetting("channel_chat_id", null);
+
+  const comp = (await query<{ id: number }>(
+    `INSERT INTO competitions (name, type, status, locks_at)
+     VALUES ($1,'moneyrace','open', now() + interval '1 hour') RETURNING id`,
+    [tag],
+  ))[0];
+  await query(
+    `INSERT INTO notifications (competition_id, kind, due_at)
+     VALUES ($1, 'opened', now())`,
+    [comp.id],
+  );
+
+  await sendDueNotifications();
+  await sendDueNotifications();
+  await sendDueNotifications();
+
+  const row = await one<{ attempts: number; sent_at: Date | null }>(
+    "SELECT attempts, sent_at FROM notifications WHERE competition_id = $1",
+    [comp.id],
+  );
+  check("an unconfigured channel does not consume the retries",
+    { attempts: row?.attempts, sent: row?.sent_at !== null }, { attempts: 0, sent: false });
+  truthy("...and the announcement is still waiting to go out",
+    row !== null && row.sent_at === null);
+
+  await query("DELETE FROM competitions WHERE id = $1", [comp.id]);
+  await setSetting("channel_chat_id", previous);
 }
 
 console.log(
