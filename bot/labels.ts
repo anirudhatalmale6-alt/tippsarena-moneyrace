@@ -43,6 +43,16 @@ export const L = {
   // exact score
   howDoesItEnd: "Wie endet das Spiel?",
   submitScore: "✅ TIPP ABGEBEN",
+  exactHit: "EXAKT RICHTIG!",
+  rightOutcome: "Richtiges Ergebnis!",
+  wrongTip: "Falsch",
+  awaitingResult: "Ergebnis steht noch aus",
+
+  // the two rankings, kept apart on purpose
+  moneyrace: "MONEYRACE",
+  exactScore: "EXACT SCORE",
+  ranking: "RANGLISTE",
+  whichRanking: "🏆 Welche Rangliste?",
 
   // predicting
   draw: "Unentschieden",

@@ -12,8 +12,28 @@
 export interface ScoringConfig {
   /** Points for getting home/draw/away right. */
   correct_outcome: number;
-  /** EXTRA points for also getting the exact score right. Added, not instead. */
+  /**
+   * Points for the exact score. What this MEANS depends on the mode:
+   *   "add"     - a bonus on top of correct_outcome (MoneyRace: 1 + 2 = 3)
+   *   "replace" - the whole score instead of it (Exact Score: 3, flat)
+   */
   exact_score: number;
+}
+
+/**
+ * How the two numbers combine.
+ *
+ * A MoneyRace is a set of 1X2 picks where guessing the scoreline is a bonus, so
+ * they add. An exact-score round is scored the way he wrote it: "Exact score:
+ * 3 Punkte. Correct result but incorrect exact score: 1 Punkt." Those are
+ * TOTALS, not a base and a bonus - adding them would pay 4 for a hit he said is
+ * worth 3, and he would have had no way of knowing except by counting points
+ * after somebody won money.
+ */
+export type ScoringMode = "add" | "replace";
+
+export function scoringModeFor(competitionType: string): ScoringMode {
+  return competitionType === "exact_score" ? "replace" : "add";
 }
 
 export const DEFAULT_SCORING: ScoringConfig = {
@@ -60,6 +80,7 @@ export function scorePrediction(
   prediction: PredictionInput,
   result: ResultInput,
   scoring: ScoringConfig,
+  mode: ScoringMode = "add",
 ): ScoredPrediction {
   if (result.outcome === null) {
     return { points: 0, isCorrect: false, isExact: false };
@@ -76,10 +97,21 @@ export function scorePrediction(
     prediction.awayGoals === result.awayGoals;
 
   let points = 0;
-  if (isCorrect) points += scoring.correct_outcome;
-  // An exact score implies the right outcome, so the bonus is only ever paid on
-  // top of a correct pick - never on its own.
-  if (isExact && isCorrect) points += scoring.exact_score;
+  if (mode === "replace") {
+    // The exact score is the whole answer, so it pays instead of, not as well
+    // as. An exact hit always implies the right outcome, so the ordering here
+    // can never pay less for a better prediction.
+    points = isExact && isCorrect
+      ? scoring.exact_score
+      : isCorrect
+      ? scoring.correct_outcome
+      : 0;
+  } else {
+    if (isCorrect) points += scoring.correct_outcome;
+    // An exact score implies the right outcome, so the bonus is only ever paid
+    // on top of a correct pick - never on its own.
+    if (isExact && isCorrect) points += scoring.exact_score;
+  }
 
   return { points, isCorrect, isExact };
 }

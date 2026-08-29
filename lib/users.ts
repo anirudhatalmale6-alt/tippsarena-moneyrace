@@ -222,8 +222,12 @@ export interface ResultLine {
   total: number;
   rank: number | null;
   is_winner: boolean;
-  /** Exact-score entries, read back as "2:1 ✅". Null for a 1X2 competition. */
-  scores: string | null;
+  /** Exact score only: what they tipped, what it finished, and whether it hit. */
+  tip: string | null;
+  final_score: string | null;
+  match_name: string | null;
+  is_exact: boolean | null;
+  is_correct: boolean | null;
 }
 
 /** "MEINE ERGEBNISSE" (spec §22) - the races that are actually over. */
@@ -232,19 +236,35 @@ export async function recentResults(
   limit = 10,
 ): Promise<ResultLine[]> {
   return query<ResultLine>(
+    // GIVEAWAYS ARE EXCLUDED, and that is the point of his change: a giveaway
+    // is a prize draw, not a scored competition. It has no points, no ranking
+    // and nothing right or wrong, so every column below would be a zero
+    // pretending to be a result. Entry and winning are told separately.
     `SELECT c.id AS competition_id, c.name, c.type, pa.points, pa.correct_count,
             pa.rank, pa.is_winner,
             (SELECT COUNT(*) FROM competition_fixtures cf
               WHERE cf.competition_id = c.id) AS total,
-            (SELECT string_agg(pr.home_goals || ':' || pr.away_goals || ' ' ||
-                     CASE WHEN pr.is_correct IS NULL THEN '⏳'
-                          WHEN pr.is_exact THEN '✅'
-                          ELSE '❌' END, ', ' ORDER BY pr.id)
+            -- The exact-score round has one match, so its tip, the real score
+            -- and the verdict are all single values rather than a list.
+            (SELECT pr.home_goals || ':' || pr.away_goals
                FROM predictions pr
-              WHERE pr.participant_id = pa.id AND pr.home_goals IS NOT NULL) AS scores
+              WHERE pr.participant_id = pa.id AND pr.home_goals IS NOT NULL
+              ORDER BY pr.id LIMIT 1) AS tip,
+            (SELECT CASE WHEN f.outcome IS NULL THEN NULL
+                         ELSE f.home_goals || ':' || f.away_goals END
+               FROM competition_fixtures cf JOIN fixtures f ON f.id = cf.fixture_id
+              WHERE cf.competition_id = c.id ORDER BY cf.position LIMIT 1) AS final_score,
+            (SELECT f.home_team || ' — ' || f.away_team
+               FROM competition_fixtures cf JOIN fixtures f ON f.id = cf.fixture_id
+              WHERE cf.competition_id = c.id ORDER BY cf.position LIMIT 1) AS match_name,
+            (SELECT pr.is_exact FROM predictions pr
+              WHERE pr.participant_id = pa.id ORDER BY pr.id LIMIT 1) AS is_exact,
+            (SELECT pr.is_correct FROM predictions pr
+              WHERE pr.participant_id = pa.id ORDER BY pr.id LIMIT 1) AS is_correct
        FROM participants pa
        JOIN competitions c ON c.id = pa.competition_id
       WHERE pa.user_id = $1
+        AND c.type <> 'giveaway'
         AND c.status IN ('locked', 'evaluating', 'finished')
       ORDER BY COALESCE(c.locks_at, c.created_at) DESC
       LIMIT $2`,

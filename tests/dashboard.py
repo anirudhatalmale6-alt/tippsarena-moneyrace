@@ -229,8 +229,18 @@ with sync_playwright() as p:
           "in the bot?" in listing.lower())
     check("...and spells out that a draft is not",
           "not visible" in listing.lower())
-    check("...and marks the open one as live",
-          "live in the bot" in listing.lower())
+    # Only assert this when something IS live. His competitions move - a lock
+    # time passes and a correct page fails a test that named a state rather
+    # than a rule. Which branch ran is printed, so "nothing was checked" can
+    # never masquerade as a pass.
+    open_rows = page.eval_on_selector_all(
+        "tbody tr td .badge", "els => els.map(e => e.textContent.trim())")
+    if any(b.lower() == "open" for b in open_rows):
+        check("...and marks the open one as live",
+              "live in the bot" in listing.lower())
+    else:
+        check("...and marks nothing as live when nothing is open",
+              "live in the bot" not in listing.lower(), str(open_rows))
     # The column has to stay one line per row: the full sentence wrapped it into
     # six lines and made the table unreadable, which no status-code or
     # text-presence check would ever have noticed.

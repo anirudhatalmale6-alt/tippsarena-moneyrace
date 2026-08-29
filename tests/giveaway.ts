@@ -341,7 +341,9 @@ async function main(): Promise<void> {
     dmed[0].chat_id, String(winner!.telegram_id));
   truthy("...congratulating them", dmed[0].text.includes("HERZLICHEN GLÜCKWUNSCH"));
   truthy("...naming the prize", dmed[0].text.includes("20 €"));
-  truthy("...and saying who to contact", dmed[0].text.includes("@tippsarena"));
+  const handle = (await one<{ v: string }>(
+    "SELECT value #>> '{}' AS v FROM settings WHERE key = 'support_handle'"))!.v;
+  truthy("...and saying who to contact", dmed[0].text.includes(handle));
   const noted = await giveawayWinner(give);
   truthy("...and it is recorded as sent", noted!.notified_at !== null);
   check("...with no error left behind", noted!.notify_error, null);
@@ -461,7 +463,7 @@ async function main(): Promise<void> {
         opens_at, locks_at, published_at, scoring)
      VALUES ($1,'exact_score','open',100,1,false,
              now() - interval '1 hour', now() + interval '2 hours', now(),
-             '{"correct_outcome":1,"exact_score":2}'::jsonb)
+             '{"correct_outcome":1,"exact_score":3}'::jsonb)
      RETURNING id`,
     [`${MARK} exact`],
   ))[0].id;
@@ -548,7 +550,11 @@ async function main(): Promise<void> {
        JOIN participants pa ON pa.id = pr.participant_id WHERE pa.competition_id = $1`,
     [exact],
   );
-  check("an exact hit pays the outcome plus the bonus", scored!.points, 3);
+  // His §4, exactly as written: "Exact score: 3 Punkte. Correct result but
+  // incorrect exact score: 1 Punkt. Wrong result: 0 Punkte." These are TOTALS,
+  // so an exact-score round scores by replacement, not by adding a bonus - the
+  // additive version paid 4 for a hit he had asked to be worth 3.
+  check("an exact hit pays exactly what the box says", scored!.points, 3);
   check("...and is marked exact", scored!.is_exact, true);
 
   await query(
@@ -561,8 +567,7 @@ async function main(): Promise<void> {
        JOIN participants pa ON pa.id = pr.participant_id WHERE pa.competition_id = $1`,
     [exact],
   );
-  check("the right outcome with the wrong score pays only the outcome",
-    scored!.points, 1);
+  check("the right outcome with the wrong score pays 1", scored!.points, 1);
   check("...and is not marked exact", scored!.is_exact, false);
 
   await query(
@@ -580,7 +585,7 @@ async function main(): Promise<void> {
 
   // --- the scoring is configuration, not code (§5)
   await query(
-    `UPDATE competitions SET scoring = '{"correct_outcome":0,"exact_score":10}'::jsonb
+    `UPDATE competitions SET scoring = '{"correct_outcome":2,"exact_score":10}'::jsonb
       WHERE id = $1`,
     [exact],
   );
@@ -595,6 +600,195 @@ async function main(): Promise<void> {
     [exact],
   );
   check("changing the points in the database changes the score", scored!.points, 10);
+
+  // ...and the other branch moves with it, which is what "configurable" has to
+  // mean. A test that only ever checks the exact-hit number would pass with the
+  // outcome value hard-coded.
+  await query(
+    `UPDATE fixtures SET home_goals = 3, away_goals = 1, outcome = 'H' WHERE id = $1`,
+    [exFixture.id],
+  );
+  await query(
+    `UPDATE predictions pr SET pick = 'H', home_goals = 2, away_goals = 0
+       FROM participants pa
+      WHERE pa.id = pr.participant_id AND pa.competition_id = $1`,
+    [exact],
+  );
+  await evaluateCompetition(exact);
+  scored = await one<any>(
+    `SELECT pr.points FROM predictions pr
+       JOIN participants pa ON pa.id = pr.participant_id WHERE pa.competition_id = $1`,
+    [exact],
+  );
+  check("...including the right-outcome value", scored!.points, 2);
+
+  // A MoneyRace still ADDS - the two types score differently on purpose, and
+  // changing one must not have changed the other.
+  const { scorePrediction } = await import("../lib/scoring.ts");
+  const hit = { pick: "H" as const, homeGoals: 2, awayGoals: 1 };
+  const res = { outcome: "H" as const, homeGoals: 2, awayGoals: 1 };
+  check("a MoneyRace adds the exact-score bonus",
+    scorePrediction(hit, res, { correct_outcome: 1, exact_score: 2 }, "add").points, 3);
+  check("...while an exact-score round replaces",
+    scorePrediction(hit, res, { correct_outcome: 1, exact_score: 3 }, "replace").points, 3);
+  check("...and a right outcome with the wrong score never pays the exact value",
+    scorePrediction(
+      { pick: "H", homeGoals: 5, awayGoals: 0 }, res,
+      { correct_outcome: 1, exact_score: 3 }, "replace").points, 1);
+
+  // ============================== the public post: winner, never the list
+  // This is the whole of his privacy correction, and it is the one thing in the
+  // product that has already gone wrong in public. Every check below counts how
+  // many PEOPLE a channel post names.
+  const pubRace = (await query<{ id: number }>(
+    `INSERT INTO competitions
+       (name, type, status, prize_amount, winner_count, requires_membership,
+        opens_at, locks_at, published_at, scoring)
+     VALUES ($1,'moneyrace','locked',150,1,false,
+             now() - interval '3 hours', now() - interval '1 hour', now(),
+             '{"correct_outcome":1,"exact_score":0}'::jsonb)
+     RETURNING id`,
+    [`${MARK} public`],
+  ))[0].id;
+
+  const rf = (await query<{ id: number }>(
+    `INSERT INTO fixtures (provider, external_id, home_team, away_team,
+                           kickoff_at, status, home_goals, away_goals, outcome)
+     VALUES ('test', $1, $2, 'Away FC', now() - interval '2 hours', 'FT', 2, 1, 'H')
+     RETURNING id`,
+    [-Math.floor(Math.random() * 9_000_000) - 1, `Home FC ${MARK}`],
+  ))[0];
+  await query(
+    "INSERT INTO competition_fixtures (competition_id, fixture_id, position) VALUES ($1,$2,1)",
+    [pubRace, rf.id],
+  );
+
+  // Five entrants, so "names one" and "names three" are distinguishable from
+  // "names everybody" - with two players every mode would look the same.
+  const crowd = [A, B, C];
+  for (const who of crowd) await tapAs(who, `comp_${pubRace}`);
+  const extraTg = [-970_000_004, -970_000_005];
+  for (const tg of extraTg) {
+    await query(
+      `INSERT INTO users (telegram_id, username) VALUES ($1, $2)
+       ON CONFLICT (telegram_id) DO UPDATE SET username = EXCLUDED.username`,
+      [tg, `${MARK.replace(/[^a-z0-9]/gi, "")}_u${Math.abs(tg)}`],
+    );
+  }
+  const everyone = [...TEST_TG, ...extraTg];
+  for (const tg of everyone) {
+    const uid = await userIdOf(tg);
+    const part = (await query<{ id: number }>(
+      `INSERT INTO participants (competition_id, user_id, completed, submitted_at)
+       VALUES ($1,$2,TRUE,now())
+       ON CONFLICT (competition_id, user_id) DO UPDATE SET completed = TRUE
+       RETURNING id`,
+      [pubRace, uid],
+    ))[0];
+    const cf = await one<{ id: number }>(
+      "SELECT id FROM competition_fixtures WHERE competition_id = $1", [pubRace]);
+    await query(
+      `INSERT INTO predictions (participant_id, competition_fixture_id, pick,
+                                home_goals, away_goals)
+       VALUES ($1,$2,'H',2,1)
+       ON CONFLICT (participant_id, competition_fixture_id) DO NOTHING`,
+      [part.id, cf!.id],
+    );
+  }
+  const { evaluateCompetition: evaluate } = await import("../lib/competitions.ts");
+  await evaluate(pubRace);
+  check("five people are in the pubRace",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1",
+      [pubRace]))?.n, 5);
+
+  const { publicResult, ranking, notifyCompetitionWinners } =
+    await import("../lib/winners.ts");
+  const { setSetting } = await import("../lib/db.ts");
+  const { render: renderTpl } = await import("../lib/templates.ts");
+  const previous = await one<{ v: string }>(
+    "SELECT value #>> '{}' AS v FROM settings WHERE key = 'public_result_mode'");
+
+  // ---- winner only (the default)
+  await setSetting("public_result_mode", "winner");
+  let post = await publicResult(pubRace);
+  check("the default names exactly one person", post.named, 1);
+  check("...using the winner template", post.templateKey, "channel_winner_only");
+  let postText = (await renderTpl(post.templateKey!, post.vars)).text;
+  const usernames = everyone.length;
+  let atCount = (postText.match(/@/g) ?? []).length;
+  // One @ for the winner, one for the support handle. Never five.
+  truthy("...and the post mentions at most two @handles", atCount <= 2);
+  truthy("...one of which is the support handle", postText.includes("@thomastippsarena"));
+
+  // ---- top 3
+  await setSetting("public_result_mode", "top3");
+  post = await publicResult(pubRace);
+  postText = (await renderTpl(post.templateKey!, post.vars)).text;
+  check("top 3 shows exactly three placings",
+    (postText.match(/🥇|🥈|🥉/g) ?? []).length, 3);
+  check("...and no fourth place appears", postText.includes("4."), false);
+  // One of the three has no public username on purpose, so the post names two
+  // people and describes the third. That is the rule working, not a gap.
+  check("...naming only those who have a public username", post.named, 2);
+  check("...and never inventing a name for the one who has none",
+    postText.includes("Testnutzer"), false);
+  // The other two entrants must not appear anywhere in it.
+  const beyond = everyone.length - 3;
+  truthy("...with the other entrants absent", beyond > 0);
+  check("...and the post is nowhere near the size of the field",
+    (postText.match(/@/g) ?? []).length <= 3, true);
+
+  // ---- off
+  await setSetting("public_result_mode", "none");
+  post = await publicResult(pubRace);
+  check("switched off, nothing is posted at all", post.templateKey, null);
+  check("...and nobody is atCount", post.named, 0);
+
+  await setSetting("public_result_mode", previous?.v ?? "winner");
+
+  // ---- the template that leaked is gone, and cannot come back
+  check("the full-leaderboard template no longer exists",
+    (await one<{ n: number }>(
+      "SELECT COUNT(*)::int AS n FROM message_templates WHERE key = 'channel_results'"))?.n,
+    0);
+  const { competitionVars } = await import("../lib/messagevars.ts");
+  const raceVars = await competitionVars(pubRace);
+  check("...and there is no {leaderboard} placeholder left to rebuild it",
+    "leaderboard" in raceVars, false);
+
+  // ---- the winner is raceTold privately, whatever the channel does
+  await setSetting("public_result_mode", "none");
+  dmed.length = 0;
+  const raceTold = await notifyCompetitionWinners(pubRace, null);
+  truthy("the winner is raceTold privately even with public results off", raceTold.sent >= 1);
+  truthy("...and the message names the prize", dmed[0].text.includes("150"));
+  truthy("...and says who to contact", dmed[0].text.includes("@thomastippsarena"));
+  check("...and only the winner is messaged", dmed.length, raceTold.sent);
+  await setSetting("public_result_mode", previous?.v ?? "winner");
+
+  // ---- the two rankings never merge
+  const raceRanks = await ranking("moneyrace", 20);
+  const exactRanks = await ranking("exact_score", 20);
+  truthy("there is a MoneyRace ranking", raceRanks.length > 0);
+  check("...and a giveaway never appears in one",
+    (await ranking("giveaway", 20)).length, 0);
+  // Same person can be in both, but the point totals must not be summed.
+  const combined = [...raceRanks, ...exactRanks];
+  truthy("the two rankings are separate lists",
+    combined.length === raceRanks.length + exactRanks.length);
+
+  // ---- giveaways are gone from "Meine Ergebnisse"
+  const { recentResults } = await import("../lib/users.ts");
+  const myLines = await recentResults(await userIdOf(-970_000_001), 20);
+  check("no giveaway appears in my results",
+    myLines.some((r) => r.type === "giveaway"), false);
+  truthy("...but the scored competitions do",
+    myLines.some((r) => r.type === "moneyrace" || r.type === "exact_score"));
+
+  await query("DELETE FROM competitions WHERE id = $1", [pubRace]);
+  await query("DELETE FROM fixtures WHERE id = $1", [rf.id]);
+  await query("DELETE FROM users WHERE telegram_id = ANY($1::bigint[])", [extraTg]);
 
   // ================================================= cleanup
   await cleanup();

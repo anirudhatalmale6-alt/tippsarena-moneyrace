@@ -11,6 +11,7 @@ import { log } from "./log.ts";
 import {
   DEFAULT_TIEBREAKERS,
   normaliseScoring,
+  scoringModeFor,
   normaliseTiebreakers,
   rank,
   scorePrediction,
@@ -262,6 +263,7 @@ export async function evaluateCompetition(
   if (!competition) throw new Error(`competition ${competitionId} not found`);
 
   const scoring = normaliseScoring(competition.scoring);
+  const mode = scoringModeFor(competition.type);
   const tiebreakers: TiebreakKey[] = normaliseTiebreakers(
     competition.tiebreakers ?? DEFAULT_TIEBREAKERS,
   );
@@ -320,6 +322,7 @@ export async function evaluateCompetition(
         awayGoals: fixture.away_goals,
       },
       scoring,
+      mode,
     );
 
     // A match without a result stores nulls, not false: "not known yet" and

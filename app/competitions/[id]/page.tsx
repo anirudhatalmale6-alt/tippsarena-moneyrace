@@ -7,6 +7,8 @@ import { competitionFixtures, leaderboard } from "@/lib/competitions.ts";
 import { deleteImpact, publishReadiness, visibility } from "@/lib/admin.ts";
 import { AUDIENCES, audienceSize } from "@/lib/broadcast.ts";
 import { giveawayEntrants, giveawayWinner } from "@/lib/giveaway.ts";
+import { publicResult } from "@/lib/winners.ts";
+import { render as renderTemplate } from "@/lib/templates.ts";
 import { GiveawayPanel } from "./giveaway.tsx";
 import { getSetting, one, query } from "@/lib/db.ts";
 import { money, utcToZonedInput, whenAdmin } from "@/lib/templates.ts";
@@ -19,6 +21,7 @@ import {
   actionEvaluate,
   actionManualResult,
   actionPublish,
+  actionPublishResult,
   actionSetFixtures,
   actionSetStatus,
   actionUpdateCompetition,
@@ -80,6 +83,16 @@ export default async function CompetitionPage({
   const impact = flags.confirm_delete ? await deleteImpact(id) : null;
   const seen = visibility(competition);
   const reach = await audienceSize();
+  // Built here so the page can SHOW him the exact post before he sends it -
+  // the whole complaint was about discovering afterwards what went public.
+  const resultPreview =
+    competition.status === "finished" && !isGiveaway
+      ? await publicResult(id)
+      : { templateKey: null, vars: {}, named: 0 };
+  const resultPreviewText = resultPreview.templateKey
+    ? (await renderTemplate(resultPreview.templateKey, resultPreview.vars)).text
+        .replace(/<[^>]+>/g, "")
+    : "";
   const channelSet = Boolean(await getSetting<string>("channel_chat_id", null));
 
   return (
@@ -115,6 +128,12 @@ export default async function CompetitionPage({
         <Notice kind="bad">
           ⚠️ The winner could not be told. {flags.notify_failed} You can try again
           below; the draw itself stands either way.
+        </Notice>
+      ) : null}
+      {flags.result_published !== undefined ? (
+        <Notice>
+          Result queued for the channel, naming {flags.result_published} person(s).
+          The participant list was not posted and cannot be.
         </Notice>
       ) : null}
       {flags.winner_announced ? (
@@ -295,6 +314,34 @@ export default async function CompetitionPage({
             Only once it is actually live: an advert for a competition nobody
             can enter yet sends everyone to a locked door, and there is no way
             to unsend it. */}
+        {competition.status === "finished" && !isGiveaway ? (
+          <form action={actionPublishResult} style={{ marginTop: 16 }}>
+            <input type="hidden" name="id" value={id} />
+            <strong>Publish the result in the channel</strong>
+            <div className="hint" style={{ margin: "4px 0 8px" }}>
+              {resultPreview.templateKey
+                ? `Names ${resultPreview.named} person(s). The full list of participants is never posted — change what goes out under Settings.`
+                : "Public results are switched off under Settings, or there is no winner to name. Nothing will be posted."}
+            </div>
+            {resultPreview.templateKey ? (
+              <pre
+                className="mono"
+                style={{
+                  whiteSpace: "pre-wrap", background: "var(--bg)",
+                  border: "1px solid var(--line)", borderRadius: 8,
+                  padding: "10px 12px", fontSize: 12, margin: "0 0 10px",
+                }}
+              >
+                {resultPreviewText}
+              </pre>
+            ) : null}
+            <button className="secondary" type="submit"
+                    disabled={!resultPreview.templateKey}>
+              🏆 PUBLISH THE RESULT
+            </button>
+          </form>
+        ) : null}
+
         {competition.status === "open" ? (
           <form action={actionAnnounce} style={{ marginTop: 16 }}>
             <input type="hidden" name="id" value={id} />
@@ -468,10 +515,15 @@ export default async function CompetitionPage({
         </div>
         {isExact ? (
           <div className="hint" style={{ marginTop: -4, marginBottom: 10 }}>
-            The two point boxes are added together, so a right outcome with the
-            wrong score pays the first, and an exact score pays both. 1 and 2 gives
-            you 3 points for an exact hit and 1 for the right outcome — nothing here
-            is fixed in the code.
+            The two boxes add up, so with the numbers above a player currently
+            gets:{" "}
+            <strong>
+              {Number(scoring.correct_outcome ?? 1) + Number(scoring.exact_score ?? 0)}{" "}
+              point(s) for the exact score
+            </strong>
+            , <strong>{Number(scoring.correct_outcome ?? 1)} for the right outcome</strong>{" "}
+            with the wrong score, and 0 for a wrong result. Change either box and
+            this line changes with it — none of it is fixed in the code.
           </div>
         ) : null}
         <label htmlFor="description">Description</label>

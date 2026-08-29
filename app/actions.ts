@@ -209,6 +209,43 @@ export async function actionDeleteCompetition(form: FormData): Promise<void> {
   redirect("/competitions?deleted=1");
 }
 
+/**
+ * Post the result of a finished competition to the channel, by hand.
+ *
+ * Goes through the same publicResult() the worker uses, so a manual post and an
+ * automatic one can never name a different number of people.
+ */
+export async function actionPublishResult(form: FormData): Promise<void> {
+  const adminId = await admin();
+  const id = num(form, "id");
+  try {
+    const { publicResult } = await import("@/lib/winners.ts");
+    const { render } = await import("@/lib/templates.ts");
+    const result = await publicResult(id);
+    if (!result.templateKey) {
+      redirect(`/competitions/${id}?error=${encodeURIComponent(
+        "Public results are switched off, or there is no winner to name.")}`);
+    }
+    const message = await render(result.templateKey!, result.vars);
+    await queueBroadcast({
+      body: message.text,
+      buttons: message.buttons,
+      audience: "channel",
+      competitionId: id,
+      templateKey: result.templateKey,
+      adminUserId: adminId,
+    });
+    await audit(adminId, "competition.publish_result",
+      `Result posted to the channel, naming ${result.named} person(s)`,
+      "competition", id);
+    redirect(`/competitions/${id}?result_published=${result.named}`);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    redirect(`/competitions/${id}?error=${encodeURIComponent(message)}`);
+  }
+}
+
 export async function actionSetStatus(form: FormData): Promise<void> {
   const adminId = await admin();
   const id = num(form, "id");
@@ -522,6 +559,7 @@ export async function actionSaveSettings(form: FormData): Promise<void> {
   const keys = [
     "brand_name", "competition_brand", "bot_username", "channel_chat_id",
     "channel_invite_url", "timezone", "currency", "rules_text",
+    "support_handle", "public_result_mode",
   ];
   for (const key of keys) {
     const value = text(form, key);

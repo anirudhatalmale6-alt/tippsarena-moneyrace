@@ -19,6 +19,7 @@ import { evaluateCompetition } from "../lib/competitions.ts";
 import { refreshPendingResults } from "../lib/fixtures.ts";
 import { render } from "../lib/templates.ts";
 import { announcementTemplate, competitionVars } from "../lib/messagevars.ts";
+import { notifyCompetitionWinners, publicResult } from "../lib/winners.ts";
 import { sendToChannel } from "./announce.ts";
 import { runBroadcasts } from "./broadcast.ts";
 
@@ -96,7 +97,16 @@ async function evaluateDue(): Promise<void> {
         [competition.id],
       );
       await createPrizes(competition.id);
-      await queueNotification(competition.id, "results", new Date());
+      // The winner is told privately no matter what the channel does - his §6,
+      // and the one message that must never depend on a setting.
+      try {
+        await notifyCompetitionWinners(competition.id, null);
+      } catch (err) {
+        log.error(`could not tell the winner of ${competition.id}`, err);
+      }
+      // NO "results" notification. That was the full leaderboard, by username,
+      // into a public channel, automatically. Only the winner announcement is
+      // queued now, and what it says obeys public_result_mode.
       await queueNotification(competition.id, "winner", new Date());
       log.info(`competition ${competition.id} "${competition.name}" finished`);
     } catch (err) {
@@ -217,29 +227,25 @@ async function sendCompetitionMessage(
   // The template follows the TYPE as well as the kind: a giveaway announced
   // with the MoneyRace text says "0 Spiele, 0 Tipps", which is how it looked
   // broken in the first place.
-  const templateKey = announcementTemplate(competition.type, kind);
-
-  let winnerName = "";
+  // A finished competition goes through publicResult(), which is the ONLY
+  // thing allowed to decide who gets named in the channel. Everything else
+  // keeps the ordinary template path.
   if (kind === "winner") {
-    const winner = await one<{ username: string | null; first_name: string | null }>(
-      `SELECT u.username, u.first_name FROM participants pa
-         JOIN users u ON u.id = pa.user_id
-        WHERE pa.competition_id = $1 AND pa.is_winner = TRUE
-        ORDER BY pa.rank LIMIT 1`,
-      [competitionId],
-    );
-    if (!winner) {
-      // A jackpot with nobody right, or an evaluation that produced no winner.
-      // Announcing "GLÜCKWUNSCH undefined" would be worse than silence.
-      log.warn(`competition ${competitionId} finished with no winner - no announcement`);
+    const result = await publicResult(competitionId);
+    if (!result.templateKey) {
+      log.info(
+        `competition ${competitionId}: public results are off, or there is no ` +
+          `winner to name - nothing posted`,
+      );
       return;
     }
-    winnerName = winner.username ? `@${winner.username}` : (winner.first_name ?? "");
+    const message = await render(result.templateKey, result.vars);
+    await sendToChannel(competitionId, message);
+    return;
   }
 
-  const vars = await competitionVars(competitionId, { winner: winnerName });
-  const message = await render(templateKey, vars);
-
+  const templateKey = announcementTemplate(competition.type, kind);
+  const message = await render(templateKey, await competitionVars(competitionId));
   await sendToChannel(competitionId, message);
 }
 

@@ -1,6 +1,7 @@
 /** Settings (spec §38, §43, §44) - and the rules text, which is not hard-coded. */
 import { query } from "@/lib/db.ts";
 import { whenAdmin } from "@/lib/templates.ts";
+import { RESULT_MODES } from "@/lib/winners.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
 import { actionLogout, actionSaveSettings } from "../actions.ts";
 
@@ -159,6 +160,40 @@ export default async function SettingsPage({
             This is the text behind 📜 REGELN in the bot. Deliberately not in the
             code, so the final legal wording can be put in without a developer.
           </div>
+          <label htmlFor="public_result_mode">
+            What goes in the channel when a competition finishes
+          </label>
+          <select
+            id="public_result_mode"
+            name="public_result_mode"
+            defaultValue={str("public_result_mode") || "winner"}
+          >
+            {RESULT_MODES.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <div className="hint">
+            The winner is named by their @username on purpose — that is the point
+            of a winner announcement. <strong>The full list of participants is
+            never published</strong>, in any setting: there is no option for it and
+            the template that used to do it has been deleted. Somebody who has no
+            public Telegram username is never named at all — not by first name,
+            not by ID. The complete table stays inside the bot and this dashboard.
+          </div>
+
+          <label htmlFor="support_handle">Handle a winner is told to contact</label>
+          <input
+            id="support_handle"
+            name="support_handle"
+            type="text"
+            defaultValue={str("support_handle") || "@thomastippsarena"}
+          />
+          <div className="hint">
+            Goes into every winner message, private and public.
+          </div>
+
           <label htmlFor="rules_text">Rules text (HTML allowed)</label>
           <textarea id="rules_text" name="rules_text" defaultValue={str("rules_text")} />
         </div>

@@ -28,6 +28,7 @@ import {
   type CompetitionFixture,
 } from "../lib/competitions.ts";
 import { enterGiveaway } from "../lib/giveaway.ts";
+import { ranking } from "../lib/winners.ts";
 import { money, render, when, escapeHtml } from "../lib/templates.ts";
 import {
   parseStartPayload,
@@ -838,59 +839,103 @@ bot.callbackQuery("profile", async (ctx) => {
 bot.callbackQuery("results", async (ctx) => {
   await ctx.answerCallbackQuery();
   const { user } = await upsertUser(ctx.from!);
-  const rows = await recentResults(user.id);
+  const rows = await recentResults(user.id, 12);
   if (!rows.length) {
     await ctx.reply(L.noResults, { reply_markup: await mainMenu() });
     return;
   }
-  // One line per competition, worded for the kind of competition it was.
-  // "0/0 richtig · 0 Punkte" under a giveaway is not a result, it is a bug
-  // wearing a result's clothes.
-  const lines = rows.map((r) => {
-    if (r.type === "giveaway") {
-      return (
-        `🎁 <b>${escapeHtml(r.name)}</b>\n` +
-        `   ${r.is_winner ? `🏆 ${L.youWon}` : L.notDrawn}`
-      );
-    }
-    if (r.type === "exact_score") {
-      return (
-        `🎯 <b>${escapeHtml(r.name)}</b>\n` +
-        `   ${r.scores ?? "—"}` +
-        (r.rank ? ` · Platz #${r.rank}` : ` · ${L.pendingEvaluation}`)
-      );
-    }
-    return (
-      `🏁 <b>${escapeHtml(r.name)}</b>\n` +
-      `   ${r.correct_count}/${r.total} richtig · ${r.points} Punkte` +
-      (r.rank ? ` · Platz #${r.rank}` : ` · ${L.pendingEvaluation}`)
+
+  // Grouped by type, MoneyRace first, because they are scored on different
+  // scales and reading them as one list invites the comparison his §8 says must
+  // never be made. Giveaways are not here at all - recentResults excludes them.
+  const races = rows.filter((r) => r.type === "moneyrace");
+  const exact = rows.filter((r) => r.type === "exact_score");
+  const blocks: string[] = [];
+
+  if (races.length) {
+    blocks.push(
+      `🏁 <b>${L.moneyrace}</b>\n\n` +
+        races
+          .map((r) =>
+            `<b>${escapeHtml(r.name)}</b>\n` +
+            `⚽ ${r.correct_count}/${r.total} richtig\n` +
+            `🏆 ${r.points} Punkte` +
+            (r.rank ? `\n📊 Platz #${r.rank}` : `\n⏳ ${L.pendingEvaluation}`),
+          )
+          .join("\n\n"),
     );
-  });
-  await ctx.reply(`📊 <b>${L.myResults}</b>\n\n${lines.join("\n\n")}`, {
-    parse_mode: "HTML",
-    reply_markup: await mainMenu(),
-  });
+  }
+
+  if (exact.length) {
+    blocks.push(
+      `🎯 <b>${L.exactScore}</b>\n\n` +
+        exact
+          .map((r) => {
+            const head =
+              `<b>${escapeHtml(r.name)}</b>\n` +
+              (r.match_name ? `⚽ ${escapeHtml(r.match_name)}\n` : "") +
+              `🎯 Tipp: <b>${r.tip ?? "—"}</b>`;
+            // No result yet is its own state: "falsch" would be a lie about a
+            // match that has not been played.
+            if (!r.final_score) return `${head}\n⏳ ${L.awaitingResult}`;
+            const verdict = r.is_exact
+              ? `🏆 <b>${L.exactHit}</b> +${r.points}`
+              : r.is_correct
+              ? `✅ ${L.rightOutcome} +${r.points}`
+              : `❌ ${L.wrongTip} +${r.points}`;
+            return `${head}\n📊 Ergebnis: <b>${r.final_score}</b>\n${verdict}`;
+          })
+          .join("\n\n"),
+    );
+  }
+
+  await ctx.reply(
+    `📊 <b>${L.myResults}</b>\n\n${blocks.join("\n\n———\n\n")}`,
+    { parse_mode: "HTML", reply_markup: await mainMenu() },
+  );
 });
 
 // --------------------------------------------------------------- leaderboard
 bot.callbackQuery("leaderboard", async (ctx) => {
   await ctx.answerCallbackQuery();
-  const recent = await one<{ id: number; name: string }>(
-    // Giveaways are excluded: a giveaway has no points, so its "leaderboard"
-    // would be a table of zeros in an order that means nothing.
-    `SELECT id, name FROM competitions
-      WHERE status IN ('open','locked','evaluating','finished')
-        AND type <> 'giveaway'
-      ORDER BY COALESCE(locks_at, created_at) DESC LIMIT 1`,
-  );
-  if (!recent) {
-    await ctx.reply(L.noCompetitions, { reply_markup: await mainMenu() });
+  // Two tables, never one. MoneyRace points and Exact Score points are earned
+  // on different scales, so a combined ranking would put people in an order
+  // that means nothing (his §8). Giveaways have no points and appear in neither.
+  await ctx.reply(L.whichRanking, {
+    reply_markup: new InlineKeyboard()
+      .text(`🏁 ${L.moneyrace}`, "rank_moneyrace").row()
+      .text(`🎯 ${L.exactScore}`, "rank_exact_score").row()
+      .text(L.backToMenu, "menu"),
+  });
+});
+
+bot.callbackQuery(/^rank_(moneyrace|exact_score)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const type = ctx.match![1];
+  const rows = await ranking(type, 15);
+  const title = type === "moneyrace" ? L.moneyrace : L.exactScore;
+
+  if (!rows.length) {
+    await ctx.reply(`🏆 <b>${title}</b>\n\n${L.noEntries}`, {
+      parse_mode: "HTML",
+      reply_markup: await mainMenu(),
+    });
     return;
   }
-  await ctx.reply(await leaderboardText(recent.id, recent.name), {
-    parse_mode: "HTML",
-    reply_markup: await mainMenu(),
+
+  const medals = ["🥇", "🥈", "🥉"];
+  const lines = rows.map((r, i) => {
+    // Inside the bot a player may be named - this is the private ranking, not
+    // the channel. Somebody without a username is shown by first name here and
+    // nowhere public.
+    const who = r.username ? `@${escapeHtml(r.username)}` : escapeHtml(r.first_name ?? "?");
+    return `${medals[i] ?? `${i + 1}.`} ${who} — ${r.points} Punkte`;
   });
+
+  await ctx.reply(
+    `🏆 <b>${title} ${L.ranking}</b>\n\n${lines.join("\n")}`,
+    { parse_mode: "HTML", reply_markup: await mainMenu() },
+  );
 });
 
 export async function leaderboardText(

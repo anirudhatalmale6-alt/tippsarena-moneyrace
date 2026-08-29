@@ -12,7 +12,6 @@
  * stay available for anything he has already written by hand.
  */
 import { getSetting, one, query } from "./db.ts";
-import { leaderboard } from "./competitions.ts";
 import { money, when } from "./templates.ts";
 
 /** "1 Spiel" / "5 Spiele". */
@@ -23,11 +22,14 @@ export function plural(count: number, singular: string, plural_: string): string
 /** The template key an announcement of this competition should use. */
 export function announcementTemplate(type: string, kind = "opened"): string {
   if (kind !== "opened") {
+    // No "results" entry, deliberately: that template was the full leaderboard
+    // by username and has been deleted. A finished competition is announced
+    // through lib/winners.ts, which is the only place allowed to decide who
+    // gets named in public.
     return {
       reminder: "channel_reminder",
       locked: "channel_locked",
-      results: "channel_results",
-      winner: "channel_winner",
+      winner: "channel_winner_only",
     }[kind] ?? "channel_competition_new";
   }
   if (type === "giveaway") return "channel_giveaway";
@@ -35,6 +37,15 @@ export function announcementTemplate(type: string, kind = "opened"): string {
   return "channel_competition_new";
 }
 
+/**
+ * NOTE: there is deliberately no {leaderboard} placeholder.
+ *
+ * It used to build the top ten by username, and `channel_results` dropped that
+ * into the public channel automatically. Leaving the variable available - even
+ * with no template using it - means the next template somebody writes can leak
+ * the list again. Who may be named in public is decided in lib/winners.ts and
+ * nowhere else.
+ */
 export async function competitionVars(
   competitionId: number | null,
   extra: { winner?: string } = {},
@@ -74,16 +85,6 @@ export async function competitionVars(
     ? fixtures.map((f) => `${f.home_team} — ${f.away_team}`).join("\n⚽ ")
     : "";
 
-  let board = "";
-  const rows = await leaderboard(competitionId, 10);
-  const medals = ["🥇", "🥈", "🥉"];
-  board = rows
-    .map((r, i) => {
-      const who = r.username ? `@${r.username}` : (r.first_name ?? "?");
-      return `${medals[i] ?? `${i + 1}️⃣`} ${who} — ${r.points} Punkte`;
-    })
-    .join("\n");
-
   return {
     name: competition.name,
     prize: money(competition.prize_amount, competition.currency),
@@ -101,7 +102,6 @@ export async function competitionVars(
     winner_count: competition.winner_count,
     hours: reminderHours,
     support,
-    leaderboard: board,
     winner: extra.winner ?? "",
   };
 }
