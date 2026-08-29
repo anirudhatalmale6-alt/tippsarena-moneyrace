@@ -559,7 +559,7 @@ export async function actionSaveSettings(form: FormData): Promise<void> {
   const keys = [
     "brand_name", "competition_brand", "bot_username", "channel_chat_id",
     "channel_invite_url", "timezone", "currency", "rules_text",
-    "support_handle", "public_result_mode",
+    "support_handle", "public_result_mode", "exact_score_prize_rule",
   ];
   for (const key of keys) {
     const value = text(form, key);

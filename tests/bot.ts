@@ -197,6 +197,31 @@ await query(
   );
 }
 
+// =========================================================== the leaderboard
+// The wiring, not the arithmetic - tests/leaderboard.ts owns the rules. What
+// this proves is that the button reaches the new screen at all, and that the
+// screen it reaches names nobody.
+{
+  const pick = await tap("leaderboard");
+  const choices = keyboards(pick).flat().map((b: any) => b.data ?? b.callback_data);
+  truthy("the leaderboard asks which table first",
+    choices.includes("rank_moneyrace") && choices.includes("rank_exact_score"));
+  truthy("...and never offers a combined one",
+    !choices.some((d: string) => d === "rank_all" || d === "rank"));
+
+  const board = texts(await tap("rank_moneyrace")).join("\n");
+  truthy("the ranking tells the player where they stand",
+    board.includes("Deine Platzierung") || board.includes("noch nicht platziert"));
+  // At most three podium lines, whoever else is in the table.
+  const podium = board.split("\n").filter((l) => /^(🥇|🥈|🥉)/.test(l)).length;
+  truthy(`...and shows at most three others (saw ${podium})`, podium <= 3);
+  // A board that rendered nothing at all would satisfy every limit above, so
+  // it has to be either populated or explicitly empty - never quietly blank.
+  truthy(`...and is not silently blank (${podium} on the podium)`,
+    podium > 0 || board.includes("Noch keine Teilnehmer"));
+  check("...naming none of them", /@\w/.test(board), false);
+}
+
 // =============================================================== entering
 {
   const calls = await tap(`comp_${comp.id}`);

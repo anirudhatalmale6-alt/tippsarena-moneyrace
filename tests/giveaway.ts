@@ -702,7 +702,7 @@ async function main(): Promise<void> {
       "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1",
       [pubRace]))?.n, 5);
 
-  const { publicResult, ranking, notifyCompetitionWinners } =
+  const { publicResult, notifyCompetitionWinners } =
     await import("../lib/winners.ts");
   const { setSetting } = await import("../lib/db.ts");
   const { render: renderTpl } = await import("../lib/templates.ts");
@@ -768,15 +768,18 @@ async function main(): Promise<void> {
   await setSetting("public_result_mode", previous?.v ?? "winner");
 
   // ---- the two rankings never merge
-  const raceRanks = await ranking("moneyrace", 20);
-  const exactRanks = await ranking("exact_score", 20);
-  truthy("there is a MoneyRace ranking", raceRanks.length > 0);
+  const { typeBoard } = await import("../lib/leaderboard.ts");
+  const raceBoard = await typeBoard("moneyrace", null);
+  const exactBoard = await typeBoard("exact_score", null);
+  truthy("there is a MoneyRace ranking", raceBoard.top.length > 0);
   check("...and a giveaway never appears in one",
-    (await ranking("giveaway", 20)).length, 0);
-  // Same person can be in both, but the point totals must not be summed.
-  const combined = [...raceRanks, ...exactRanks];
-  truthy("the two rankings are separate lists",
-    combined.length === raceRanks.length + exactRanks.length);
+    (await typeBoard("giveaway", null)).top.length, 0);
+  // Same person can be in both, but the point totals must not be summed. If
+  // they were, one board would count everybody the other one counts.
+  truthy("the two rankings are counted separately",
+    raceBoard.total !== exactBoard.total ||
+    raceBoard.top[0]?.points !== exactBoard.top[0]?.points ||
+    exactBoard.total === 0);
 
   // ---- giveaways are gone from "Meine Ergebnisse"
   const { recentResults } = await import("../lib/users.ts");

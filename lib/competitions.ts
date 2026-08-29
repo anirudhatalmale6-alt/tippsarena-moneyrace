@@ -271,6 +271,13 @@ export async function evaluateCompetition(
   const fixtures = await competitionFixtures(competitionId);
   const missingResults = fixtures.filter((f) => f.outcome === null).length;
 
+  // Whether an exact-score round pays out when nobody hit the scoreline. His
+  // setting; "best" is what has been running, so nothing changes unless he
+  // changes it.
+  const { exactPrizeRule } = await import("./winners.ts");
+  const exactOnly =
+    competition.type === "exact_score" && (await exactPrizeRule()) === "exact_only";
+
   const rows = await query<{
     prediction_id: number;
     participant_id: number;
@@ -363,9 +370,15 @@ export async function evaluateCompetition(
           standing.exactHits,
           standing.correctCount,
           standing.rank ?? null,
+          // Three conditions, and the second one was missing: coming first is
+          // not the same as winning. A round where everybody scored nothing
+          // used to crown whoever the tiebreak happened to sort first, and pay
+          // them. Zero points is not a win.
           missingResults === 0 &&
             standing.rank !== undefined &&
-            standing.rank <= competition.winner_count,
+            standing.rank <= competition.winner_count &&
+            standing.points > 0 &&
+            (!exactOnly || standing.exactHits > 0),
         ],
       );
     }

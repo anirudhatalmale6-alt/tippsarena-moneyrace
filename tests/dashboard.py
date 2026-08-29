@@ -209,6 +209,25 @@ with sync_playwright() as p:
     check("...with the value still in the box",
           page.input_value("#brand_name") == "TippsArena")
 
+    # --- the exact-score payout rule he needs to decide
+    # Read and re-select the SAME value, then save: this proves the control is
+    # wired both ways without ever changing how his live competitions pay out.
+    current = page.input_value("#exact_score_prize_rule")
+    check("the exact-score payout rule is on the settings page",
+          current in ("best", "exact_only"), current)
+    options = page.eval_on_selector_all(
+        "#exact_score_prize_rule option", "els => els.map(e => e.value)")
+    check("...offering both answers", sorted(options), ["best", "exact_only"])
+    page.select_option("#exact_score_prize_rule", current)
+    page.get_by_role("button", name="SAVE", exact=True).click()
+    settle(page)
+    check("...and the choice survives a save",
+          page.input_value("#exact_score_prize_rule") == current, current)
+    settings_text = page.inner_text("body")
+    check("...explained with the round it actually happened in",
+          "3:1" in settings_text and "2:0" in settings_text,
+          settings_text[:200])
+
     # --- "why is my competition not in the bot?"
     # He created three competitions, every one of them said "draft", and nothing
     # on any screen connected that word to "players cannot see it". These check
@@ -248,13 +267,31 @@ with sync_playwright() as p:
         "tbody tr", "els => els.map(e => e.getBoundingClientRect().height)")
     check("...without making every row enormous", max(tall) < 120, f"{max(tall)}px")
 
-    # #59 is his own draft with no lock time and no matches. Its page has to say
-    # both of those before the click, not throw an error after it.
-    page.goto(f"{BASE}/competitions/59", wait_until="load")
+    # A draft that must be refused, made by this file rather than named.
+    #
+    # This block used to point at #59, one of his own drafts. It was deleted
+    # between runs, and every assertion here then ran against a 404 page: "lock
+    # time" was absent, "no matches" was absent, the PUBLISH button was absent,
+    # and four checks failed for a reason that had nothing to do with the
+    # application. Fourth time a test of mine has been pinned to his live data.
+    # So it creates what it needs, in a state that MUST be refused - a lock time
+    # in the past and no matches - and deletes it again at the end.
+    mark = f"ZZ browser test {os.getpid()}"
+    page.goto(f"{BASE}/competitions/new", wait_until="load")
+    settle(page)
+    page.select_option("#type", "moneyrace")
+    page.fill("#name", mark)
+    page.fill("#locks_at", "2020-01-01T12:00")
+    page.get_by_role("button", name="SAVE AS DRAFT").click()
+    settle(page)
+    check("a draft can be created from the dashboard",
+          "/competitions/" in page.url and "/new" not in page.url, page.url)
+    made = page.url.split("?")[0].rstrip("/").split("/")[-1]
+
     detail = page.inner_text("body")
     check("a draft that cannot publish says why (lock time)",
-          "lock time" in detail.lower())
-    check("...and why (matches)", "no matches" in detail.lower())
+          "lock time" in detail.lower(), detail[:300])
+    check("...and why (matches)", "no matches" in detail.lower(), detail[:300])
     disabled = page.eval_on_selector_all(
         "button", "els => els.filter(e => /PUBLISH/i.test(e.textContent)).map(e => e.disabled)")
     check("...and its PUBLISH button is not clickable", disabled == [True], str(disabled))
@@ -297,10 +334,21 @@ with sync_playwright() as p:
 
         # ANNOUNCE belongs to live competitions and nowhere else - an advert for
         # something nobody can enter points at a locked door.
+        #
+        # Two different buttons carry that word and they are not the same thing:
+        # "📢 ANNOUNCE" advertises a competition that is open, "📢 ANNOUNCE THE
+        # WINNER" belongs to a finished giveaway that has been drawn. Matching
+        # the bare word failed two correct pages, so the check names the button.
         live = "Live in the bot" in body
-        has_announce = "ANNOUNCE" in body
-        check(f"{href}: announce is offered only when it is live", live == has_announce,
-              f"live={live} announce={has_announce}")
+        buttons = page.eval_on_selector_all(
+            "button", "els => els.map(e => e.textContent.trim())")
+        advert = any(b == "📢 ANNOUNCE" for b in buttons)
+        check(f"{href}: the advert is offered only when it is live", live == advert,
+              f"live={live} advert={advert} buttons={buttons}")
+        winner_post = any("ANNOUNCE THE WINNER" in b for b in buttons)
+        if winner_post:
+            check(f"{href}: a winner is only announced once it is over",
+                  not live and "Finished" in body, body[:200])
         if live:
             checked_live += 1
             audiences = page.eval_on_selector_all(
@@ -315,19 +363,45 @@ with sync_playwright() as p:
           f"blocked={checked_blocked} ready={checked_ready} live={checked_live}")
     page.screenshot(path=str(OUT / "desk_ready.png"))
 
-    # --- deleting a competition. Read-only: the first press only ASKS, and this
-    # never presses the second button - #59 is his own draft.
-    page.goto(f"{BASE}/competitions/59", wait_until="load")
-    check("a competition can be deleted", "DELETE" in page.inner_text("body"))
+    # --- deleting a competition, all the way through.
+    # Only ever the draft this file created two blocks ago, which nobody has
+    # entered and which was never in the bot. Checking that the word DELETE
+    # appears somewhere - which is what this used to do - would not have noticed
+    # a button that deleted nothing, or one that deleted without asking.
+    page.goto(f"{BASE}/competitions/{made}", wait_until="load")
+    settle(page)
     page.get_by_role("button", name="🗑 DELETE").click()
     settle(page)
-    warn = page.inner_text("body")
-    check("...but the first press only asks", "confirm_delete" in page.url, page.url)
-    check("...naming the competition", "Delete" in warn and "for good" in warn)
-    check("...and what would go with it", "participant(s)" in warn)
-    check("...and that it cannot be undone", "cannot be undone" in warn.lower())
-    still = page.goto(f"{BASE}/competitions/59", wait_until="load")
-    check("...and nothing was deleted", still.status == 200, str(still.status))
+    confirm = page.inner_text("body")
+    check("the first press asks rather than deletes",
+          "YES, DELETE IT" in confirm and "Keep it" in confirm, confirm[:200])
+    check("...and says so in the address bar",
+          "confirm_delete" in page.url, page.url)
+    check("...naming the competition", mark in confirm)
+    check("...and what would go with it", "participant(s)" in confirm)
+    check("...and that it cannot be undone", "cannot be undone" in confirm.lower())
+    still_there = page.eval_on_selector_all(
+        "input[name=confirm]", "els => els.map(e => e.value)")
+    check("...and the confirmation is tied to this competition",
+          still_there == [made], str(still_there))
+    # The dangerous answer must not be the one styled as the obvious click.
+    green = page.eval_on_selector_all(
+        "button", "els => els.filter(e => /YES, DELETE/.test(e.textContent))"
+                  ".map(e => getComputedStyle(e).backgroundColor)")
+    check("...and 'yes' is not the green button",
+          green and all(c != "rgb(46, 160, 67)" for c in green), str(green))
+    page.screenshot(path=str(OUT / "desk_delete_confirm.png"))
+
+    page.get_by_role("button", name="YES, DELETE IT").click()
+    settle(page)
+    gone = page.goto(f"{BASE}/competitions/{made}", wait_until="load")
+    check("a competition can be deleted", gone.status == 404, str(gone.status))
+    listing_after = page.goto(f"{BASE}/competitions", wait_until="load")
+    check("...and it leaves the list", mark not in page.inner_text("body"))
+    # And nothing else went with it. Deleting one competition that removes two
+    # is the failure worth catching here, and only a count can see it.
+    left = page.eval_on_selector_all("tbody tr", "els => els.length")
+    check("...and his own competitions are all still there", left >= 5, str(left))
     page.screenshot(path=str(OUT / "desk_delete.png"))
 
     # --- broadcasting

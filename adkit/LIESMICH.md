@@ -60,6 +60,26 @@ Creator für 30–80 €.
 Die drei Skripte haben dieselben drei Haken wie die Videos. Du kannst also
 beides gegeneinander testen: animiert gegen Gesicht.
 
+## `tippsarena-ugc-referenz.mp4` — zum Anschauen, nicht zum Schalten
+
+Du wolltest sehen, wie so ein Creator-Video aussieht, bevor du jemanden dafür
+bezahlst. Genau das ist diese Datei: Skript 1 als Referenzschnitt.
+
+Was drin ist: jeder Schnittpunkt, die Länge jedes Beats, die Einstellungsgröße,
+der Bildausschnitt, der eingebrannte Untertitel in echter Größe, und die
+Bildschirmaufnahme-Stelle. Was **nicht** drin ist: ein Gesicht. Da, wo der
+Creator steht, steht ein markierter Platzhalter.
+
+Damit kannst du zweierlei machen:
+
+1. **Selbst sehen**, wie das fertige Video getaktet ist, bevor Geld fließt.
+2. **Dem Creator schicken.** Er sieht in 30 Sekunden, was du willst — das ist
+   schneller und eindeutiger als jede schriftliche Beschreibung, und du
+   bekommst weniger Nachdrehs.
+
+Das Video ist bewusst als Referenz gekennzeichnet („REFERENZ · kein fertiger
+Werbespot"), damit es niemand aus Versehen hochlädt.
+
 ## Nächster Schritt
 
 Schick mir eine Handy-Bildschirmaufnahme vom Bot (10–15 Sekunden reichen), dann

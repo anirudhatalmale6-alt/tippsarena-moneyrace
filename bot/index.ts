@@ -19,7 +19,6 @@ import {
   getCompetition,
   isOpenForPredictions,
   joinCompetition,
-  leaderboard,
   listOpenCompetitions,
   predictionsOf,
   PredictionsLockedError,
@@ -28,7 +27,7 @@ import {
   type CompetitionFixture,
 } from "../lib/competitions.ts";
 import { enterGiveaway } from "../lib/giveaway.ts";
-import { ranking } from "../lib/winners.ts";
+import { boardText, typeBoard } from "../lib/leaderboard.ts";
 import { money, render, when, escapeHtml } from "../lib/templates.ts";
 import {
   parseStartPayload,
@@ -912,48 +911,18 @@ bot.callbackQuery("leaderboard", async (ctx) => {
 bot.callbackQuery(/^rank_(moneyrace|exact_score)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
   const type = ctx.match![1];
-  const rows = await ranking(type, 15);
-  const title = type === "moneyrace" ? L.moneyrace : L.exactScore;
+  const { user } = await upsertUser(ctx.from!);
+  const title = `${type === "moneyrace" ? L.moneyrace : L.exactScore} ${L.ranking}`;
 
-  if (!rows.length) {
-    await ctx.reply(`🏆 <b>${title}</b>\n\n${L.noEntries}`, {
-      parse_mode: "HTML",
-      reply_markup: await mainMenu(),
-    });
-    return;
-  }
-
-  const medals = ["🥇", "🥈", "🥉"];
-  const lines = rows.map((r, i) => {
-    // Inside the bot a player may be named - this is the private ranking, not
-    // the channel. Somebody without a username is shown by first name here and
-    // nowhere public.
-    const who = r.username ? `@${escapeHtml(r.username)}` : escapeHtml(r.first_name ?? "?");
-    return `${medals[i] ?? `${i + 1}.`} ${who} — ${r.points} Punkte`;
+  // Three masked names and your own line - never the field. The size of the
+  // field does not change the size of this message, which is the point: at ten
+  // thousand players it is still five lines and still one query.
+  const board = await typeBoard(type, user.id);
+  await ctx.reply(boardText(board, title, L.noEntries), {
+    parse_mode: "HTML",
+    reply_markup: await mainMenu(),
   });
-
-  await ctx.reply(
-    `🏆 <b>${title} ${L.ranking}</b>\n\n${lines.join("\n")}`,
-    { parse_mode: "HTML", reply_markup: await mainMenu() },
-  );
 });
-
-export async function leaderboardText(
-  competitionId: number,
-  name: string,
-  limit = 10,
-): Promise<string> {
-  const rows = await leaderboard(competitionId, limit);
-  if (!rows.length) return `🏁 <b>${escapeHtml(name)}</b>\n\n${L.noEntries}`;
-
-  const medals = ["🥇", "🥈", "🥉"];
-  const lines = rows.map((row, i) => {
-    const badge = medals[i] ?? `${i + 1}️⃣`;
-    const who = row.username ? `@${row.username}` : (row.first_name ?? "?");
-    return `${badge} ${escapeHtml(who)} — ${row.points} Punkte`;
-  });
-  return `🏁 <b>${escapeHtml(name)}</b>\n\n${lines.join("\n")}`;
-}
 
 // --------------------------------------------------------------- invite/rules
 bot.callbackQuery("invite", async (ctx) => {

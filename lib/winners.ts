@@ -21,6 +21,7 @@
 import { getSetting, one, query } from "./db.ts";
 import { log } from "./log.ts";
 import { audit } from "./admin.ts";
+import { plural } from "./messagevars.ts";
 import { money, render } from "./templates.ts";
 
 export type PublicResultMode = "winner" | "top3" | "none";
@@ -36,6 +37,30 @@ export async function publicResultMode(): Promise<PublicResultMode> {
   return (["winner", "top3", "none"].includes(value as string)
     ? value
     : "winner") as PublicResultMode;
+}
+
+/**
+ * Who wins an Exact Score round when nobody got the scoreline.
+ *
+ * "best"       - the highest score wins, which under his own 3/1/0 table means
+ *                somebody who only had the right result can take the prize.
+ *                This is what has been happening.
+ * "exact_only" - no exact hit, no winner. The round is announced as won by
+ *                nobody and no prize is created.
+ *
+ * The default stays "best" because that is the behaviour his two live rounds
+ * already ran under; changing it silently would rewrite a result he has seen.
+ */
+export type ExactPrizeRule = "best" | "exact_only";
+
+export const EXACT_PRIZE_RULES: Array<[ExactPrizeRule, string]> = [
+  ["best", "The best tip wins, even if nobody hit the exact score"],
+  ["exact_only", "Only an exact score wins — otherwise nobody does"],
+];
+
+export async function exactPrizeRule(): Promise<ExactPrizeRule> {
+  const value = await getSetting<string>("exact_score_prize_rule", "best");
+  return value === "exact_only" ? "exact_only" : "best";
 }
 
 export interface Placed {
@@ -142,7 +167,7 @@ export async function publicResult(competitionId: number): Promise<PublicResult>
         // Somebody in the top three with no public username is shown as a
         // placing, not as a person. Skipping the row would misnumber the
         // podium; naming them any other way would be the leak this fixes.
-        return `${medals[i]} ${name ?? "Teilnehmer ohne öffentlichen Namen"} — ${r.points} Punkte`;
+        return `${medals[i]} ${name ?? "Teilnehmer ohne öffentlichen Namen"} — ${plural(r.points, "Punkt", "Punkte")}`;
       })
       .join("\n");
     return {
@@ -154,7 +179,33 @@ export async function publicResult(competitionId: number): Promise<PublicResult>
 
   // ---- winner only
   const [winner] = await placings(competitionId, 1);
-  if (!winner) return { templateKey: null, vars: {}, named: 0 };
+  if (!winner) {
+    // An exact-score round with nobody left standing is a result in itself and
+    // has to be said out loud, or the channel just goes quiet after a
+    // competition it announced.
+    if (competition.type === "exact_score") {
+      const fx = await one<{ home_team: string; away_team: string;
+        home_goals: number | null; away_goals: number | null }>(
+        `SELECT f.home_team, f.away_team, f.home_goals, f.away_goals
+           FROM competition_fixtures cf JOIN fixtures f ON f.id = cf.fixture_id
+          WHERE cf.competition_id = $1 ORDER BY cf.position LIMIT 1`,
+        [competitionId],
+      );
+      return {
+        templateKey: "channel_exact_no_winner",
+        vars: {
+          name: competition.name,
+          match: fx ? `${fx.home_team} — ${fx.away_team}` : "",
+          final_score:
+            fx && fx.home_goals !== null ? `${fx.home_goals}:${fx.away_goals}` : "-",
+          prize,
+          support,
+        },
+        named: 0,
+      };
+    }
+    return { templateKey: null, vars: {}, named: 0 };
+  }
 
   const name = publicName(winner.username);
   if (!name) {
@@ -176,7 +227,7 @@ export async function publicResult(competitionId: number): Promise<PublicResult>
   const shared = {
     name: competition.name,
     winner: name,
-    winner_points: `${winner.points} Punkte`,
+    winner_points: plural(winner.points, "Punkt", "Punkte"),
     prize,
     support,
     rank: winner.rank ?? 1,
@@ -184,29 +235,35 @@ export async function publicResult(competitionId: number): Promise<PublicResult>
 
   if (competition.type === "exact_score") {
     // What is said about the win is read from the prediction, never assumed.
-    // Competition 77's winner won on the outcome with no scoreline stored, and
-    // the old template announced "Exakt richtig!" next to "Tipp: -".
+    //
+    // He read the old post as the bot claiming a 3:1 tip had won a match that
+    // finished 2:0 - "not possible". The scoring was right (right result, wrong
+    // scoreline, 1 point of a possible 3) but the post did not say so: the
+    // headline was EXACT SCORE - GEWINNER, and the tip was printed above the
+    // result, so the eye read the tip as the score. Three changes, all wording:
+    //
+    //   * the final score comes FIRST and is labelled "Endstand"
+    //   * the verdict says outright when nobody hit the exact score
+    //   * the tip is labelled as the winner's tip, with what it paid
     const finalScore =
       fixture && fixture.home_goals !== null
         ? `${fixture.home_goals}:${fixture.away_goals}`
         : null;
     const verdict = winner.is_exact
-      ? "🏆 Exakt richtig!"
-      : "✅ Richtiges Ergebnis!";
+      ? "🎯 <b>EXAKT RICHTIG!</b>"
+      : "❌ Das exakte Ergebnis hatte niemand — es gewinnt der beste Tipp.";
     return {
       templateKey: "channel_exact_winner",
       vars: {
         ...shared,
         match: fixture ? `${fixture.home_team} — ${fixture.away_team}` : "",
+        final_score: finalScore ?? "-",
         winner_tip: winner.tip ?? "-",
-        // The tip line disappears entirely when there is no scoreline, rather
-        // than printing a dash and looking broken.
+        // Never empty, so the layout cannot collapse into a blank line: with no
+        // scoreline stored at all it falls back to what was actually scored.
         winner_line: winner.tip
-          ? `🎯 Tipp: <b>${winner.tip}</b>` +
-            (finalScore ? `\n📊 Ergebnis: <b>${finalScore}</b>` : "")
-          : finalScore
-          ? `📊 Ergebnis: <b>${finalScore}</b>`
-          : "",
+          ? `🎯 Tipp: <b>${winner.tip}</b> — ${plural(winner.points, "Punkt", "Punkte")}`
+          : `📌 ${plural(winner.points, "Punkt", "Punkte")}`,
         verdict,
       },
       named: 1,
@@ -248,7 +305,7 @@ export async function notifyCompetitionWinners(
       {
         name: competition.name,
         rank: winner.rank ?? 1,
-        winner_points: `${winner.points} Punkte`,
+        winner_points: plural(winner.points, "Punkt", "Punkte"),
         prize: money(competition.prize_amount, competition.currency),
         support,
         match: fixture ? `${fixture.home_team} — ${fixture.away_team}` : "",
@@ -282,36 +339,8 @@ export async function notifyCompetitionWinners(
 }
 
 // ---------------------------------------------------------------- rankings
-export interface RankingRow {
-  username: string | null;
-  first_name: string | null;
-  points: number;
-  rounds: number;
-}
-
-/**
- * The all-time table for ONE competition type.
- *
- * His §8: MoneyRace points and Exact Score points never share a ranking. They
- * are different games scored on different scales, and adding them together
- * would produce a table that means nothing.
- *
- * Giveaways are excluded because a giveaway has no points at all.
- */
-export async function ranking(type: string, limit = 15): Promise<RankingRow[]> {
-  return query<RankingRow>(
-    `SELECT u.username, u.first_name,
-            SUM(pa.points)::int AS points,
-            COUNT(*)::int AS rounds
-       FROM participants pa
-       JOIN users u ON u.id = pa.user_id
-       JOIN competitions c ON c.id = pa.competition_id
-      WHERE c.type = $1
-        AND c.status IN ('finished', 'evaluating')
-      GROUP BY u.id, u.username, u.first_name
-      HAVING SUM(pa.points) > 0
-      ORDER BY points DESC, rounds
-      LIMIT $2`,
-    [type, limit],
-  );
-}
+//
+// The all-time tables moved to lib/leaderboard.ts on 29 Aug, and the function
+// that used to live here - "give me the top fifteen, named" - was deleted
+// rather than left unused. He asked that no screen show the field, and a
+// function that returns the field is a screen waiting to be written.

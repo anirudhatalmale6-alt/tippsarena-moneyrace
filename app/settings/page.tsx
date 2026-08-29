@@ -1,7 +1,7 @@
 /** Settings (spec §38, §43, §44) - and the rules text, which is not hard-coded. */
 import { query } from "@/lib/db.ts";
 import { whenAdmin } from "@/lib/templates.ts";
-import { RESULT_MODES } from "@/lib/winners.ts";
+import { EXACT_PRIZE_RULES, RESULT_MODES } from "@/lib/winners.ts";
 import { Notice, Shell, requireAdmin } from "../shell.tsx";
 import { actionLogout, actionSaveSettings } from "../actions.ts";
 
@@ -181,6 +181,29 @@ export default async function SettingsPage({
             the template that used to do it has been deleted. Somebody who has no
             public Telegram username is never named at all — not by first name,
             not by ID. The complete table stays inside the bot and this dashboard.
+          </div>
+
+          <label htmlFor="exact_score_prize_rule">
+            Exact Score — who wins when nobody hits the scoreline
+          </label>
+          <select
+            id="exact_score_prize_rule"
+            name="exact_score_prize_rule"
+            defaultValue={str("exact_score_prize_rule") || "best"}
+          >
+            {EXACT_PRIZE_RULES.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <div className="hint">
+            With your 3 / 1 / 0 table a round always has a highest score, so with
+            the first option the prize can go to somebody who only had the right
+            result — that is what happened in <strong>Exact Score #2</strong>,
+            where 3:1 won a match that finished 2:0. The channel post now says so
+            in words. Pick the second option if an Exact Score prize should only
+            ever be paid for an exact score.
           </div>
 
           <label htmlFor="support_handle">Handle a winner is told to contact</label>
