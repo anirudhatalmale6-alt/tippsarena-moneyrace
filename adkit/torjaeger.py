@@ -72,26 +72,102 @@ CARD_HI = (38, 30, 22)
 
 
 # --------------------------------------------------------------------- data
+def _from_events(ev: dict, ts: dict) -> list[dict]:
+    """Every goal of the season, counted one at a time.
+
+    Only `Normal Goal` and `Penalty` are goals. `Own Goal` belongs to nobody's
+    tally, and `Missed Penalty` - which this provider also files under
+    `type: "Goal"` - is not a goal at all.
+
+    The club shown is the one he scored MOST of them for, so a January transfer
+    is described by where the goals came from rather than by where he ended up.
+    Names come from the topscorers list because the event list's are dirty.
+    """
+    clean = {p["player"]["id"]: p["player"]["name"] for p in ts["response"]}
+    npg: dict[int, int] = {}
+    pens: dict[int, int] = {}
+    clubs: dict[int, dict[str, int]] = {}
+    dirty: dict[int, str] = {}
+    for fx in ev["fixtures"]:
+        for e in fx["events"]:
+            if e["type"] != "Goal" or e["detail"] not in ("Normal Goal", "Penalty"):
+                continue
+            pid = e["player"]["id"]
+            if pid is None:
+                continue
+            if e["detail"] == "Normal Goal":
+                npg[pid] = npg.get(pid, 0) + 1
+            else:
+                pens[pid] = pens.get(pid, 0) + 1
+            clubs.setdefault(pid, {})
+            team = e["team"]["name"]
+            clubs[pid][team] = clubs[pid].get(team, 0) + 1
+            dirty.setdefault(pid, (e["player"]["name"] or "").strip())
+
+    rows = []
+    for pid in set(npg) | set(pens):
+        name = clean.get(pid)
+        if name is None:
+            # Not in the provider's own top-20 list. That is not a reason to
+            # drop him - Ferran Torres is exactly this case - but the name has
+            # to be cleaned and the substitution said out loud.
+            name = " ".join(dirty[pid].split())
+            name = name.lstrip("0123456789 ").strip() or f"#{pid}"
+        rows.append({
+            "name": name,
+            "team": max(clubs[pid], key=clubs[pid].get),
+            "total": npg.get(pid, 0) + pens.get(pid, 0),
+            "pens": pens.get(pid, 0),
+            "npg": npg.get(pid, 0),
+        })
+    return rows
+
+
 def load(league: int) -> list[dict]:
     """Provider rows -> the only shape the renderer knows about.
 
     `rank_total` is kept because the story of the video is the DIFFERENCE
     between the two rankings, and you cannot show a difference you did not
     keep both halves of.
+
+    COUNTED FROM THE GOALS THEMSELVES when `events-<league>-<season>.json`
+    exists, and only from `players/topscorers` when it does not. The two
+    disagreed, and the aggregate was the one that was wrong:
+
+      * `statistics[0]` is ONE CLUB. A player who moved in January had half a
+        season counted - and for Gouiri the provider returned two identical
+        10-goal blocks, which no reading of `statistics[0]` can rescue.
+      * Lewandowski came back one goal short of the 27 he actually won the
+        Pichichi with, and Greenwood one too many.
+      * The top-20-by-total list is not even complete: Ferran Torres scored 10
+        non-penalty goals in La Liga and is not in it, which is also why the
+        old completeness proof in `fetch_scorers.py` proved something true
+        about a list that was itself missing somebody.
+
+    Counting individual goal events has none of those failure modes: a goal
+    belongs to whichever club he scored it for, and there is no list to fall
+    off the end of.
     """
+    ev_path = DATA / f"events-{league}-{SEASON}.json"
     body = json.loads((DATA / f"topscorers-{league}-{SEASON}.json").read_text())
-    rows = []
-    for p in body["response"]:
-        s = p["statistics"][0]
-        total = s["goals"]["total"] or 0
-        pens = s["penalty"]["scored"] or 0
-        rows.append({
-            "name": p["player"]["name"],
-            "team": s["team"]["name"],
-            "total": total,
-            "pens": pens,
-            "npg": total - pens,
-        })
+
+    if ev_path.exists():
+        rows = _from_events(json.loads(ev_path.read_text()), body)
+    else:
+        print(f"  ! no {ev_path.name} - falling back to season totals, which "
+              f"undercount transferred players", file=sys.stderr)
+        rows = []
+        for p in body["response"]:
+            s = p["statistics"][0]
+            total = s["goals"]["total"] or 0
+            pens = s["penalty"]["scored"] or 0
+            rows.append({
+                "name": p["player"]["name"],
+                "team": s["team"]["name"],
+                "total": total,
+                "pens": pens,
+                "npg": total - pens,
+            })
 
     by_total = sorted(rows, key=lambda r: (-r["total"], r["name"]))
     for i, r in enumerate(by_total, 1):

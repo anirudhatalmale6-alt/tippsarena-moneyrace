@@ -38,20 +38,28 @@ wrong number in `data/`, and that file can be diffed against the API.
 
 Goals without penalties is `goals.total - penalty.scored`, per player.
 
-### The one check that is not obvious
+### The check that was not enough — read this before trusting a number here
 
 The provider returns the **top 20 by total goals**. Re-ranking by non-penalty
 goals could in principle pull in somebody who was never in that list — a player
 with 12 goals and no penalties beats a player with 14 goals and 5.
 
-It cannot have happened here, and that is provable rather than assumed: in every
-one of the five leagues, 10th place on the non-penalty list has **more**
-non-penalty goals than 20th place has goals **in total**. Nobody outside the
-list can beat a total they are already below.
+`fetch_scorers.py` proves that cannot have happened by checking that 10th place
+on the non-penalty list has more non-penalty goals than 20th place has goals in
+total. Nobody outside the list can beat a total they are already below.
 
-`fetch_scorers.py` asserts this per league and refuses to write a file it cannot
-prove. If a future season fails the check, the fix is a wider pull, not a
-smaller claim.
+**The reasoning is valid and the conclusion was still wrong**, because it is a
+proof about the list and the list was itself missing people. Ferran Torres
+scored 10 non-penalty goals in La Liga 2024/25 and is not in the top 20 at all.
+Two more faults in the same source were found the same way (see `TORRACE.md`):
+`statistics[0]` is only one club, so a January transfer is half-counted, and
+Lewandowski's and Greenwood's season totals are each off by one against their
+own goals.
+
+So `load()` now counts individual goal events from
+`data/events-<league>-<season>.json` whenever that file exists, and only falls
+back to the season totals when it does not — printing a warning when it does.
+Run `fetch_season.py` and `verify_events.py` before rendering a season.
 
 ## Running it
 
