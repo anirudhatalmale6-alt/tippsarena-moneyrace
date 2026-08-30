@@ -33,7 +33,10 @@ LEAGUES = {
     135: "Serie A",
     61: "Ligue 1",
 }
-SEASON = 2025          # API-Football numbers a season by the year it starts.
+# API-Football numbers a season by the year it STARTS: 2025 = 2025/26,
+# 2024 = 2024/25. Passed in so a second season is a different file rather than
+# a different script - the two must be fetched and proven the same way.
+SEASON = int(os.environ.get("SEASON", "2025"))
 DATA = pathlib.Path(__file__).resolve().parent / "data"
 
 

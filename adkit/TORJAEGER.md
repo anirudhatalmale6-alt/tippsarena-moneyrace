@@ -1,7 +1,10 @@
-# Torjäger 2025/26 — ohne Elfmeter (content videos)
+# Torjäger — ohne Elfmeter (content videos)
 
-Five vertical videos, one per league, ~30 s each, 1080x1920, H.264, **no audio
-track** — you add trending sound in the app, same as the ad videos.
+Five vertical videos per season, one per league, ~30 s each, 1080x1920, H.264,
+**no audio track** — you add trending sound in the app, same as the ad videos.
+
+Two seasons are built: **2025/26** (running) and **2024/25** (finished). The
+season is a switch, not a copy of the script — see "Running it".
 
 The text on screen is German because that is what a player reads. This file is
 English because that is what you read.
@@ -15,9 +18,15 @@ English because that is what you read.
    where its number came from: `36 Tore · 10 Elfmeter`.
 3. **Who owes the most to the spot** — the three biggest penalty tallies in the
    league, each with `total → without penalties`.
-4. **The crown card**, only when taking penalties out changes who is top. La
-   Liga is the one: Mbappé 25 with 8 penalties = 17, Muriqi 23 with 5 = 18.
+4. **The crown card**, only when taking penalties out changes who is top. It is
+   computed per league per season, not chosen by me: in 2025/26 only La Liga
+   qualifies, in 2024/25 it is the Bundesliga (Kane 26 with 9 penalties = 17,
+   Schick 21 with 1 = 20) and Ligue 1 (Greenwood 22 with 7 = 15, Dembélé 20).
 5. **Close** — TippsArena MoneyRace and the bot.
+
+The card order in the timeline is hook → table → crown (if any) → penalties →
+source → close, so a league without a crown change is simply shorter. Nothing
+has to be edited to render a season whose story is different.
 
 ## Where the numbers come from
 
@@ -47,14 +56,26 @@ smaller claim.
 ## Running it
 
 ```
-API_FOOTBALL_KEY=... python3 fetch_scorers.py    # refresh data/, prints the check
-python3 torjaeger.py                             # all five
-python3 torjaeger.py 78 140                      # Bundesliga and La Liga only
+API_FOOTBALL_KEY=... python3 fetch_scorers.py               # refresh data/, prints the check
+python3 torjaeger.py                                        # all five, running season
+python3 torjaeger.py 78 140                                 # Bundesliga and La Liga only
+
+SEASON=2024 API_FOOTBALL_KEY=... python3 fetch_scorers.py   # a different season
+SEASON=2024 python3 torjaeger.py
 ```
 
 League ids: 78 Bundesliga · 39 Premier League · 140 La Liga · 135 Serie A ·
-61 Ligue 1. Season is set by `SEASON` at the top of both files (`2025` = the
-2025/26 season, the provider's numbering).
+61 Ligue 1.
+
+`SEASON` is the year the season **starts**, which is the provider's own
+numbering: `2025` = 2025/26, `2024` = 2024/25. The on-screen label is derived
+from it, so a season cannot be captioned as a different one. Fetch before you
+render — the completeness check above belongs to the fetch, and rendering a
+season nobody proved would be the one way to get a wrong table on screen.
+
+A finished season is captioned **"Endtabelle 2024/25"**; the running one is
+**"Saisonstatistik 2025/26"**. Saying "Stand today" about a table that stopped
+moving in May would claim it was still live.
 
 Videos land in `out/`.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TippsArena: "Torjäger 2025/26 - ohne Elfmeter", one video per league.
+"""TippsArena: "Torjäger <Saison> - ohne Elfmeter", one video per league.
 
 The whole point of the video is the gap between the two rankings. A penalty is
 a goal, but it is not the same evidence about a striker, and the official top
@@ -15,11 +15,17 @@ script renders any league without me deciding what its story is.
 German on purpose - this is what a player reads.
 No audio track, same as the ad kit: he adds trending audio in the app.
 
-Run:  python3 torjaeger.py            # all five leagues
-      python3 torjaeger.py 78 140     # only these league ids
+Run:  python3 torjaeger.py                      # all five, running season
+      python3 torjaeger.py 78 140               # only these league ids
+      SEASON=2024 python3 torjaeger.py          # the 2024/25 set
+
+The season must have been fetched first - `SEASON=2024 python3 fetch_scorers.py`
+- because the completeness proof belongs to the fetch, not to the render.
 """
 from PIL import Image, ImageDraw
+from datetime import date
 import json
+import os
 import pathlib
 import shutil
 import sys
@@ -38,8 +44,18 @@ SCRATCH = pathlib.Path(
     "/scratchpad/frames"
 )
 
-SEASON = 2025
-SEASON_LABEL = "2025/26"
+# API-Football numbers a season by the year it STARTS. The label is derived,
+# not typed, so "2024" can never be captioned "2024/24" or "2025/26".
+SEASON = int(os.environ.get("SEASON", "2025"))
+SEASON_LABEL = f"{SEASON}/{(SEASON + 1) % 100:02d}"
+
+# The season currently being played. A finished season has a final table and
+# saying "Stand <today>" about it would suggest it is still moving; a running
+# one has no final table and must not be captioned as though it had.
+CURRENT_SEASON = 2025
+FINAL = SEASON < CURRENT_SEASON
+FETCHED = date.today().strftime("%d.%m.%Y")
+
 BOT = "@TippsArenaMoneyrace_bot"
 
 # The five files fetch_scorers.py writes, and the German name of each league.
@@ -356,9 +372,10 @@ def build(league: int):
         img = Image.new("RGB", (W, H), BG)
         caption(img, "Alle Zahlen aus der", 820, size=44, colour=GREY,
                 weight="Bold")
-        caption(img, f"Saisonstatistik {SEASON_LABEL}", 890,
-                size=44, colour=WHITE, weight="Bold")
-        caption(img, "Datenquelle: API-Football · Stand 30.08.2026", 990,
+        caption(img,
+                f"{'Endtabelle' if FINAL else 'Saisonstatistik'} {SEASON_LABEL}",
+                890, size=44, colour=WHITE, weight="Bold")
+        caption(img, f"Datenquelle: API-Football · abgerufen {FETCHED}", 990,
                 size=32, colour=GREY, weight="Regular")
         footer(img)
         return img
