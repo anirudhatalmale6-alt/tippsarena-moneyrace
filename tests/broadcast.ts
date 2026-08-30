@@ -19,6 +19,7 @@ import { runBroadcastById } from "../worker/broadcast.ts";
 import { queueBroadcast, audienceSize } from "../lib/broadcast.ts";
 import { deleteCompetition, deleteImpact, publishReadiness, visibility } from "../lib/admin.ts";
 import { announcementTemplate, competitionVars, plural } from "../lib/messagevars.ts";
+import { notificationApplies } from "../lib/announcements.ts";
 import { closePool, one, query } from "../lib/db.ts";
 
 let failures: string[] = [];
@@ -328,8 +329,13 @@ async function main(): Promise<void> {
     announcementTemplate("exact_score"), "channel_exact_new");
   check("a moneyrace gets the moneyrace text",
     announcementTemplate("moneyrace"), "channel_competition_new");
-  check("...and a reminder is a reminder whatever the type",
-    announcementTemplate("giveaway", "reminder"), "channel_reminder");
+  check("a moneyrace reminder is the tip reminder",
+    announcementTemplate("moneyrace", "reminder"), "channel_reminder");
+  // This test used to read "a reminder is a reminder whatever the type" and it
+  // passed, because it asserted the bug. A giveaway has no tips, so there is
+  // no reminder to send about one - see tests/announcements.ts.
+  check("...and a giveaway has no reminder to send at all",
+    notificationApplies("giveaway", "reminder"), false);
 
   // "1 Spiele" and "1 Tipps" are what he actually saw. German plurals cannot be
   // done with a number and a placeholder, so the words are built here.

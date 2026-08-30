@@ -8,6 +8,7 @@
 import { one, query, tx } from "./db.ts";
 import { log } from "./log.ts";
 import { upsertFixtures } from "./fixtures.ts";
+import { cancelPendingNotifications, notificationApplies } from "./announcements.ts";
 import { fixturesByLeagueRange } from "./football.ts";
 import type { FixtureRow } from "./football.ts";
 
@@ -300,9 +301,9 @@ export async function publishCompetition(
   adminUserId: number | null = null,
 ): Promise<void> {
   const competition = await one<{
-    id: number; name: string; status: string; locks_at: Date | null;
+    id: number; name: string; type: string; status: string; locks_at: Date | null;
   }>(
-    "SELECT id, name, status, locks_at FROM competitions WHERE id = $1",
+    "SELECT id, name, type, status, locks_at FROM competitions WHERE id = $1",
     [competitionId],
   );
   if (!competition) throw new Error("Competition not found");
@@ -337,7 +338,13 @@ export async function publishCompetition(
      ON CONFLICT (competition_id, kind, audience) DO NOTHING`,
     [competitionId],
   );
-  if (competition.locks_at) {
+  // The Tippschluss reminder, but only where there is something to remind
+  // anybody of. A giveaway has no tips and no Tippschluss, and one queued for
+  // giveaway 57 posted "Noch 1 Stunde! Deine Tipps abgeben!" into the channel
+  // a day after that giveaway had been drawn. And a reminder whose moment has
+  // already gone is due in the past, which means it fires on the next tick -
+  // an "hour to go" that arrives after the lock.
+  if (competition.locks_at && notificationApplies(competition.type, "reminder")) {
     const reminderHours =
       (await one<{ value: number }>(
         "SELECT value::text::int AS value FROM settings WHERE key='reminder_hours_before_lock'",
@@ -345,12 +352,14 @@ export async function publishCompetition(
     const due = new Date(
       new Date(competition.locks_at).getTime() - reminderHours * 3_600_000,
     );
-    await query(
-      `INSERT INTO notifications (competition_id, kind, due_at)
-       VALUES ($1, 'reminder', $2)
-       ON CONFLICT (competition_id, kind, audience) DO NOTHING`,
-      [competitionId, due],
-    );
+    if (due.getTime() > Date.now()) {
+      await query(
+        `INSERT INTO notifications (competition_id, kind, due_at)
+         VALUES ($1, 'reminder', $2)
+         ON CONFLICT (competition_id, kind, audience) DO NOTHING`,
+        [competitionId, due],
+      );
+    }
   }
   await audit(adminUserId, "competition.publish",
     `Competition "${competition.name}" published`, "competition", competitionId);
@@ -536,9 +545,20 @@ export async function drawGiveaway(
     );
   });
 
+  // The giveaway is over the moment it is drawn, so anything still queued
+  // about it - a reminder to enter, a closing post - has stopped being true.
+  // Outside the transaction on purpose: a draw that succeeded must not be
+  // rolled back by the housekeeping that follows it.
+  const dropped = await cancelPendingNotifications(
+    competitionId, "the winner was drawn before this came due",
+  );
+
   await audit(adminUserId, "giveaway.draw",
     `Winner drawn from ${poolSize} participants (draw ${seed})`,
     "competition", competitionId);
+  if (dropped) {
+    log.info(`giveaway ${competitionId}: ${dropped} queued announcement(s) retired`);
+  }
   return { winnerUserId, poolSize, seed };
 }
 

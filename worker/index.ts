@@ -20,6 +20,11 @@ import { refreshPendingResults } from "../lib/fixtures.ts";
 import { render } from "../lib/templates.ts";
 import { announcementTemplate, competitionVars } from "../lib/messagevars.ts";
 import { notifyCompetitionWinners, publicResult } from "../lib/winners.ts";
+import {
+  cancelPendingNotifications,
+  notificationApplies,
+  notificationStillTrue,
+} from "../lib/announcements.ts";
 import { sendToChannel } from "./announce.ts";
 import { runBroadcasts } from "./broadcast.ts";
 
@@ -46,12 +51,12 @@ async function openDue(): Promise<void> {
  * the seconds between the lock time and this tick.
  */
 async function lockDue(): Promise<void> {
-  const rows = await query<{ id: number; name: string }>(
+  const rows = await query<{ id: number; name: string; type: string }>(
     `UPDATE competitions
         SET status = 'locked', locked_at = now(), updated_at = now()
       WHERE status = 'open'
         AND locks_at IS NOT NULL AND locks_at <= now()
-      RETURNING id, name`,
+      RETURNING id, name, type`,
   );
   for (const row of rows) {
     log.info(`competition ${row.id} "${row.name}" locked`);
@@ -59,11 +64,16 @@ async function lockDue(): Promise<void> {
       "SELECT COUNT(*)::int AS n FROM participants WHERE competition_id = $1",
       [row.id],
     );
-    await queueNotification(row.id, "locked", new Date());
-    await query(
-      `UPDATE notifications SET due_at = now() WHERE competition_id = $1 AND kind = 'locked'`,
-      [row.id],
-    );
+    // Entries close for a giveaway too, but "GESCHLOSSEN - Tippschluss" is not
+    // a true sentence about something nobody tipped on. Not queued rather than
+    // queued-and-skipped, so the dashboard shows nothing waiting either.
+    if (notificationApplies(row.type, "locked")) {
+      await queueNotification(row.id, "locked", new Date());
+      await query(
+        `UPDATE notifications SET due_at = now() WHERE competition_id = $1 AND kind = 'locked'`,
+        [row.id],
+      );
+    }
     log.info(`  ${count?.n ?? 0} participants`);
   }
 }
@@ -107,6 +117,13 @@ async function evaluateDue(): Promise<void> {
       // NO "results" notification. That was the full leaderboard, by username,
       // into a public channel, automatically. Only the winner announcement is
       // queued now, and what it says obeys public_result_mode.
+      // Anything still queued for it describes a competition that is running,
+      // and it is not running any more. Retired before the winner post is
+      // queued so the two cannot cross.
+      const dropped = await cancelPendingNotifications(
+        competition.id, "the competition finished before this came due",
+      );
+      if (dropped) log.info(`  ${dropped} queued announcement(s) retired`);
       await queueNotification(competition.id, "winner", new Date());
       log.info(`competition ${competition.id} "${competition.name}" finished`);
     } catch (err) {
@@ -155,6 +172,38 @@ async function queueNotification(
 
 let warnedAboutChannel = false;
 
+export interface DueNotification {
+  id: number;
+  competition_id: number;
+  kind: string;
+  attempts: number;
+  /** The competition's state right now, not when the row was queued. */
+  type: string;
+  status: string;
+  locks_at: Date | null;
+}
+
+/**
+ * The announcements that have come due, with the competition as it stands NOW.
+ *
+ * Its own function so a test can ask what the worker would claim without the
+ * worker then sending it. Running the whole loop in a test would mark a real
+ * announcement as sent while the test's interceptor swallowed it, which is a
+ * worse bug than the one being tested.
+ */
+export async function dueNotifications(): Promise<DueNotification[]> {
+  return await query<DueNotification>(
+    `SELECT n.id, n.competition_id, n.kind, n.attempts,
+            c.type, c.status, c.locks_at
+       FROM notifications n
+       JOIN competitions c ON c.id = n.competition_id
+      WHERE n.sent_at IS NULL AND n.skipped_at IS NULL
+        AND n.due_at <= now() AND n.attempts < 5
+      ORDER BY n.due_at
+      LIMIT 10`,
+  );
+}
+
 /** Send whatever announcements have come due, one at a time, then mark them. */
 async function sendDueNotifications(): Promise<void> {
   // A channel that has not been configured yet is not a delivery failure, and
@@ -177,19 +226,27 @@ async function sendDueNotifications(): Promise<void> {
   }
   warnedAboutChannel = false;
 
-  const due = await query<{
-    id: number;
-    competition_id: number;
-    kind: string;
-    attempts: number;
-  }>(
-    `SELECT id, competition_id, kind, attempts FROM notifications
-      WHERE sent_at IS NULL AND due_at <= now() AND attempts < 5
-      ORDER BY due_at
-      LIMIT 10`,
-  );
+  const due = await dueNotifications();
 
   for (const notification of due) {
+    // A queued announcement was written before the fact. Ask whether it is
+    // still true NOW, not merely whether it is due - a reminder queued for a
+    // giveaway that has since been drawn and announced would otherwise tell
+    // the channel to get their tips in for something that is over. That is
+    // exactly what happened on 30 Aug; see lib/announcements.ts.
+    const fresh = notificationStillTrue(notification.kind, notification);
+    if (!fresh.ok) {
+      await query(
+        "UPDATE notifications SET skipped_at = now(), skip_reason = $2 WHERE id = $1",
+        [notification.id, fresh.reason ?? "no longer true"],
+      );
+      log.info(
+        `notification ${notification.kind} for competition ` +
+          `${notification.competition_id} NOT sent - ${fresh.reason}`,
+      );
+      continue;
+    }
+
     await query(
       "UPDATE notifications SET attempts = attempts + 1 WHERE id = $1",
       [notification.id],

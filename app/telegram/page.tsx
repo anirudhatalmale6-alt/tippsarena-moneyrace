@@ -51,8 +51,22 @@ export default async function TelegramPage({
   }>(
     `SELECT n.id, n.kind, n.due_at, n.attempts, n.last_error, c.name AS competition
        FROM notifications n JOIN competitions c ON c.id = n.competition_id
-      WHERE n.sent_at IS NULL
+      WHERE n.sent_at IS NULL AND n.skipped_at IS NULL
       ORDER BY n.due_at LIMIT 30`,
+  );
+
+  // Not folded into the table above: these are not waiting for anything, and a
+  // "Try again" button next to one would offer to post something the system
+  // has decided is no longer true. They are here so a missing announcement has
+  // a visible reason rather than looking like the worker forgot.
+  const skipped = await query<{
+    id: number; kind: string; due_at: Date; skipped_at: Date;
+    skip_reason: string | null; competition: string;
+  }>(
+    `SELECT n.id, n.kind, n.due_at, n.skipped_at, n.skip_reason, c.name AS competition
+       FROM notifications n JOIN competitions c ON c.id = n.competition_id
+      WHERE n.skipped_at IS NOT NULL
+      ORDER BY n.skipped_at DESC LIMIT 10`,
   );
 
   const sent = await query<{
@@ -281,6 +295,40 @@ export default async function TelegramPage({
           </div>
         )}
       </div>
+
+      {skipped.length > 0 ? (
+        <>
+          <h2>Not sent — no longer true</h2>
+          <div className="panel">
+            <p className="muted">
+              These came due after the competition had moved on, so they were
+              held back instead of posted. Nothing is waiting; this is a record.
+            </p>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th className="wrap">Competition</th>
+                    <th>Kind</th>
+                    <th>Was due</th>
+                    <th className="wrap">Why it was held back</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {skipped.map((n) => (
+                    <tr key={n.id}>
+                      <td className="wrap">{n.competition}</td>
+                      <td>{n.kind}</td>
+                      <td>{whenAdmin(n.due_at)}</td>
+                      <td className="wrap muted">{n.skip_reason ?? "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : null}
 
       <h2>Sent</h2>
       <div className="panel">

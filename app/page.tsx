@@ -48,8 +48,11 @@ export default async function DashboardPage() {
       WHERE evaluation_note IS NOT NULL AND status IN ('locked','evaluating')`,
   );
   const failedMessages = await query<{ n: number }>(
+    // skipped_at means the system decided not to send it, on purpose. That is
+    // not a failure and must not raise an alarm here.
     `SELECT COUNT(*)::int AS n FROM notifications
-      WHERE sent_at IS NULL AND (attempts >= 5 OR last_error IS NOT NULL)`,
+      WHERE sent_at IS NULL AND skipped_at IS NULL
+        AND (attempts >= 5 OR last_error IS NOT NULL)`,
   );
   const recent = await query<{ created_at: Date; summary: string }>(
     "SELECT created_at, summary FROM audit_logs ORDER BY created_at DESC LIMIT 8",
