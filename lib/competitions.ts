@@ -10,6 +10,7 @@ import { one, query, tx } from "./db.ts";
 import { log } from "./log.ts";
 import {
   DEFAULT_TIEBREAKERS,
+  effectiveScoring,
   normaliseScoring,
   scoringModeFor,
   normaliseTiebreakers,
@@ -262,7 +263,18 @@ export async function evaluateCompetition(
   const competition = await getCompetition(competitionId);
   if (!competition) throw new Error(`competition ${competitionId} not found`);
 
-  const scoring = normaliseScoring(competition.scoring);
+  // Whether an exact-score round pays anything at all for a wrong scoreline.
+  // Read before scoring, because it changes the points table and not just who
+  // gets the money.
+  const { exactPrizeRule } = await import("./winners.ts");
+  const exactOnly =
+    competition.type === "exact_score" && (await exactPrizeRule()) === "exact_only";
+
+  const scoring = effectiveScoring(
+    competition.type,
+    normaliseScoring(competition.scoring),
+    exactOnly,
+  );
   const mode = scoringModeFor(competition.type);
   const tiebreakers: TiebreakKey[] = normaliseTiebreakers(
     competition.tiebreakers ?? DEFAULT_TIEBREAKERS,
@@ -270,13 +282,6 @@ export async function evaluateCompetition(
 
   const fixtures = await competitionFixtures(competitionId);
   const missingResults = fixtures.filter((f) => f.outcome === null).length;
-
-  // Whether an exact-score round pays out when nobody hit the scoreline. His
-  // setting; "best" is what has been running, so nothing changes unless he
-  // changes it.
-  const { exactPrizeRule } = await import("./winners.ts");
-  const exactOnly =
-    competition.type === "exact_score" && (await exactPrizeRule()) === "exact_only";
 
   const rows = await query<{
     prediction_id: number;

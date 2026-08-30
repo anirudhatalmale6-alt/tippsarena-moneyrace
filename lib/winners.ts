@@ -54,8 +54,8 @@ export async function publicResultMode(): Promise<PublicResultMode> {
 export type ExactPrizeRule = "best" | "exact_only";
 
 export const EXACT_PRIZE_RULES: Array<[ExactPrizeRule, string]> = [
-  ["best", "The best tip wins, even if nobody hit the exact score"],
-  ["exact_only", "Only an exact score wins — otherwise nobody does"],
+  ["best", "3 for the exact score, 1 for the right winner — the best tip wins"],
+  ["exact_only", "3 for the exact score, 0 for anything else — no hit, no winner"],
 ];
 
 export async function exactPrizeRule(): Promise<ExactPrizeRule> {
@@ -158,7 +158,38 @@ export async function publicResult(competitionId: number): Promise<PublicResult>
   const support = (await getSetting<string>("support_handle", "@thomastippsarena"))!;
   const prize = money(competition.prize_amount, competition.currency);
 
+  // Nobody scored in an exact-score round is a result, and it has to be posted
+  // as one whatever the podium setting says. Under his rule a wrong scoreline is
+  // worth 0, so "top 3" here would print 🥇 @somebody — 0 Punkte: a podium built
+  // out of people who all missed, which reads as a win to anyone scrolling past.
+  const exactNoScorer = async (): Promise<PublicResult | null> => {
+    if (competition.type !== "exact_score") return null;
+    const best = await topN(competitionId, 1);
+    if (best.length && best[0].points > 0) return null;
+    const fx = await one<{ home_team: string; away_team: string;
+      home_goals: number | null; away_goals: number | null }>(
+      `SELECT f.home_team, f.away_team, f.home_goals, f.away_goals
+         FROM competition_fixtures cf JOIN fixtures f ON f.id = cf.fixture_id
+        WHERE cf.competition_id = $1 ORDER BY cf.position LIMIT 1`,
+      [competitionId],
+    );
+    return {
+      templateKey: "channel_exact_no_winner",
+      vars: {
+        name: competition.name,
+        match: fx ? `${fx.home_team} — ${fx.away_team}` : "",
+        final_score:
+          fx && fx.home_goals !== null ? `${fx.home_goals}:${fx.away_goals}` : "-",
+        prize,
+        support,
+      },
+      named: 0,
+    };
+  };
+
   if (mode === "top3") {
+    const nobody = await exactNoScorer();
+    if (nobody) return nobody;
     const rows = await topN(competitionId, 3);
     const medals = ["🥇", "🥈", "🥉"];
     const lines = rows
@@ -184,25 +215,8 @@ export async function publicResult(competitionId: number): Promise<PublicResult>
     // has to be said out loud, or the channel just goes quiet after a
     // competition it announced.
     if (competition.type === "exact_score") {
-      const fx = await one<{ home_team: string; away_team: string;
-        home_goals: number | null; away_goals: number | null }>(
-        `SELECT f.home_team, f.away_team, f.home_goals, f.away_goals
-           FROM competition_fixtures cf JOIN fixtures f ON f.id = cf.fixture_id
-          WHERE cf.competition_id = $1 ORDER BY cf.position LIMIT 1`,
-        [competitionId],
-      );
-      return {
-        templateKey: "channel_exact_no_winner",
-        vars: {
-          name: competition.name,
-          match: fx ? `${fx.home_team} — ${fx.away_team}` : "",
-          final_score:
-            fx && fx.home_goals !== null ? `${fx.home_goals}:${fx.away_goals}` : "-",
-          prize,
-          support,
-        },
-        named: 0,
-      };
+      const nobody = await exactNoScorer();
+      if (nobody) return nobody;
     }
     return { templateKey: null, vars: {}, named: 0 };
   }

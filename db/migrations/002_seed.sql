@@ -137,7 +137,7 @@ INSERT INTO competition_templates (name, type, sort_order, defaults) VALUES
     "scoring":{"correct_outcome":1,"exact_score":0}}'::jsonb),
  ('🎯 Exact Score', 'exact_score', 4,
   '{"match_count":1,"prize_amount":100,"requires_membership":true,
-    "scoring":{"correct_outcome":1,"exact_score":3}}'::jsonb),
+    "scoring":{"correct_outcome":0,"exact_score":3}}'::jsonb),
  ('🎁 Random Giveaway', 'giveaway', 5,
   '{"match_count":0,"prize_amount":100,"requires_membership":true}'::jsonb),
  ('🔥 Jackpot', 'jackpot', 6,

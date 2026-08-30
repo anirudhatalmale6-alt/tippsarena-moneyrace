@@ -36,6 +36,33 @@ export function scoringModeFor(competitionType: string): ScoringMode {
   return competitionType === "exact_score" ? "replace" : "add";
 }
 
+/**
+ * The points table a round is ACTUALLY scored with.
+ *
+ * His rule for an exact-score round, in his words: "if no one gets the exact
+ * score no one gets points at all - only 3 points for the exact score". So
+ * under `exact_only` the consolation point for the right winner with the wrong
+ * scoreline is not reduced, it is gone. Three or nothing.
+ *
+ * Derived rather than stored, and exported, because the number the dashboard
+ * prints and the number the evaluator uses have to be the same number - the way
+ * to guarantee that is to have one function and two callers, not two copies of
+ * the same `if`. A setting that quietly makes a configured value unreachable is
+ * how a rule stops firing without anybody noticing, so every screen that shows
+ * the outcome points runs them through here first and says where the 0 came
+ * from.
+ */
+export function effectiveScoring(
+  competitionType: string,
+  scoring: ScoringConfig,
+  exactOnly: boolean,
+): ScoringConfig {
+  if (competitionType === "exact_score" && exactOnly) {
+    return { ...scoring, correct_outcome: 0 };
+  }
+  return scoring;
+}
+
 export const DEFAULT_SCORING: ScoringConfig = {
   correct_outcome: 1,
   exact_score: 0,

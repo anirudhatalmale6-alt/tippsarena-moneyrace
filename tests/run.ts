@@ -25,6 +25,7 @@ import {
 import { outcomeOf, isFinished, isAbandoned } from "../lib/football.ts";
 import {
   DEFAULT_SCORING,
+  effectiveScoring,
   normaliseScoring,
   normaliseTiebreakers,
   rank,
@@ -135,6 +136,57 @@ function truthy(name: string, got: unknown): void {
     normaliseScoring({ correct_outcome: "three" }), DEFAULT_SCORING);
   check("a null scoring config falls back to the default",
     normaliseScoring(null), DEFAULT_SCORING);
+
+  // ---- his rule: "only 3 points for the exact score"
+  //
+  // These assert the POINTS, not the prize. The prize follows from the points -
+  // that is the whole reason the rule was moved into the points table instead of
+  // being a second, separate condition that could disagree with it.
+  const exactOnly = effectiveScoring("exact_score", s, true);
+
+  check("under 3/0 the exact score still pays 3",
+    scorePrediction(
+      { pick: "H", homeGoals: 2, awayGoals: 1 },
+      { outcome: "H", homeGoals: 2, awayGoals: 1 },
+      exactOnly, "replace",
+    ),
+    { points: 3, isCorrect: true, isExact: true });
+
+  check("under 3/0 the right winner with the wrong score pays NOTHING",
+    scorePrediction(
+      // His case exactly: tipped 3:1, the match finished 2:0.
+      { pick: "H", homeGoals: 3, awayGoals: 1 },
+      { outcome: "H", homeGoals: 2, awayGoals: 0 },
+      exactOnly, "replace",
+    ),
+    { points: 0, isCorrect: true, isExact: false });
+
+  check("under 3/1 that same tip still pays 1 - the old behaviour is intact",
+    scorePrediction(
+      { pick: "H", homeGoals: 3, awayGoals: 1 },
+      { outcome: "H", homeGoals: 2, awayGoals: 0 },
+      effectiveScoring("exact_score", s, false), "replace",
+    ).points,
+    1);
+
+  // The switch must not reach past the round it is about. A MoneyRace is scored
+  // by the same evaluator with the same setting in scope.
+  check("the exact-only rule leaves a MoneyRace alone",
+    effectiveScoring("moneyrace", s, true), s);
+  check("the exact-only rule leaves a jackpot alone",
+    effectiveScoring("jackpot", s, true), s);
+  check("effectiveScoring does not mutate the config it was given",
+    s, { correct_outcome: 1, exact_score: 3 });
+
+  // What the dashboard prints for an Exact Score round. It used to add the two
+  // boxes and show 4 for a hit the evaluator pays 3 for.
+  check("replace mode means the exact score is the total, not a bonus",
+    scorePrediction(
+      { pick: "H", homeGoals: 2, awayGoals: 1 },
+      { outcome: "H", homeGoals: 2, awayGoals: 1 },
+      s, "replace",
+    ).points,
+    3);
 }
 
 // =================================================================== outcomes

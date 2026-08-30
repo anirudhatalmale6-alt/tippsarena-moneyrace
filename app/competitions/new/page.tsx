@@ -201,7 +201,7 @@ export default async function NewCompetitionPage({
               />
             </div>
             <div>
-              <label htmlFor="points_exact">Bonus for the exact score</label>
+              <label htmlFor="points_exact">Points for the exact score</label>
               <input
                 id="points_exact"
                 name="points_exact"
@@ -209,7 +209,13 @@ export default async function NewCompetitionPage({
                 step="1"
                 defaultValue={defaults.scoring?.exact_score ?? 0}
               />
-              <div className="hint">Given on top of the outcome points.</div>
+              <div className="hint">
+                In a MoneyRace this is a bonus <em>on top of</em> the outcome
+                points. In an Exact Score round it <em>replaces</em> them — 3
+                here means 3, not 1 + 3. And while the Exact Score rule in
+                Settings is on &ldquo;3 / 0&rdquo;, the outcome box is ignored
+                for Exact Score rounds: a wrong scoreline scores nothing.
+              </div>
             </div>
           </div>
           <label style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 14 }}>

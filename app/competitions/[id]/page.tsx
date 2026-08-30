@@ -7,7 +7,12 @@ import { competitionFixtures, leaderboard } from "@/lib/competitions.ts";
 import { deleteImpact, publishReadiness, visibility } from "@/lib/admin.ts";
 import { AUDIENCES, audienceSize } from "@/lib/broadcast.ts";
 import { giveawayEntrants, giveawayWinner } from "@/lib/giveaway.ts";
-import { publicResult } from "@/lib/winners.ts";
+import { exactPrizeRule, publicResult } from "@/lib/winners.ts";
+import {
+  effectiveScoring,
+  normaliseScoring,
+  scoringModeFor,
+} from "@/lib/scoring.ts";
 import { render as renderTemplate } from "@/lib/templates.ts";
 import { GiveawayPanel } from "./giveaway.tsx";
 import { getSetting, one, query } from "@/lib/db.ts";
@@ -79,6 +84,28 @@ export default async function CompetitionPage({
     : [];
 
   const scoring = competition.scoring ?? {};
+  // What this round actually pays, not what the two boxes contain. The exact
+  // score REPLACES the outcome points here rather than adding to them, and the
+  // Exact Score setting can zero the outcome points outright - both were
+  // invisible on this page, which is how a screen ends up describing a rule the
+  // evaluator does not follow.
+  const exactOnly = isExact && (await exactPrizeRule()) === "exact_only";
+  const paid = effectiveScoring(
+    competition.type,
+    normaliseScoring(competition.scoring),
+    exactOnly,
+  );
+  const paidPrizes =
+    (
+      await one<{ n: number }>(
+        "SELECT COUNT(*)::int AS n FROM prizes WHERE competition_id = $1 AND status = 'paid'",
+        [id],
+      )
+    )?.n ?? 0;
+  const paidExact =
+    scoringModeFor(competition.type) === "replace"
+      ? paid.exact_score
+      : paid.correct_outcome + paid.exact_score;
   const readiness = await publishReadiness(id);
   const impact = flags.confirm_delete ? await deleteImpact(id) : null;
   const seen = visibility(competition);
@@ -391,6 +418,25 @@ export default async function CompetitionPage({
               <button className="secondary" type="submit">RE-EVALUATE</button>
             </form>
           ) : null}
+          {/* Re-evaluating re-scores under the CURRENT rules, which is the
+              point of the button - but a round that has already been paid out
+              was scored under the rules of its day. Changing the Exact Score
+              rule made that gap real: press this on #77 or #146 and the winner
+              disappears while the paid prize does not. Say so where the button
+              is, not in a message he read once. */}
+          {!isGiveaway && paidPrizes > 0 ? (
+            <div
+              className="hint"
+              style={{ flexBasis: "100%", color: "var(--amber, #e0a01e)" }}
+            >
+              ⚠ This round has {paidPrizes} prize
+              {paidPrizes === 1 ? "" : "s"} already marked paid. RE-EVALUATE
+              scores it again under today&apos;s rules — under &ldquo;3 / 0&rdquo;
+              a winner who did not hit the scoreline would lose their points and
+              their win, and the paid prize would be left with nobody attached to
+              it.
+            </div>
+          ) : null}
 
           {competition.status === "open" ? (
             <form action={actionSetStatus}>
@@ -515,15 +561,22 @@ export default async function CompetitionPage({
         </div>
         {isExact ? (
           <div className="hint" style={{ marginTop: -4, marginBottom: 10 }}>
-            The two boxes add up, so with the numbers above a player currently
-            gets:{" "}
+            What this round actually pays:{" "}
+            <strong>{paidExact} point(s) for the exact score</strong>,{" "}
             <strong>
-              {Number(scoring.correct_outcome ?? 1) + Number(scoring.exact_score ?? 0)}{" "}
-              point(s) for the exact score
+              {paid.correct_outcome} for the right winner with the wrong score
             </strong>
-            , <strong>{Number(scoring.correct_outcome ?? 1)} for the right outcome</strong>{" "}
-            with the wrong score, and 0 for a wrong result. Change either box and
-            this line changes with it — none of it is fixed in the code.
+            , and 0 for a wrong result. In an Exact Score round the exact points{" "}
+            <em>replace</em> the outcome points, they do not add to them.
+            {exactOnly ? (
+              <>
+                {" "}
+                The right-outcome box above is <strong>ignored</strong> while
+                Settings is on &ldquo;3 / 0 — no hit, no winner&rdquo;. If nobody
+                hits the scoreline, nobody scores, nobody wins, and nothing from
+                this round reaches the monthly standings.
+              </>
+            ) : null}
           </div>
         ) : null}
         <label htmlFor="description">Description</label>

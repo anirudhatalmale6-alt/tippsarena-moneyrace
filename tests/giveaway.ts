@@ -567,7 +567,15 @@ async function main(): Promise<void> {
        JOIN participants pa ON pa.id = pr.participant_id WHERE pa.competition_id = $1`,
     [exact],
   );
-  check("the right outcome with the wrong score pays 1", scored!.points, 1);
+  // What a wrong scoreline is worth is now the Exact Score rule in Settings,
+  // which he owns and can change. So this asserts whichever rule is in force
+  // and prints which one that was - pinning it to 1 would make the suite fail
+  // the moment he flips a switch he is entitled to flip.
+  const { exactPrizeRule } = await import("../lib/winners.ts");
+  const consolation = (await exactPrizeRule()) === "exact_only" ? 0 : 1;
+  console.log(`      (Exact Score rule: a wrong scoreline is worth ${consolation})`);
+  check(`the right outcome with the wrong score pays ${consolation}`,
+    scored!.points, consolation);
   check("...and is not marked exact", scored!.is_exact, false);
 
   await query(
@@ -620,7 +628,13 @@ async function main(): Promise<void> {
        JOIN participants pa ON pa.id = pr.participant_id WHERE pa.competition_id = $1`,
     [exact],
   );
-  check("...including the right-outcome value", scored!.points, 2);
+  check(
+    consolation === 0
+      ? "...and under 3/0 the Settings rule overrides the box, as it must"
+      : "...including the right-outcome value",
+    scored!.points,
+    consolation === 0 ? 0 : 2,
+  );
 
   // A MoneyRace still ADDS - the two types score differently on purpose, and
   // changing one must not have changed the other.

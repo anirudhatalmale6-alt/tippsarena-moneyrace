@@ -184,7 +184,7 @@ export default async function SettingsPage({
           </div>
 
           <label htmlFor="exact_score_prize_rule">
-            Exact Score — who wins when nobody hits the scoreline
+            Exact Score — what a wrong scoreline is worth
           </label>
           <select
             id="exact_score_prize_rule"
@@ -198,12 +198,15 @@ export default async function SettingsPage({
             ))}
           </select>
           <div className="hint">
-            With your 3 / 1 / 0 table a round always has a highest score, so with
-            the first option the prize can go to somebody who only had the right
-            result — that is what happened in <strong>Exact Score #2</strong>,
-            where 3:1 won a match that finished 2:0. The channel post now says so
-            in words. Pick the second option if an Exact Score prize should only
-            ever be paid for an exact score.
+            This sets the points, not just the prize. With{" "}
+            <strong>3 / 1</strong> a round always has a highest score, so the
+            money can go to somebody who only had the right winner — that is what
+            happened in <strong>Exact Score #1 and #2</strong>, where 3:1 won a
+            match that finished 2:0. With <strong>3 / 0</strong> a wrong scoreline
+            scores nothing, so if nobody hits it nobody has points, nobody wins,
+            and nothing goes into the monthly standings from that round. It also
+            overrides the &ldquo;right outcome&rdquo; points on an Exact Score
+            competition — the competition page shows you when that is happening.
           </div>
 
           <label htmlFor="support_handle">Handle a winner is told to contact</label>
