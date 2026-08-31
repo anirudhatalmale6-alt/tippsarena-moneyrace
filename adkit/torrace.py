@@ -51,6 +51,14 @@ SEASON = int(os.environ.get("SEASON", "2024"))
 SEASON_LABEL = f"{SEASON}/{(SEASON + 1) % 100:02d}"
 ROWS = int(os.environ.get("ROWS", "8"))
 
+# LANES=fixed pins every player to one row for the whole video and animates
+# only his bar. The client asked for this in as many words - "the lines should
+# be moving, not the football players" - after watching the sorting version,
+# where a row travels 116px on an overtake and two photos pass through each
+# other. The lane order is the season's FINAL table, so the video reads as
+# eight bars filling up towards a finish everyone can see coming.
+LANES = os.environ.get("LANES", "sort")
+
 LEAGUES = {
     78: ("Bundesliga", "bundesliga"),
     39: ("Premier League", "premier-league"),
@@ -450,6 +458,10 @@ def build(league: int) -> pathlib.Path:
     # not eight invisible stubs and matchday 34 still fills the width.
     scale_at = [max(4.0, max(r["value"] for r in board[k])) for k in range(md + 1)]
 
+    # In fixed-lane mode a player's row never changes, so it is decided once,
+    # from the final standings, instead of from the matchday being drawn.
+    lane = {r["id"]: j for j, r in enumerate(board[md])}
+
     n = int(total * FPS)
     for i in range(n):
         t = i / FPS
@@ -486,9 +498,12 @@ def build(league: int) -> pathlib.Path:
         # one painted on top. The overlap then reads as the overtake it is,
         # instead of the promoted player disappearing behind the man he passed.
         for j, row in reversed(list(enumerate(cur))):
-            y0 = ROW_TOP + pos_prev[row["id"]] * ROW_PITCH
-            y1 = ROW_TOP + j * ROW_PITCH
-            y = y0 + (y1 - y0) * e
+            if LANES == "fixed":
+                y = ROW_TOP + lane[row["id"]] * ROW_PITCH
+            else:
+                y0 = ROW_TOP + pos_prev[row["id"]] * ROW_PITCH
+                y1 = ROW_TOP + j * ROW_PITCH
+                y = y0 + (y1 - y0) * e
             v0 = val_prev[row["id"]]
             v = v0 + (row["value"] - v0) * e
             draw_row(img, row, y, v, scale, k >= 1, appear)
@@ -498,7 +513,9 @@ def build(league: int) -> pathlib.Path:
         if i % 120 == 0:
             print(f"  frame {i}/{n}", flush=True)
 
-    out = OUT / f"tippsarena-torjaeger-race-{slug}-{SEASON_LABEL.replace('/', '-')}.mp4"
+    suffix = "-v2" if LANES == "fixed" else ""
+    out = OUT / (f"tippsarena-torjaeger-race-{slug}-"
+                 f"{SEASON_LABEL.replace('/', '-')}{suffix}.mp4")
     OUT.mkdir(exist_ok=True)
     encode(frames_dir, out)
     shutil.rmtree(frames_dir)
