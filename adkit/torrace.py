@@ -49,14 +49,17 @@ OUT = ROOT / "out"
 
 SEASON = int(os.environ.get("SEASON", "2024"))
 SEASON_LABEL = f"{SEASON}/{(SEASON + 1) % 100:02d}"
-ROWS = int(os.environ.get("ROWS", "8"))
+# Six, because that is what the published videos on his Instagram use. Eight
+# was my own invention and it is the reason my rows sat tighter than his.
+ROWS = int(os.environ.get("ROWS", "6"))
 
-# LANES=fixed pins every player to one row for the whole video and animates
-# only his bar. The client asked for this in as many words - "the lines should
-# be moving, not the football players" - after watching the sorting version,
-# where a row travels 116px on an overtake and two photos pass through each
-# other. The lane order is the season's FINAL table, so the video reads as
-# eight bars filling up towards a finish everyone can see coming.
+# "The lines should be moving not the football players" turned out to be about
+# the badge column, not the ordering: in his own earlier videos the column of
+# matchday badges slides across the board from right to left, and for part of
+# every matchday two of them are on screen at once. Mine was nailed to a fixed
+# x, so nothing on the board moved except the players. LANES=fixed was a wrong
+# guess at that sentence and is kept only as an escape hatch - the reference
+# re-sorts, so "sort" is the house style.
 LANES = os.environ.get("LANES", "sort")
 
 LEAGUES = {
@@ -77,11 +80,20 @@ BAR_DIM = (120, 92, 78)
 # --------------------------------------------------------------- layout
 BAR_X = 168                 # every bar starts here
 BAR_MAX = 612               # and the longest one ends here
-BAR_H = 78
-ROW_TOP = 726
-ROW_PITCH = 116
-PHOTO_R = 52
+ROW_TOP = 726               # the board always fills the same band, whatever
+ROW_BOTTOM = 1538           # ROWS is, so the footer never drifts
+ROW_PITCH = (ROW_BOTTOM - ROW_TOP) / (ROWS - 1) if ROWS > 1 else 0.0
+# Bar, photo and type all follow the pitch, capped so six rows do not grow
+# into each other. At ROWS=8 these come out at the old 78/52/1.0 exactly.
+_S = min(1.25, ROW_PITCH / 116)
+BAR_H = int(min(112, ROW_PITCH * 0.68))
+PHOTO_R = int(min(62, ROW_PITCH * 0.45))
+
+# A matchday's badge column is born at AXIS_X, on the right, and slides this
+# far left over that matchday - so the column before it is still leaving the
+# board on the left while the new one arrives. Measured off his own videos.
 AXIS_X = 985
+AXIS_TRAVEL = 575
 FOOT_Y = 1712
 
 _cache: dict = {}
@@ -282,10 +294,14 @@ def boards(players: list[dict], matchdays: int) -> list[list[dict]]:
     Kleindienst the moment he drew LEVEL with him, which on screen is
     indistinguishable from an overtake. A row may now only move when somebody
     actually goes past somebody. The first ordering has to come from somewhere,
-    so matchday 0 - where everyone is on nothing - is alphabetical.
+    so matchday 0 - where everyone is on nothing - is seeded with the season's
+    FINAL table. That is what his own videos do: on their matchday 1 the four
+    players still on zero are stacked in the order they eventually finish, and
+    seeding it this way reproduces that frame exactly.
     """
     out: list[list[dict]] = []
-    order = sorted(players, key=lambda p: p["name"])
+    final = {p["id"]: sum(p["per_round"]) for p in players}
+    order = sorted(players, key=lambda p: (-final[p["id"]], p["name"]))
     prev_index = {p["id"]: i for i, p in enumerate(order)}
     for k in range(matchdays + 1):
         rows = [{**p,
@@ -361,7 +377,7 @@ def footer(img: Image.Image) -> None:
 
 
 def draw_row(img: Image.Image, row: dict, y: float, value: float, scale: float,
-             show_delta: bool, appear: float) -> None:
+             appear: float) -> None:
     """One player. `value` is the animated goal count, `scale` the animated
     denominator, so both the bar's growth and the axis rescaling are smooth."""
     d = ImageDraw.Draw(img)
@@ -380,43 +396,89 @@ def draw_row(img: Image.Image, row: dict, y: float, value: float, scale: float,
     # Two rows swapping places pass through each other, and for the few frames
     # they overlap the flat colours merge into one unreadable block. A hard
     # shadow under the bar is enough to keep the edge of the upper one visible.
+    radius = min(int(16 * _S), int(bar_w / 2))
     rounded(img, (BAR_X, y - BAR_H // 2 + 7, end + 5, y + BAR_H // 2 + 7),
-            min(16, int(bar_w / 2)), (18, 10, 7))
-    rounded(img, (BAR_X, y - BAR_H // 2, end, y + BAR_H // 2),
-            min(16, int(bar_w / 2)), colour)
+            radius, (18, 10, 7))
+    rounded(img, (BAR_X, y - BAR_H // 2, end, y + BAR_H // 2), radius, colour)
 
-    f_name = font(40, "Black")
-    name_w = d.textlength(row["name"], font=f_name)
-    f_num = font(62, "Black")
+    f_name = font(int(40 * _S), "Black")
+    f_tab = font(int(26 * _S), "Black")
+    f_num = font(int(62 * _S), "Black")
     num = f"{int(round(value))}"
     num_w = d.textlength(num, font=f_num)
+    tab_w = int(40 * _S)
 
     p = photo(row["id"])
-    px = end
-    inside = bar_w >= name_w + 52
+    px = end + PHOTO_R          # the photo rides just past the bar's tip
+    # A bar long enough to carry its own label gets the surname in a white tab
+    # at its end and the count inside it, which is what leaves the middle of
+    # every bar empty for the badge column to slide across. Short bars fall
+    # back to count and name printed after the photo, as the reference does.
+    inside = bar_w >= tab_w + num_w + 58
     if inside:
-        d.text((BAR_X + 26, y + 1), row["name"], font=f_name,
-               fill=_on(colour), anchor="lm")
-    # The number always sits just past the photo; the name follows it only when
-    # the bar was too short to hold it. That is the reference's own fallback -
-    # its short bars carry the name rotated for exactly this reason.
-    nx = px + PHOTO_R + 18
-    d.text((nx, y + 2), num, font=f_num, fill=WHITE, anchor="lm")
-    if not inside:
+        rounded(img, (end - tab_w, y - BAR_H // 2, end, y + BAR_H // 2), 4,
+                (247, 249, 250))
+        _vtext(img, row["name"], end - tab_w / 2, y, tab_w, BAR_H, f_tab)
+        d.text((end - tab_w - 20, y + 2), num, font=f_num, fill=_on(colour),
+               anchor="rm")
+    else:
+        nx = px + PHOTO_R + 16
+        d.text((nx, y + 2), num, font=f_num, fill=WHITE, anchor="lm")
         d.text((nx + num_w + 18, y + 2), row["name"], font=f_name,
                fill=WHITE, anchor="lm")
 
     if p is not None:
         img.paste(p, (int(px - PHOTO_R), y - PHOTO_R), p)
 
-    if show_delta:
-        got = row["delta"] > 0
-        r = 32
-        d.ellipse((AXIS_X - r, y - r, AXIS_X + r, y + r),
+
+def _vtext(img: Image.Image, text: str, cx: float, cy: float, w: int, h: int,
+           f) -> None:
+    """A surname printed up the side of the tab at the bar's end. Rendered flat
+    and rotated, then shrunk if the name is longer than the bar is tall."""
+    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    lay = Image.new("RGBA", (int(probe.textlength(text, font=f)) + 10, int(w)),
+                    (0, 0, 0, 0))
+    ImageDraw.Draw(lay).text((lay.width / 2, lay.height / 2), text, font=f,
+                             fill=(24, 18, 14), anchor="mm")
+    lay = lay.rotate(90, expand=True)
+    if lay.height > h - 10:
+        lay = lay.resize((max(1, round(lay.width * (h - 10) / lay.height)),
+                          h - 10))
+    img.paste(lay, (round(cx - lay.width / 2), round(cy - lay.height / 2)), lay)
+
+
+def draw_column(img: Image.Image, ax: float, ys: list[tuple[float, int]],
+                alpha: float) -> None:
+    """One matchday's badges, threaded on their own vertical line, at wherever
+    that line has slid to. Drawn into a narrow RGBA strip so the whole column
+    can fade in as it arrives and out as it leaves without touching the bars
+    it passes over."""
+    r = int(32 * _S)
+    x0 = int(ax) - r - 6
+    strip = Image.new("RGBA", (2 * r + 12, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(strip)
+    cx = ax - x0
+    d.line((cx, ROW_TOP - 46, cx, ROW_BOTTOM + 46), fill=(196, 124, 54), width=5)
+    for y, delta in ys:
+        got = delta > 0
+        d.ellipse((cx - r, y - r, cx + r, y + r),
                   fill=BADGE_ON if got else BADGE_OFF)
-        d.text((AXIS_X, y + 1), f"+{row['delta']}" if got else "0",
-               font=font(32 if got else 34, "Black"),
+        d.text((cx, y + 1), f"+{delta}" if got else "0",
+               font=font(int((32 if got else 34) * _S), "Black"),
                fill=WHITE if got else (150, 128, 112), anchor="mm")
+    if alpha < 1.0:
+        strip.putalpha(strip.getchannel("A").point(
+            lambda v: int(v * max(0.0, alpha))))
+    img.paste(strip, (x0, 0), strip)
+
+
+def column_alpha(ax: float) -> float:
+    """Fades up over the first 70px of travel and out as it runs off the left,
+    so a column never pops into or out of existence mid-board."""
+    a = 0.25 + 0.75 * min(1.0, (AXIS_X - ax) / 70.0)
+    if ax < 40:
+        a *= max(0.0, (ax + 60) / 100.0)
+    return a
 
 
 def _on(bg: tuple[int, int, int]) -> tuple[int, int, int]:
@@ -462,13 +524,17 @@ def build(league: int) -> pathlib.Path:
     # from the final standings, instead of from the matchday being drawn.
     lane = {r["id"]: j for j, r in enumerate(board[md])}
 
+    # What each matchday's badge column carries, kept per matchday because a
+    # column stays on screen well after its own matchday has been applied.
+    delta_at = [{r["id"]: r["delta"] for r in board[j]} for j in range(md + 1)]
+
     n = int(total * FPS)
     for i in range(n):
         t = i / FPS
         img = background()
 
         if t < INTRO:
-            k, u = 0, 0.0
+            k, u, slide = 0, 0.0, None
             appear = min(1.0, t / 1.0)
             label = "SPIELTAG 1"
         else:
@@ -479,6 +545,9 @@ def build(league: int) -> pathlib.Path:
                 k, u = md, 1.0
             appear = 1.0
             label = f"SPIELTAG {k}" if k < md else f"ENDSTAND · {md}. SPIELTAG"
+            # The columns slide on wall-clock, not on the row easing, so they
+            # keep drifting through the hold instead of stopping with the bars.
+            slide = x - (k - 1)
 
         prev = board[k - 1] if k >= 1 else board[0]
         cur = board[k]
@@ -490,13 +559,10 @@ def build(league: int) -> pathlib.Path:
         val_prev = {r["id"]: r["value"] for r in prev}
 
         header(img, name, label)
-        # The axis the matchday badges sit on, as in the reference.
-        ImageDraw.Draw(img).line(
-            (AXIS_X, ROW_TOP - 46, AXIS_X, ROW_TOP + (ROWS - 1) * ROW_PITCH + 46),
-            fill=(96, 62, 40), width=4)
-        # Drawn worst rank first, so during a swap the player moving UP is the
-        # one painted on top. The overlap then reads as the overtake it is,
-        # instead of the promoted player disappearing behind the man he passed.
+
+        # Where every row has got to this frame, worked out before anything is
+        # drawn because the badge columns have to thread through the same ys.
+        placed = []
         for j, row in reversed(list(enumerate(cur))):
             if LANES == "fixed":
                 y = ROW_TOP + lane[row["id"]] * ROW_PITCH
@@ -504,9 +570,32 @@ def build(league: int) -> pathlib.Path:
                 y0 = ROW_TOP + pos_prev[row["id"]] * ROW_PITCH
                 y1 = ROW_TOP + j * ROW_PITCH
                 y = y0 + (y1 - y0) * e
+            placed.append((row, y))
+
+        # This matchday's column, plus the one before it still leaving on the
+        # left. Off-board columns are dropped rather than drawn transparent.
+        cols = []
+        if slide is not None:
+            for back in (1, 0):
+                kk = k - back
+                if kk < 1:
+                    continue
+                ax = AXIS_X - AXIS_TRAVEL * (slide + back)
+                if -80 < ax <= AXIS_X + 1:
+                    cols.append((kk, ax))
+
+        # Drawn worst rank first, so during a swap the player moving UP is the
+        # one painted on top. The overlap then reads as the overtake it is,
+        # instead of the promoted player disappearing behind the man he passed.
+        for row, y in placed:
             v0 = val_prev[row["id"]]
             v = v0 + (row["value"] - v0) * e
-            draw_row(img, row, y, v, scale, k >= 1, appear)
+            draw_row(img, row, y, v, scale, appear)
+        for kk, ax in cols:
+            draw_column(img, ax,
+                        [(y, delta_at[kk].get(row["id"], 0))
+                         for row, y in placed],
+                        column_alpha(ax))
         footer(img)
 
         img.save(frames_dir / f"{i:05d}.png")
