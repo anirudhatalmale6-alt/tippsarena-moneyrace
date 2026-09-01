@@ -131,14 +131,21 @@ def _parse_score(v: str) -> tuple[int, int] | None:
         return None
 
 
-def from_exact_market(bookmakers: list) -> dict[tuple[int, int], float] | None:
-    """Average normalised implied probability per scoreline, across books."""
+def from_exact_market(bookmakers: list):
+    """Average normalised probability AND average quoted price per scoreline.
+
+    The price is kept as well as the probability because he prices his creative
+    in odds: "mix from odds from 5 to 15-20.00". A fair 1/p is not that number -
+    it has the margin stripped out - so the video has to print what a book
+    actually offers, otherwise the odds on screen are a figure nobody can bet.
+    """
     per_book: list[dict] = []
+    prices: dict[tuple[int, int], list[float]] = defaultdict(list)
     for bk in bookmakers:
         for bet in bk.get("bets", []):
             if bet.get("id") != 10:
                 continue
-            probs = {}
+            probs, raw = {}, {}
             for v in bet.get("values", []):
                 sc = _parse_score(v.get("value"))
                 try:
@@ -147,19 +154,23 @@ def from_exact_market(bookmakers: list) -> dict[tuple[int, int], float] | None:
                     continue
                 if sc and odd > 1.0:
                     probs[sc] = probs.get(sc, 0.0) + 1.0 / odd
+                    raw[sc] = odd
             # A book that quotes only a handful of lines cannot be normalised
             # meaningfully - its total is nowhere near 1 and normalising it
             # would invent confidence it never expressed.
             if len(probs) >= 12 and sum(probs.values()) > 0.85:
                 tot = sum(probs.values())
                 per_book.append({k: v / tot for k, v in probs.items()})
+                for k, o in raw.items():
+                    prices[k].append(o)
     if not per_book:
         return None
     out: dict[tuple[int, int], float] = defaultdict(float)
     for p in per_book:
         for k, v in p.items():
             out[k] += v / len(per_book)
-    return dict(out)
+    avg = {k: sum(v) / len(v) for k, v in prices.items()}
+    return dict(out), avg
 
 
 def from_poisson(bookmakers: list) -> dict[tuple[int, int], float] | None:
@@ -220,6 +231,69 @@ def outcome(sc: tuple[int, int]) -> str:
     return "H" if sc[0] > sc[1] else ("A" if sc[1] > sc[0] else "D")
 
 
+# ------------------------------------------------------------------- selection
+#: His correction, verbatim: "you picked always the lowest odd for the possible
+#: outcome but we both know that this is not the case because we know most of
+#: these won't end like this and it's not interesting to watch actually and
+#: that's why i would like you to mix the results but make it realistic, mix
+#: from odds from 5 to 15-20.00".
+#:
+#: He is right about the maths. The single most likely exact score is still only
+#: an 8-12% shot, so publishing it every week is a column of near-identical 1:2s
+#: that is both boring and no more accurate than its neighbours.
+BAND = (5.0, 20.0)
+#: The zone each fixture aims at, rotating down the matchday, so one video shows
+#: short, middling and long prices instead of twelve of the same.
+ZONES = [(5.0, 9.0), (9.0, 13.5), (13.5, 20.0)]
+#: Never look past the twelfth most likely line. Inside a 5-20 band a 4:3 can
+#: technically qualify in a wide-open game; it is a real price and still not a
+#: realistic thing to publish.
+DEPTH = 12
+
+
+def pick(cands: list, zone: tuple[float, float], used: Counter,
+         forbid: str | None) -> dict | None:
+    """One scoreline: unused before reused, in-zone before out, likelier first."""
+    pool = [c for c in cands[:DEPTH]
+            if BAND[0] <= c["odds"] <= BAND[1] and c["score"] != forbid]
+    if not pool:
+        # Every quoted line is outside the band - a 4-1-on home banker, or a
+        # market so wide nothing is short enough. Take the closest thing to the
+        # band rather than dropping the fixture out of the video.
+        pool = [c for c in cands[:DEPTH] if c["score"] != forbid]
+    if not pool:
+        return None
+    def key(c):
+        return (used[c["score"]],
+                0 if zone[0] <= c["odds"] <= zone[1] else 1,
+                -c["p"])
+    return min(pool, key=key)
+
+
+def assign(fixtures: list) -> None:
+    """Choose a published scoreline per brand, across a whole matchday.
+
+    The two brands must never land on the same score for the same fixture - he
+    runs them as separate sites and a shared scoreline is the tell. Repeats
+    within one video are penalised too, which is what turns the list into a mix.
+    """
+    for brand, offset in (("tippsarena", 0), ("luxtipps", 2)):
+        used: Counter = Counter()
+        for i, fx in enumerate(fixtures):
+            other = fx.get("picks", {}).get("tippsarena", {}).get("score")
+            c = pick(fx["cands"], ZONES[(i + offset) % len(ZONES)], used,
+                     forbid=other if brand == "luxtipps" else None)
+            if c is None:
+                continue
+            used[c["score"]] += 1
+            h, a = (int(x) for x in c["score"].split(":"))
+            fx.setdefault("picks", {})[brand] = {
+                "home": h, "away": a, "score": c["score"], "p": c["p"],
+                "odds": c["odds"], "quoted": c["quoted"],
+                "outcome": outcome((h, a)),
+            }
+
+
 # ----------------------------------------------------------------------- crests
 def crest(url: str, team_id: int) -> str | None:
     IMG.mkdir(parents=True, exist_ok=True)
@@ -267,10 +341,12 @@ def main() -> None:
             time.sleep(0.45)
             odds = get("odds", fixture=fid)
             books = odds["response"][0]["bookmakers"] if odds["response"] else []
-            grid = from_exact_market(books)
+            market = from_exact_market(books)
             method = "exact_score_market"
-            if grid is None:
-                grid = from_poisson(books)
+            if market is not None:
+                grid, prices = market
+            else:
+                grid, prices = from_poisson(books), {}
                 method = "poisson_from_1x2_ou"
             if grid is None:
                 pair = (f"{f['teams']['home']['name']} - "
@@ -280,6 +356,13 @@ def main() -> None:
                 continue
             ranked = sorted(grid.items(), key=lambda kv: -kv[1])
             top, second = ranked[0], ranked[1]
+            # Quoted price where a book published one, fair 1/p where the grid
+            # came out of Poisson. `quoted` travels with it so the video can
+            # decline to print an odd that no bookmaker ever offered.
+            cands = [{"score": f"{s[0]}:{s[1]}", "p": round(p, 4),
+                      "odds": round(prices.get(s, 1 / max(p, 1e-6)), 2),
+                      "quoted": s in prices}
+                     for s, p in ranked[:20] if p > 0.004]
             h, a = f["teams"]["home"], f["teams"]["away"]
             out["fixtures"].append({
                 "id": fid,
@@ -296,13 +379,16 @@ def main() -> None:
                         "p": round(top[1], 4), "outcome": outcome(top[0])},
                 "alt": {"home": second[0][0], "away": second[0][1],
                         "p": round(second[1], 4), "outcome": outcome(second[0])},
-                "top5": [{"score": f"{s[0]}:{s[1]}", "p": round(p, 4)}
-                         for s, p in ranked[:5]],
+                "cands": cands,
             })
-            t = out["fixtures"][-1]
-            print(f"    {t['home_short']:<16} {t['tip']['home']}:{t['tip']['away']}"
-                  f"  {t['away_short']:<16} p={t['tip']['p']:.3f}"
-                  f"  alt {t['alt']['home']}:{t['alt']['away']}  [{method}]")
+        assign(out["fixtures"])
+        for t in out["fixtures"]:
+            ta = t["picks"].get("tippsarena", {})
+            lx = t["picks"].get("luxtipps", {})
+            print(f"    {t['home_short']:<16} - {t['away_short']:<16} "
+                  f"TA {ta.get('score','-'):<5} @{ta.get('odds',0):>6.2f}   "
+                  f"LX {lx.get('score','-'):<5} @{lx.get('odds',0):>6.2f}  "
+                  f"[{t['method']}]")
         path = DATA / f"tips-{lid}.json"
         path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"    -> {path.name}  ({len(out['fixtures'])} fixtures)")

@@ -32,28 +32,148 @@
         "p": 0.1116,
         "outcome": "D"
       },
-      "top5": [
+      "cands": [
         {
           "score": "0:1",
-          "p": 0.1286
+          "p": 0.1286,
+          "odds": 5.34,
+          "quoted": true
         },
         {
           "score": "1:1",
-          "p": 0.1116
+          "p": 0.1116,
+          "odds": 6.13,
+          "quoted": true
         },
         {
           "score": "0:2",
-          "p": 0.0944
+          "p": 0.0944,
+          "odds": 7.25,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0924
+          "p": 0.0924,
+          "odds": 7.44,
+          "quoted": true
         },
         {
           "score": "1:2",
-          "p": 0.0817
+          "p": 0.0817,
+          "odds": 8.39,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0681,
+          "odds": 10.06,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.05,
+          "odds": 13.67,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0452,
+          "odds": 15.15,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0444,
+          "odds": 15.44,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0401,
+          "odds": 17.15,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0303,
+          "odds": 22.82,
+          "quoted": true
+        },
+        {
+          "score": "0:4",
+          "p": 0.0221,
+          "odds": 31.66,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0216,
+          "odds": 32.57,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0195,
+          "odds": 35.91,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0152,
+          "odds": 47.77,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0124,
+          "odds": 58.24,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0102,
+          "odds": 71.73,
+          "quoted": true
+        },
+        {
+          "score": "2:4",
+          "p": 0.0099,
+          "odds": 75.04,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0081,
+          "odds": 92.57,
+          "quoted": true
+        },
+        {
+          "score": "0:5",
+          "p": 0.0077,
+          "odds": 82.8,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 0,
+          "away": 1,
+          "score": "0:1",
+          "p": 0.1286,
+          "odds": 5.34,
+          "quoted": true,
+          "outcome": "A"
+        },
+        "luxtipps": {
+          "home": 0,
+          "away": 3,
+          "score": "0:3",
+          "p": 0.05,
+          "odds": 13.67,
+          "quoted": true,
+          "outcome": "A"
+        }
+      }
     },
     {
       "id": 1550110,
@@ -80,28 +200,148 @@
         "p": 0.1126,
         "outcome": "D"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:0",
-          "p": 0.1127
+          "p": 0.1127,
+          "odds": 6.05,
+          "quoted": true
         },
         {
           "score": "1:1",
-          "p": 0.1126
+          "p": 0.1126,
+          "odds": 6.06,
+          "quoted": true
         },
         {
           "score": "2:0",
-          "p": 0.084
+          "p": 0.084,
+          "odds": 8.11,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0833
+          "p": 0.0833,
+          "odds": 8.2,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0822
+          "p": 0.0822,
+          "odds": 8.32,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0693,
+          "odds": 9.84,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0514,
+          "odds": 13.27,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0463,
+          "odds": 14.74,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0453,
+          "odds": 15.08,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0447,
+          "odds": 15.23,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0349,
+          "odds": 19.65,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0251,
+          "odds": 27.52,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.02,
+          "odds": 34.83,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0199,
+          "odds": 34.92,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0184,
+          "odds": 37.65,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0162,
+          "odds": 43.33,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0129,
+          "odds": 55.09,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0108,
+          "odds": 65.57,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.01,
+          "odds": 71.66,
+          "quoted": true
+        },
+        {
+          "score": "5:0",
+          "p": 0.0076,
+          "odds": 85.6,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 1,
+          "away": 2,
+          "score": "1:2",
+          "p": 0.0514,
+          "odds": 13.27,
+          "quoted": true,
+          "outcome": "A"
+        },
+        "luxtipps": {
+          "home": 1,
+          "away": 0,
+          "score": "1:0",
+          "p": 0.1127,
+          "odds": 6.05,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
     },
     {
       "id": 1550113,
@@ -128,28 +368,148 @@
         "p": 0.1027,
         "outcome": "D"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:0",
-          "p": 0.1187
+          "p": 0.1187,
+          "odds": 5.77,
+          "quoted": true
         },
         {
           "score": "1:1",
-          "p": 0.1027
+          "p": 0.1027,
+          "odds": 6.66,
+          "quoted": true
         },
         {
           "score": "2:0",
-          "p": 0.0965
+          "p": 0.0965,
+          "odds": 7.09,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0869
+          "p": 0.0869,
+          "odds": 7.88,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0769
+          "p": 0.0769,
+          "odds": 8.9,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0594,
+          "odds": 11.53,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0562,
+          "odds": 12.14,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0506,
+          "odds": 13.54,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0452,
+          "odds": 15.12,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0417,
+          "odds": 16.36,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0273,
+          "odds": 25.16,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0269,
+          "odds": 25.61,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0257,
+          "odds": 26.87,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0244,
+          "odds": 28.33,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.015,
+          "odds": 46.91,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0131,
+          "odds": 53.33,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0115,
+          "odds": 60.62,
+          "quoted": true
+        },
+        {
+          "score": "5:0",
+          "p": 0.0106,
+          "odds": 60.2,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0096,
+          "odds": 76.17,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0092,
+          "odds": 79.39,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 3,
+          "away": 1,
+          "score": "3:1",
+          "p": 0.0506,
+          "odds": 13.54,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 0,
+          "away": 1,
+          "score": "0:1",
+          "p": 0.0594,
+          "odds": 11.53,
+          "quoted": true,
+          "outcome": "A"
+        }
+      }
     },
     {
       "id": 1550107,
@@ -176,28 +536,148 @@
         "p": 0.1025,
         "outcome": "D"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:0",
-          "p": 0.1071
+          "p": 0.1071,
+          "odds": 6.37,
+          "quoted": true
         },
         {
           "score": "1:1",
-          "p": 0.1025
+          "p": 0.1025,
+          "odds": 6.64,
+          "quoted": true
         },
         {
           "score": "2:0",
-          "p": 0.0882
+          "p": 0.0882,
+          "odds": 7.7,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.087
+          "p": 0.087,
+          "odds": 7.83,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0721
+          "p": 0.0721,
+          "odds": 9.48,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0598,
+          "odds": 11.35,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0517,
+          "odds": 13.13,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0497,
+          "odds": 13.68,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0489,
+          "odds": 13.92,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0462,
+          "odds": 14.69,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.03,
+          "odds": 22.9,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.028,
+          "odds": 24.44,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0246,
+          "odds": 27.69,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0241,
+          "odds": 28.37,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0181,
+          "odds": 38.62,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0166,
+          "odds": 42.31,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0131,
+          "odds": 54.2,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0112,
+          "odds": 63.82,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0111,
+          "odds": 64.97,
+          "quoted": true
+        },
+        {
+          "score": "5:0",
+          "p": 0.0095,
+          "odds": 65.8,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 1,
+          "away": 0,
+          "score": "1:0",
+          "p": 0.1071,
+          "odds": 6.37,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 3,
+          "away": 1,
+          "score": "3:1",
+          "p": 0.0497,
+          "odds": 13.68,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
     },
     {
       "id": 1550111,
@@ -224,28 +704,148 @@
         "p": 0.0832,
         "outcome": "A"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:1",
-          "p": 0.1143
+          "p": 0.1143,
+          "odds": 6.04,
+          "quoted": true
         },
         {
           "score": "0:1",
-          "p": 0.0832
+          "p": 0.0832,
+          "odds": 8.29,
+          "quoted": true
         },
         {
           "score": "1:0",
-          "p": 0.0801
+          "p": 0.0801,
+          "odds": 8.62,
+          "quoted": true
         },
         {
           "score": "1:2",
-          "p": 0.0762
+          "p": 0.0762,
+          "odds": 9.05,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0719
+          "p": 0.0719,
+          "odds": 9.58,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.071,
+          "odds": 9.74,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0559,
+          "odds": 12.3,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0553,
+          "odds": 12.43,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.051,
+          "odds": 13.5,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0377,
+          "odds": 18.27,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0332,
+          "odds": 20.71,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0281,
+          "odds": 24.58,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0272,
+          "odds": 25.48,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0256,
+          "odds": 26.97,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0244,
+          "odds": 28.36,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0148,
+          "odds": 47.22,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0138,
+          "odds": 50.52,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0127,
+          "odds": 55.88,
+          "quoted": true
+        },
+        {
+          "score": "0:4",
+          "p": 0.0111,
+          "odds": 64.02,
+          "quoted": true
+        },
+        {
+          "score": "2:4",
+          "p": 0.0105,
+          "odds": 67.4,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 2,
+          "away": 1,
+          "score": "2:1",
+          "p": 0.0719,
+          "odds": 9.58,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 1,
+          "away": 1,
+          "score": "1:1",
+          "p": 0.1143,
+          "odds": 6.04,
+          "quoted": true,
+          "outcome": "D"
+        }
+      }
     },
     {
       "id": 1550115,
@@ -272,28 +872,148 @@
         "p": 0.1072,
         "outcome": "H"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:1",
-          "p": 0.1223
+          "p": 0.1223,
+          "odds": 5.63,
+          "quoted": true
         },
         {
           "score": "1:0",
-          "p": 0.1072
+          "p": 0.1072,
+          "odds": 6.44,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0934
+          "p": 0.0934,
+          "odds": 7.4,
+          "quoted": true
         },
         {
           "score": "0:1",
-          "p": 0.0919
+          "p": 0.0919,
+          "odds": 7.52,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0757
+          "p": 0.0757,
+          "odds": 9.13,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0658,
+          "odds": 10.51,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0649,
+          "odds": 10.63,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.049,
+          "odds": 14.07,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0459,
+          "odds": 15.06,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0324,
+          "odds": 21.61,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.03,
+          "odds": 23.1,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0256,
+          "odds": 27.17,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.021,
+          "odds": 33.33,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0203,
+          "odds": 34.53,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0179,
+          "odds": 38.98,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0119,
+          "odds": 60.16,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0108,
+          "odds": 66.54,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0095,
+          "odds": 76.7,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0084,
+          "odds": 87.24,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0079,
+          "odds": 92.3,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 0,
+          "away": 2,
+          "score": "0:2",
+          "p": 0.049,
+          "odds": 14.07,
+          "quoted": true,
+          "outcome": "A"
+        },
+        "luxtipps": {
+          "home": 2,
+          "away": 1,
+          "score": "2:1",
+          "p": 0.0757,
+          "odds": 9.13,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
     },
     {
       "id": 1550108,
@@ -320,28 +1040,148 @@
         "p": 0.1049,
         "outcome": "H"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:1",
-          "p": 0.11
+          "p": 0.11,
+          "odds": 6.3,
+          "quoted": true
         },
         {
           "score": "1:0",
-          "p": 0.1049
+          "p": 0.1049,
+          "odds": 6.61,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0859
+          "p": 0.0859,
+          "odds": 8.04,
+          "quoted": true
         },
         {
           "score": "2:0",
-          "p": 0.0802
+          "p": 0.0802,
+          "odds": 8.62,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0759
+          "p": 0.0759,
+          "odds": 9.14,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0688,
+          "odds": 10.04,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0558,
+          "odds": 12.43,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.048,
+          "odds": 14.36,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0467,
+          "odds": 14.79,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0444,
+          "odds": 15.61,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.036,
+          "odds": 19.17,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0272,
+          "odds": 25.58,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0211,
+          "odds": 33.44,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.02,
+          "odds": 35.02,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0195,
+          "odds": 36.0,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0178,
+          "odds": 39.68,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0136,
+          "odds": 52.32,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0119,
+          "odds": 59.56,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0111,
+          "odds": 64.7,
+          "quoted": true
+        },
+        {
+          "score": "5:1",
+          "p": 0.0075,
+          "odds": 84.89,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 1,
+          "away": 1,
+          "score": "1:1",
+          "p": 0.11,
+          "odds": 6.3,
+          "quoted": true,
+          "outcome": "D"
+        },
+        "luxtipps": {
+          "home": 2,
+          "away": 2,
+          "score": "2:2",
+          "p": 0.048,
+          "odds": 14.36,
+          "quoted": true,
+          "outcome": "D"
+        }
+      }
     },
     {
       "id": 1550114,
@@ -368,28 +1208,148 @@
         "p": 0.1041,
         "outcome": "H"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:1",
-          "p": 0.1157
+          "p": 0.1157,
+          "odds": 5.89,
+          "quoted": true
         },
         {
           "score": "1:0",
-          "p": 0.1041
+          "p": 0.1041,
+          "odds": 6.55,
+          "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0825
+          "p": 0.0825,
+          "odds": 8.25,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0783
+          "p": 0.0783,
+          "odds": 8.74,
+          "quoted": true
         },
         {
           "score": "0:1",
-          "p": 0.0741
+          "p": 0.0741,
+          "odds": 9.23,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0716,
+          "odds": 9.52,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.06,
+          "odds": 11.34,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0491,
+          "odds": 13.87,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0415,
+          "odds": 16.46,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0408,
+          "odds": 16.73,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0374,
+          "odds": 18.29,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.026,
+          "odds": 26.51,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0237,
+          "odds": 29.05,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.019,
+          "odds": 36.19,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0176,
+          "odds": 40.42,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0164,
+          "odds": 42.71,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0158,
+          "odds": 44.68,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0117,
+          "odds": 60.89,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0106,
+          "odds": 66.8,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.008,
+          "odds": 91.71,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 2,
+          "away": 0,
+          "score": "2:0",
+          "p": 0.0716,
+          "odds": 9.52,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 0,
+          "away": 0,
+          "score": "0:0",
+          "p": 0.0783,
+          "odds": 8.74,
+          "quoted": true,
+          "outcome": "D"
+        }
+      }
     },
     {
       "id": 1550109,
@@ -416,28 +1376,148 @@
         "p": 0.1184,
         "outcome": "D"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:0",
-          "p": 0.1258
+          "p": 0.1258,
+          "odds": 5.5,
+          "quoted": true
         },
         {
           "score": "1:1",
-          "p": 0.1184
+          "p": 0.1184,
+          "odds": 5.82,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0997
+          "p": 0.0997,
+          "odds": 6.95,
+          "quoted": true
         },
         {
           "score": "2:0",
-          "p": 0.0837
+          "p": 0.0837,
+          "odds": 8.27,
+          "quoted": true
         },
         {
           "score": "0:1",
-          "p": 0.0821
+          "p": 0.0821,
+          "odds": 8.45,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0798,
+          "odds": 8.65,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0533,
+          "odds": 12.97,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0407,
+          "odds": 17.02,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0402,
+          "odds": 17.12,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.038,
+          "odds": 18.27,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0377,
+          "odds": 18.9,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0208,
+          "odds": 33.75,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0175,
+          "odds": 41.35,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0161,
+          "odds": 43.71,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0154,
+          "odds": 45.88,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0137,
+          "odds": 52.26,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0131,
+          "odds": 56.62,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0083,
+          "odds": 86.97,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0081,
+          "odds": 91.22,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0053,
+          "odds": 135.2,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 2,
+          "away": 2,
+          "score": "2:2",
+          "p": 0.0407,
+          "odds": 17.02,
+          "quoted": true,
+          "outcome": "D"
+        },
+        "luxtipps": {
+          "home": 1,
+          "away": 2,
+          "score": "1:2",
+          "p": 0.0533,
+          "odds": 12.97,
+          "quoted": true,
+          "outcome": "A"
+        }
+      }
     },
     {
       "id": 1550116,
@@ -464,28 +1544,148 @@
         "p": 0.104,
         "outcome": "A"
       },
-      "top5": [
+      "cands": [
         {
           "score": "1:1",
-          "p": 0.1218
+          "p": 0.1218,
+          "odds": 5.71,
+          "quoted": true
         },
         {
           "score": "0:1",
-          "p": 0.104
+          "p": 0.104,
+          "odds": 6.7,
+          "quoted": true
         },
         {
           "score": "1:0",
-          "p": 0.0993
+          "p": 0.0993,
+          "odds": 7.0,
+          "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.096
+          "p": 0.096,
+          "odds": 7.25,
+          "quoted": true
         },
         {
           "score": "1:2",
-          "p": 0.0723
+          "p": 0.0723,
+          "odds": 9.59,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0683,
+          "odds": 10.16,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0605,
+          "odds": 11.46,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0567,
+          "odds": 12.25,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0454,
+          "odds": 15.28,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0299,
+          "odds": 23.49,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0273,
+          "odds": 25.58,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0267,
+          "odds": 26.08,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0241,
+          "odds": 29.25,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0193,
+          "odds": 36.3,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0182,
+          "odds": 39.08,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0107,
+          "odds": 67.48,
+          "quoted": true
+        },
+        {
+          "score": "0:4",
+          "p": 0.0097,
+          "odds": 74.94,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0096,
+          "odds": 76.92,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0092,
+          "odds": 79.68,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0085,
+          "odds": 88.52,
+          "quoted": true
         }
-      ]
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 0,
+          "away": 0,
+          "score": "0:0",
+          "p": 0.096,
+          "odds": 7.25,
+          "quoted": true,
+          "outcome": "D"
+        },
+        "luxtipps": {
+          "home": 0,
+          "away": 2,
+          "score": "0:2",
+          "p": 0.0605,
+          "odds": 11.46,
+          "quoted": true,
+          "outcome": "A"
+        }
+      }
     }
   ]
 }
