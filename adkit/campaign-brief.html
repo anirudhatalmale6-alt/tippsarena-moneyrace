@@ -1,0 +1,235 @@
+<meta charset="utf-8">
+<title>TippsArena MoneyRace — Werbemittel & Kampagnen-Setup</title>
+<style>
+  @page { size: A4; margin: 17mm 15mm 16mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font: 10.5pt/1.5 "Lato","Helvetica Neue",Arial,sans-serif; color:#15202b; margin:0; }
+  h1 { font-size: 20pt; margin: 0 0 2mm; letter-spacing:-.2pt; }
+  h2 { font-size: 13pt; margin: 9mm 0 3mm; padding-bottom:1.5mm;
+       border-bottom: 2px solid #FF6E03; page-break-after: avoid; }
+  h3 { font-size: 11pt; margin: 5mm 0 1.5mm; page-break-after: avoid; }
+  p  { margin: 0 0 2.5mm; }
+  .lead { color:#4a5866; font-size:10pt; margin-bottom:6mm; }
+  table { width:100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size:9pt; }
+  th, td { border:1px solid #d7dee6; padding: 2mm 2.5mm; text-align:left; vertical-align:top; }
+  th { background:#f2f5f8; font-weight:700; }
+  code { font-family:"DejaVu Sans Mono",monospace; font-size:8.6pt; background:#f2f5f8;
+         padding:0 1mm; border-radius:2px; word-break:break-all; }
+  .box { border:1px solid #d7dee6; border-left:4px solid #FF6E03; background:#fffaf6;
+         padding:3mm 4mm; margin:3mm 0 5mm; page-break-inside: avoid; }
+  .warn { border-left-color:#c62828; background:#fff5f5; }
+  .ok   { border-left-color:#2e7d32; background:#f4fbf5; }
+  .copy { border:1px solid #d7dee6; background:#fbfcfd; padding:3mm 4mm; margin:2mm 0 4mm;
+          white-space:pre-wrap; font-size:9.5pt; page-break-inside:avoid; }
+  .copy b { color:#15202b; }
+  .meta { font-size:8.6pt; color:#5c6b7a; margin:0 0 1.5mm; }
+  ul { margin:0 0 3mm; padding-left:5mm; }
+  li { margin-bottom:1.2mm; }
+  .pagebreak { page-break-before: always; }
+  .foot { margin-top:8mm; padding-top:2mm; border-top:1px solid #d7dee6;
+          font-size:8.5pt; color:#6b7885; }
+</style>
+
+<h1>TippsArena MoneyRace — Werbemittel &amp; Kampagnen-Setup</h1>
+<p class="lead">Anirudha Talmale · 1. September 2026 · für Wettbewerb #442 „Bundesliga MoneyRace #1“</p>
+
+<div class="box warn">
+  <p><b>Die drei Videos vom 29. August bitte NICHT hochladen.</b> Sie nennen 149,97 € Preisgeld,
+  einen Tippschluss um 15:25 Uhr und Spiele (Mainz, Köln), die in dieser Runde nicht vorkommen.
+  Das war am 29. August richtig und ist es heute nicht mehr. Eine Anzeige, die ein anderes
+  Preisgeld verspricht als der Bot zeigt, produziert genau die Kommentare, die eine Kampagne töten.</p>
+  <p style="margin-bottom:0">Alles in diesem Paket liest seine Zahlen direkt aus der Datenbank
+  (<code>adkit/campaign.py</code>). Wenn du Preisgeld, Tippschluss oder Spiele änderst, sage
+  Bescheid — ein Re-Render dauert ein paar Minuten und die Werbemittel stimmen wieder.</p>
+</div>
+
+<h2>1. Was gerade live ist</h2>
+<table>
+  <tr><th style="width:38%">Wettbewerb</th><td>#442 — Bundesliga MoneyRace #1 (Status: open, veröffentlicht 1. Sept.)</td></tr>
+  <tr><th>Preisgeld</th><td>100,00 € · 1 Gewinner</td></tr>
+  <tr><th>Tippschluss</th><td>Samstag, 5. September, 15:00 Uhr (Berlin)</td></tr>
+  <tr><th>Spiele</th><td>Bremen – Leipzig · Gladbach – Elversberg · Hoffenheim – Dortmund ·
+      Leverkusen – Union Berlin · Paderborn – Freiburg</td></tr>
+  <tr><th>Punkte</th><td>1 Punkt pro richtigem Sieger. Wer am meisten hat, gewinnt; bei Gleichstand wird geteilt.</td></tr>
+  <tr><th>Kanal-Pflicht</th><td><b>AN</b> — wer mittippen will, muss vorher dem Telegram-Kanal beitreten</td></tr>
+</table>
+
+<div class="box">
+  <p style="margin-bottom:0"><b>Entscheidung, die du treffen solltest:</b> die Kanal-Pflicht kostet
+  dich Teilnehmer, bringt dir aber Kanal-Mitglieder, die du danach kostenlos wieder erreichst.
+  Ich habe alle Werbemittel und die Landingpage <i>ehrlich</i> auf „AN“ gebaut — der Beitritt wird
+  gezeigt, nicht versteckt. Wenn du für die erste Runde lieber maximale Teilnahme willst, schalte
+  sie im Dashboard bei Wettbewerb #442 aus; die Werbemittel funktionieren dann weiter, sie
+  versprechen nur einen Schritt zu viel. Umgekehrt wäre schlimmer.</p>
+</div>
+
+<h2>2. Das Paket</h2>
+<h3>Videos (1080 × 1920, 30 fps, ohne Ton)</h3>
+<table>
+  <tr><th style="width:42%">Datei</th><th>Hook</th><th style="width:14%">Länge</th></tr>
+  <tr><td><code>tippsarena-moneyrace-1-preisgeld.mp4</code></td>
+      <td>Das Angebot, flach: 100 €, Einsatz 0 €. Zeigt danach die echten 5 Spiele und den Bot-Ablauf.</td><td>16 s</td></tr>
+  <tr><td><code>tippsarena-moneyrace-2-kein-wettschein.mp4</code></td>
+      <td>Räumt die Annahme „das ist Wetten“ ab, bevor weitergescrollt wird.</td><td>14,5 s</td></tr>
+  <tr><td><code>tippsarena-moneyrace-3-tippschluss.mp4</code></td>
+      <td>Die Deadline. Bestes Motiv für die letzten 24 Stunden und fürs Retargeting.</td><td>13 s</td></tr>
+</table>
+<p class="meta">Kein Tonspur-Stream — du legst in der App einen Trending-Sound drüber, das belohnt der
+Algorithmus. Jedes Wort steht im Bild, weil Facebook stummgeschaltet abspielt.</p>
+
+<h3>Bilder (12 Dateien, 4 Motive × 3 Formate)</h3>
+<table>
+  <tr><th style="width:30%">Motiv</th><th>Aussage</th><th style="width:34%">Formate</th></tr>
+  <tr><td><code>1-preisgeld</code></td><td>100 € für den besten Tipp, Einsatz 0 €</td>
+      <td rowspan="4"><code>-4x5</code> 1080×1350 — Feed (bester Platz)<br>
+          <code>-1x1</code> 1080×1080 — quadratisch<br>
+          <code>-9x16</code> 1080×1920 — Reels &amp; Stories</td></tr>
+  <tr><td><code>2-tippschluss</code></td><td>SA 15:00 + die echten Spiele</td></tr>
+  <tr><td><code>3-keine-wette</code></td><td>Kein Wettschein — ein kostenloses Tippspiel</td></tr>
+  <tr><td><code>4-challenge</code></td><td>„Tippst du besser als der Rest?“</td></tr>
+</table>
+<p class="meta">Warum überhaupt Bilder, wenn Videos da sind: mit nur einem Format weißt du hinterher
+nicht, ob das Format oder die Botschaft nicht funktioniert hat. Bilder kosten nichts im Test, laden
+sofort und schlagen bei einem so einfachen Angebot oft das Video.</p>
+
+<div class="pagebreak"></div>
+<h2>3. Anzeigentexte — fertig zum Kopieren</h2>
+
+<h3>Anzeige 1 · Preisgeld</h3>
+<p class="meta">Video <code>…-1-preisgeld.mp4</code> oder Bild <code>…1-preisgeld-4x5.jpg</code></p>
+<div class="copy"><b>Primärtext</b>
+100 € für den besten Tipp. Dein Einsatz: 0 €.
+
+Diesen Samstag laufen 5 Bundesliga-Spiele. Du tippst, wer gewinnt — wer am meisten richtig hat, bekommt die 100 € ausgezahlt.
+
+Kein Einsatz. Keine Quote. Kein Buchmacher. Läuft komplett in Telegram, dauert unter einer Minute.
+
+Tippschluss: Samstag, 5. September, 15:00 Uhr.
+
+<b>Überschrift</b>  100 € für den besten Tipp
+<b>Beschreibung</b>  Kostenlos mittippen — 5 Spiele, 5 Tipps
+<b>Button</b>  Mehr dazu</div>
+
+<h3>Anzeige 2 · Kein Wettschein</h3>
+<p class="meta">Video <code>…-2-kein-wettschein.mp4</code> oder Bild <code>…3-keine-wette-4x5.jpg</code></p>
+<div class="copy"><b>Primärtext</b>
+Das ist kein Wettschein.
+
+Kein Einsatz, kein Cent. Keine Quote, kein Buchmacher. Du tippst 5 Bundesliga-Spiele — wer am meisten richtig hat, bekommt 100 €.
+
+Mehr ist es nicht. Kostenlos, ab 18.
+
+Tippschluss: Samstag, 15:00 Uhr.
+
+<b>Überschrift</b>  Kostenlos tippen, 100 € gewinnen
+<b>Beschreibung</b>  Kein Einsatz. Keine Wette.
+<b>Button</b>  Mehr dazu</div>
+
+<h3>Anzeige 3 · Tippschluss</h3>
+<p class="meta">Video <code>…-3-tippschluss.mp4</code> oder Bild <code>…2-tippschluss-4x5.jpg</code></p>
+<div class="copy"><b>Primärtext</b>
+Samstag, 15:00 Uhr ist Schluss.
+
+Bremen – Leipzig, Gladbach – Elversberg, Hoffenheim – Dortmund, Leverkusen – Union Berlin, Paderborn – Freiburg.
+
+5 Tipps abgeben, 100 € für den Besten. Kostenlos, ohne Einsatz.
+
+Danach ist die Runde zu.
+
+<b>Überschrift</b>  Tippschluss: Samstag 15:00 Uhr
+<b>Beschreibung</b>  5 Spiele. 100 €. Kein Einsatz.
+<b>Button</b>  Mehr dazu</div>
+
+<h3>Anzeige 4 · Challenge</h3>
+<p class="meta">Bild <code>…4-challenge-4x5.jpg</code> (kein Video — bewusst, siehe Abschnitt 6)</p>
+<div class="copy"><b>Primärtext</b>
+Tippst du besser als der Rest?
+
+5 Bundesliga-Spiele, 5 Tipps, 100 € für den Besten. Du zahlst nichts ein und kannst nichts verlieren — es gibt keinen Einsatz.
+
+Tippschluss: Samstag, 5. September, 15:00 Uhr.
+
+<b>Überschrift</b>  Tippst du besser als der Rest?
+<b>Beschreibung</b>  100 € für den besten Tipp
+<b>Button</b>  Mehr dazu</div>
+
+<div class="pagebreak"></div>
+<h2>4. Links — pro Anzeige ein eigener Code</h2>
+<p>Bisher trug jeder Klick von <code>/moneyrace</code> denselben Code <code>fb_moneyrace</code>.
+Facebook sagt dir dann zwar, welche Anzeige Klicks bekam, aber nicht, welche Anzeige Leute
+gebracht hat, die den Bot wirklich gestartet haben — und genau das ist die Zahl, auf die es
+ankommt. Ich habe die Landingpage heute so erweitert, dass sie einen Code aus der URL
+durchreicht bis in deine Analytics-Seite.</p>
+<table>
+  <tr><th style="width:34%">Anzeige</th><th>URL, die du bei Facebook einträgst</th></tr>
+  <tr><td>1 · Preisgeld</td><td><code>https://tippsarena.com/moneyrace?c=fb_mr_preisgeld</code></td></tr>
+  <tr><td>2 · Kein Wettschein</td><td><code>https://tippsarena.com/moneyrace?c=fb_mr_wettschein</code></td></tr>
+  <tr><td>3 · Tippschluss</td><td><code>https://tippsarena.com/moneyrace?c=fb_mr_tippschluss</code></td></tr>
+  <tr><td>4 · Challenge</td><td><code>https://tippsarena.com/moneyrace?c=fb_mr_challenge</code></td></tr>
+</table>
+<p>Du kannst dir jeden Code selbst ausdenken — er muss nur aus Buchstaben, Ziffern,
+<code>_</code> und <code>-</code> bestehen und taucht danach automatisch im Dashboard unter
+Analytics auf, ohne dass jemand etwas anlegen muss. Ohne <code>?c=</code> bleibt alles wie
+vorher (<code>fb_moneyrace</code>).</p>
+
+<div class="box ok">
+  <p style="margin-bottom:0"><b>Was ich heute an der Landingpage geändert habe</b> (live, geprüft):
+  der Code-Durchreicher oben; die Chat-Vorschau zeigt jetzt das echte erste Spiel dieser Runde und
+  den echten Tippschluss statt „Bayern München — Dortmund, Tippschluss 15:25“ aus dem August; und
+  weil die Kanal-Pflicht an ist, steht der Beitritt jetzt auch auf der Seite, statt den Nutzer nach
+  dem Klick zu überraschen. Das Gleiche auf <code>/dach</code>.</p>
+</div>
+
+<h2>5. Kampagnen-Setup</h2>
+<table>
+  <tr><th style="width:30%">Ziel</th><td>Traffic, optimiert auf <b>Landingpage-Aufrufe</b> — nicht auf Klicks.
+      Klicks kauft dir Facebook billig und wertlos ein.</td></tr>
+  <tr><th>Struktur</th><td>1 Kampagne → 1 Anzeigengruppe → alle 4 Anzeigen darin.
+      Nicht 4 Anzeigengruppen: dann konkurrieren sie um dasselbe Publikum und jede lernt zu wenig.</td></tr>
+  <tr><th>Land / Alter</th><td>Deutschland (plus Österreich, wenn du willst), 18–55</td></tr>
+  <tr><th>Interessen</th><td>Bundesliga, Fußball-Bundesliga, kicker, Sky Sport, Fußball —
+      als Vorschlag, dann „Advantage+ Zielgruppe“ die Grenzen aufweichen lassen</td></tr>
+  <tr><th>Platzierungen</th><td>Advantage+ (alle). Deshalb liegen alle drei Seitenverhältnisse bei.</td></tr>
+  <tr><th>Laufzeit</th><td>Jetzt starten, harter Stopp Samstag 14:30 Uhr —
+      eine halbe Stunde vor Tippschluss ist jeder weitere Euro verbrannt.</td></tr>
+  <tr><th>Budget</th><td>Tagesbudget auf die Anzeigengruppe, nicht pro Anzeige. Unter ca. 10 €/Tag
+      kommt Facebook aus der Lernphase nicht heraus; alles darüber ist deine Entscheidung.</td></tr>
+</table>
+
+<h2>6. Was ich testen würde und wie du es liest</h2>
+<ul>
+  <li><b>Vier Hooks, nicht vier Varianten desselben Hooks.</b> Preisgeld, Einwand, Deadline,
+      Ego — wenn eine gewinnt, weißt du hinterher <i>warum</i>. Vier Versionen von „100 €“ hätten
+      dir nur gesagt, welche Schriftgröße besser lief.</li>
+  <li><b>Erst nach 2 Tagen urteilen.</b> Vorher schwankt die Ausspielung zu stark. Danach: alles
+      abschalten, was mehr als das Doppelte pro Landingpage-Aufruf kostet wie die beste Anzeige.</li>
+  <li><b>Die Zahl, die zählt, steht in deinem Dashboard</b>, nicht bei Facebook: Analytics →
+      Kampagnen. Facebook zählt Klicks, dein Dashboard zählt Menschen, die den Bot gestartet haben.
+      Wenn eine Anzeige viele Klicks und wenige Starts hat, ist der Text besser als das Angebot.</li>
+  <li><b>Motiv 4 gibt es bewusst nur als Bild.</b> Wenn Bild 4 gegen Video 1 gewinnt, weißt du,
+      dass es an der Botschaft liegt und nicht am Format. Danach lohnt sich das Video dazu.</li>
+</ul>
+
+<h2>7. Anzeigenkonto — was die Motive einhalten</h2>
+<ul>
+  <li>Auf <b>jedem</b> Bild und in jedem Video steht unten „Kostenlos · Kein Einsatz · Keine Wette · Ab 18“.</li>
+  <li>Kein Wort über Quoten, Wetteinsätze oder Gewinnchancen; keine erfundene Gewinnquote,
+      keine erfundenen Teilnehmerzahlen, keine erfundenen Stimmen von Nutzern.</li>
+  <li>Keine echten Personen und keine Vereinswappen — es gibt nichts zu lizenzieren.</li>
+  <li>Meta stuft Glücksspiel streng ein. Das hier ist keins, aber es <i>sieht</i> in zwei Sekunden
+      so aus. Deshalb sagt jedes Motiv im ersten Bild, dass es nichts kostet.</li>
+</ul>
+
+<h2>8. Offen — kurz, aber wichtig</h2>
+<ul>
+  <li><b>Kanal-Pflicht an oder aus</b> für Runde #442 (Abschnitt 1).</li>
+  <li><b>Meta-Pixel:</b> wenn du mir die Pixel-ID gibst, baue ich sie in die Landingpage ein und
+      löse beim Klick auf den Telegram-Button ein eigenes Ereignis aus. Dann kann Facebook auf
+      „Menschen, die wirklich in den Bot gehen“ optimieren statt auf Seitenaufrufe. Das ist der
+      größte einzelne Hebel für die Kosten pro Teilnehmer — aber ohne Pixel-ID kann ich es nicht.</li>
+  <li><b>Bot-Name:</b> die Deeplinks nutzen <code>@TippsArenaMoneyrace_bot</code>. Wenn du in
+      BotFather umbenennen willst, mach das <i>vor</i> dem Kampagnenstart, nicht mittendrin.</li>
+</ul>
+
+<p class="foot">Alle Zahlen in diesem Dokument und in allen Werbemitteln stammen aus Wettbewerb #442,
+gelesen am 1. September 2026. Nichts davon ist geschätzt oder aus einer früheren Runde übernommen.</p>

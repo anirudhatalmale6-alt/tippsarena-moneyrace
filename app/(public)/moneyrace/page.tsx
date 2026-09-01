@@ -11,7 +11,10 @@
  * without a tracking pixel.
  */
 import type { Metadata } from "next";
-import { botLink, channelLink, nextCompetition, publicStats } from "@/lib/public.ts";
+import {
+  botLink, campaignCode, channelLink, competitionFixtures, nextCompetition,
+  publicStats,
+} from "@/lib/public.ts";
 import { Footer, Header, Section, euro, germanWhen } from "../parts.tsx";
 import { Countdown } from "../countdown.tsx";
 import { Cta, Facts, Legal, Mark, Pains, Preview, Quote, Ticker } from "../ad.tsx";
@@ -26,16 +29,48 @@ export const metadata: Metadata = {
     "Kostenlos mittippen und echtes Preisgeld gewinnen. Kein Einsatz, keine Wette, keine Anmeldung. Läuft komplett in Telegram.",
 };
 
-export default async function MoneyRacePage() {
+export default async function MoneyRacePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const competition = await nextCompetition();
   const stats = await publicStats();
-  const link = await botLink("fb_moneyrace");
+  // ?c=fb_mr_preisgeld etc. One page, one code per creative, so the Analytics
+  // page can say which hook produced the people who actually started the bot.
+  // No parameter at all still reports as fb_moneyrace exactly as before.
+  const link = await botLink(campaignCode((await searchParams).c, "fb_moneyrace"));
   const channel = await channelLink();
+  const fixtures = competition ? await competitionFixtures(competition.id) : [];
+  const needsChannel = Boolean(competition?.requires_membership);
 
   const prize = competition
     ? euro(competition.prize_amount, competition.currency)
     : euro(stats.prize_open || 0);
   const hasRace = Boolean(competition?.locks_at);
+
+  // The bot preview, built from the round that is actually open. It used to be
+  // four hand-written bubbles naming a fixture from August; an ad quoting this
+  // weekend's prize and then showing last month's match reads as a mock-up.
+  const previewLines: Array<[string, boolean]> = [
+    [`🏁 <b>${competition?.name ?? "Bundesliga MoneyRace"}</b><br/>💰 Preisgeld: <b>${prize}</b>` +
+      (hasRace ? `<br/>🔒 Tippschluss: ${germanWhen(competition!.locks_at)}` : ""), false],
+  ];
+  if (needsChannel) {
+    // The channel step is real when requires_membership is on. Leaving it out
+    // does not remove it, it just moves the surprise to after the click.
+    previewLines.push(["📣 Tritt dem Kanal bei, dann geht es los.", false]);
+    previewLines.push(["Beigetreten", true]);
+  }
+  if (fixtures.length) {
+    const f = fixtures[0];
+    const left = fixtures.length - 1;
+    previewLines.push([`⚽ <b>${f.home_team} — ${f.away_team}</b><br/>Wer gewinnt?`, false]);
+    previewLines.push([`🔴 ${f.home_team}`, true]);
+    previewLines.push([`✅ Gespeichert. Noch ${left} ${left === 1 ? "Spiel." : "Spiele."}`, false]);
+  } else {
+    previewLines.push(["⚽ Die Spiele der Runde erscheinen hier.", false]);
+  }
 
   return (
     <div className="lp lp-ad">
@@ -97,8 +132,9 @@ export default async function MoneyRacePage() {
             </Cta>
           </div>
           <p className="lp-note">
-            Ein Klick. Telegram öffnet sich. Kein Konto, keine E-Mail, keine
-            Kreditkarte.
+            {needsChannel
+              ? "Ein Klick. Telegram öffnet sich, du trittst dem Kanal bei und tippst sofort los. Kein Konto, keine E-Mail, keine Kreditkarte."
+              : "Ein Klick. Telegram öffnet sich. Kein Konto, keine E-Mail, keine Kreditkarte."}
           </p>
 
           <Facts
@@ -116,15 +152,7 @@ export default async function MoneyRacePage() {
         title="So sieht es im Bot aus"
         lead="Kein Formular, keine Anmeldung. Ein Chat, drei Knöpfe."
       >
-        <Preview
-          lines={[
-            ["🏁 <b>Bundesliga MoneyRace</b><br/>💰 Preisgeld: <b>" +
-              prize + "</b><br/>🔒 Tippschluss: Samstag 15:25", false],
-            ["⚽ <b>Bayern München — Dortmund</b><br/>Wer gewinnt?", false],
-            ["🔴 Bayern München", true],
-            ["✅ Gespeichert. Noch 4 Spiele.", false],
-          ]}
-        />
+        <Preview lines={previewLines} />
       </Section>
 
       {/* ------------------------------------------------------- three steps */}
@@ -134,8 +162,9 @@ export default async function MoneyRacePage() {
             <span className="lp-step">1</span>
             <h3>Bot öffnen</h3>
             <p>
-              Ein Klick auf den Button. Telegram startet den TippsArena-Bot — mehr
-              passiert nicht.
+              {needsChannel
+                ? "Ein Klick auf den Button. Telegram startet den TippsArena-Bot — du trittst dem Kanal bei und bist drin."
+                : "Ein Klick auf den Button. Telegram startet den TippsArena-Bot — mehr passiert nicht."}
             </p>
           </div>
           <div className="lp-card">

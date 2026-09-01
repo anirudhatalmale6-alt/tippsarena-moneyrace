@@ -1,0 +1,51 @@
+{
+  "id": 442,
+  "name": "Bundesliga MoneyRace #1",
+  "type": "moneyrace",
+  "status": "open",
+  "prize": 100.0,
+  "currency": "EUR",
+  "winner_count": 1,
+  "requires_membership": true,
+  "opens_at": "2026-09-01T09:10:00+00:00",
+  "locks_at": "2026-09-05T13:00:00+00:00",
+  "scoring": {
+    "exact_score": 0,
+    "correct_outcome": 1
+  },
+  "bot_username": "TippsArenaMoneyrace_bot",
+  "channel_invite_url": "https://t.me/+wFwBP7byuZs5NWYy",
+  "support_handle": "@thomastippsarena",
+  "fixtures": [
+    {
+      "home": "Werder Bremen",
+      "away": "RB Leipzig",
+      "kickoff": "2026-09-05T13:30:00+00:00",
+      "league": "Bundesliga"
+    },
+    {
+      "home": "Borussia Mönchengladbach",
+      "away": "SV Elversberg",
+      "kickoff": "2026-09-05T13:30:00+00:00",
+      "league": "Bundesliga"
+    },
+    {
+      "home": "1899 Hoffenheim",
+      "away": "Borussia Dortmund",
+      "kickoff": "2026-09-05T13:30:00+00:00",
+      "league": "Bundesliga"
+    },
+    {
+      "home": "Bayer Leverkusen",
+      "away": "Union Berlin",
+      "kickoff": "2026-09-05T13:30:00+00:00",
+      "league": "Bundesliga"
+    },
+    {
+      "home": "SC Paderborn 07",
+      "away": "SC Freiburg",
+      "kickoff": "2026-09-05T13:30:00+00:00",
+      "league": "Bundesliga"
+    }
+  ]
+}

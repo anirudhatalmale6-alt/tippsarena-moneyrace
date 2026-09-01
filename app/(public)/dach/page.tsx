@@ -11,7 +11,10 @@
  * something. Same single action, and its own campaign code fb_dach.
  */
 import type { Metadata } from "next";
-import { botLink, channelLink, nextCompetition, publicStats } from "@/lib/public.ts";
+import {
+  botLink, campaignCode, channelLink, competitionFixtures, nextCompetition,
+  publicStats,
+} from "@/lib/public.ts";
 import { Footer, Header, Section, euro, germanWhen } from "../parts.tsx";
 import { Countdown } from "../countdown.tsx";
 import { Cta, Facts, Legal, Mark, Pains, Preview, Quote, Ticker } from "../ad.tsx";
@@ -26,12 +29,42 @@ export const metadata: Metadata = {
     "Jede Woche gegen andere Fußballfans tippen. Kostenlos, ohne Einsatz, direkt in Telegram. Beweise, dass du mehr Ahnung hast.",
 };
 
-export default async function DachPage() {
+export default async function DachPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const competition = await nextCompetition();
   const stats = await publicStats();
-  const link = await botLink("fb_dach");
+  const link = await botLink(campaignCode((await searchParams).c, "fb_dach"));
   const channel = await channelLink();
   const hasRace = Boolean(competition?.locks_at);
+  const fixtures = competition ? await competitionFixtures(competition.id) : [];
+  const needsChannel = Boolean(competition?.requires_membership);
+
+  // The bot preview, built from the round that is actually open. It used to be
+  // four hand-written bubbles naming a fixture from August; an ad quoting this
+  // weekend's prize and then showing last month's match reads as a mock-up.
+  const previewLines: Array<[string, boolean]> = [
+    [`⚽ <b>${competition?.name ?? "Die nächste Runde"}</b><br/>` +
+      (fixtures.length ? `${fixtures.length} ${fixtures.length === 1 ? "Spiel." : "Spiele."}` : "Die Spiele der Runde.") +
+      (hasRace ? ` Tippschluss ${germanWhen(competition!.locks_at)}.` : ""), false],
+  ];
+  if (needsChannel) {
+    // The channel step is real when requires_membership is on. Leaving it out
+    // does not remove it, it just moves the surprise to after the click.
+    previewLines.push(["📣 Tritt dem Kanal bei, dann geht es los.", false]);
+    previewLines.push(["Beigetreten", true]);
+  }
+  if (fixtures.length) {
+    const f = fixtures[0];
+    const left = fixtures.length - 1;
+    previewLines.push([`⚽ <b>${f.home_team} — ${f.away_team}</b><br/>Wer gewinnt?`, false]);
+    previewLines.push(["🤝 Unentschieden", true]);
+    previewLines.push([`✅ Gespeichert. Noch ${left} ${left === 1 ? "Spiel." : "Spiele."}`, false]);
+  } else {
+    previewLines.push(["⚽ Die Spiele der Runde erscheinen hier.", false]);
+  }
 
   return (
     <div className="lp lp-ad">
@@ -117,14 +150,7 @@ export default async function DachPage() {
         title="So sieht es im Bot aus"
         lead="Kein Formular, keine Anmeldung. Ein Chat, drei Knöpfe."
       >
-        <Preview
-          lines={[
-            ["⚽ <b>Spieltag 3</b><br/>5 Spiele. Tippschluss Samstag 15:25.", false],
-            ["⚽ <b>Union Berlin — Frankfurt</b><br/>Wer gewinnt?", false],
-            ["🤝 Unentschieden", true],
-            ["✅ Gespeichert. Noch 4 Spiele.", false],
-          ]}
-        />
+        <Preview lines={previewLines} />
       </Section>
 
       {/* ------------------------------------------------------------ steps */}

@@ -15,13 +15,6 @@
       "static/css/d0d6a32e6d490b4c.css",
       "static/chunks/app/layout-277e61882f8fbbd6.js"
     ],
-    "/leaderboards/page": [
-      "static/chunks/webpack-eb10a639c2ebe539.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-c5a697ddbf82d774.js",
-      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/leaderboards/page-52c0850ec3d443ab.js"
-    ],
     "/competitions/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
@@ -29,26 +22,12 @@
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
       "static/chunks/app/competitions/page-52c0850ec3d443ab.js"
     ],
-    "/login/page": [
+    "/leaderboards/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-c5a697ddbf82d774.js",
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/login/page-52c0850ec3d443ab.js"
-    ],
-    "/matches/page": [
-      "static/chunks/webpack-eb10a639c2ebe539.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-c5a697ddbf82d774.js",
-      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/matches/page-52c0850ec3d443ab.js"
-    ],
-    "/referrals/page": [
-      "static/chunks/webpack-eb10a639c2ebe539.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-c5a697ddbf82d774.js",
-      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/referrals/page-52c0850ec3d443ab.js"
+      "static/chunks/app/leaderboards/page-52c0850ec3d443ab.js"
     ],
     "/analytics/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
@@ -57,19 +36,26 @@
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
       "static/chunks/app/analytics/page-52c0850ec3d443ab.js"
     ],
-    "/settings/page": [
+    "/competitions/new/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-c5a697ddbf82d774.js",
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/settings/page-52c0850ec3d443ab.js"
+      "static/chunks/app/competitions/new/page-52c0850ec3d443ab.js"
     ],
-    "/page": [
+    "/login/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-c5a697ddbf82d774.js",
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/page-52c0850ec3d443ab.js"
+      "static/chunks/app/login/page-52c0850ec3d443ab.js"
+    ],
+    "/referrals/page": [
+      "static/chunks/webpack-eb10a639c2ebe539.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/referrals/page-52c0850ec3d443ab.js"
     ],
     "/participants/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
@@ -78,19 +64,26 @@
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
       "static/chunks/app/participants/page-52c0850ec3d443ab.js"
     ],
-    "/telegram/page": [
+    "/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-c5a697ddbf82d774.js",
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/telegram/page-52c0850ec3d443ab.js"
+      "static/chunks/app/page-52c0850ec3d443ab.js"
     ],
-    "/competitions/new/page": [
+    "/matches/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-c5a697ddbf82d774.js",
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
-      "static/chunks/app/competitions/new/page-52c0850ec3d443ab.js"
+      "static/chunks/app/matches/page-52c0850ec3d443ab.js"
+    ],
+    "/settings/page": [
+      "static/chunks/webpack-eb10a639c2ebe539.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/settings/page-52c0850ec3d443ab.js"
     ],
     "/winners/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",
@@ -98,6 +91,13 @@
       "static/chunks/255-c5a697ddbf82d774.js",
       "static/chunks/main-app-7b11acb6dcbbb1b1.js",
       "static/chunks/app/winners/page-52c0850ec3d443ab.js"
+    ],
+    "/telegram/page": [
+      "static/chunks/webpack-eb10a639c2ebe539.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-c5a697ddbf82d774.js",
+      "static/chunks/main-app-7b11acb6dcbbb1b1.js",
+      "static/chunks/app/telegram/page-52c0850ec3d443ab.js"
     ],
     "/competitions/[id]/page": [
       "static/chunks/webpack-eb10a639c2ebe539.js",

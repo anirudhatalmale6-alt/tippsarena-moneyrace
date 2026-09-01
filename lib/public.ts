@@ -140,17 +140,60 @@ export async function publicStats(): Promise<PublicStats> {
 /** The competition an ad should point at: the one that is open and locks next. */
 export async function nextCompetition(): Promise<{
   id: number; name: string; prize_amount: number; currency: string;
-  locks_at: Date | null; participants: number;
+  locks_at: Date | null; participants: number; requires_membership: boolean;
+  match_count: number;
 } | null> {
   const rows = await query<any>(
     `SELECT c.id, c.name, c.prize_amount, c.currency, c.locks_at,
-            (SELECT COUNT(*)::int FROM participants p WHERE p.competition_id = c.id) AS participants
+            c.requires_membership,
+            (SELECT COUNT(*)::int FROM participants p WHERE p.competition_id = c.id) AS participants,
+            (SELECT COUNT(*)::int FROM competition_fixtures cf WHERE cf.competition_id = c.id) AS match_count
        FROM competitions c
       WHERE c.status = 'open' AND c.published_at IS NOT NULL
       ORDER BY c.locks_at NULLS LAST
       LIMIT 1`,
   );
   return rows[0] ?? null;
+}
+
+/**
+ * The fixtures of a competition, in kick-off order.
+ *
+ * The ad pages used to demonstrate the bot with a hand-written "Bayern München
+ * — Dortmund" and a "Tippschluss 15:25" that belonged to a round in August.
+ * A visitor who arrives from an ad quoting this weekend's prize and then reads
+ * a fixture that is not being played has been given a reason to leave.
+ */
+export async function competitionFixtures(
+  competitionId: number,
+): Promise<Array<{ home_team: string; away_team: string; kickoff_at: Date }>> {
+  return await query<any>(
+    `SELECT f.home_team, f.away_team, f.kickoff_at
+       FROM competition_fixtures cf
+       JOIN fixtures f ON f.id = cf.fixture_id
+      WHERE cf.competition_id = $1
+      ORDER BY f.kickoff_at, f.id`,
+    [competitionId],
+  );
+}
+
+/**
+ * A campaign code from a query string, made safe.
+ *
+ * Telegram only carries A-Z a-z 0-9 _ - in a start parameter, and anything
+ * else is dropped by parseStartPayload at the other end - so it is cut to the
+ * same alphabet here rather than sending a code that arrives mangled. Lets one
+ * landing page serve every creative in the ad set and still report which
+ * creative produced the person who actually started the bot: without it, four
+ * ads all report as `fb_moneyrace` and the test answers nothing.
+ */
+export function campaignCode(
+  value: string | string[] | undefined,
+  fallback: string,
+): string {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const safe = (raw ?? "").slice(0, 64).replace(/[^A-Za-z0-9_-]/g, "");
+  return safe || fallback;
 }
 
 /** t.me link to the bot, carrying the campaign code the analytics page groups by. */
