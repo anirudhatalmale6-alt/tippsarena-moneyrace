@@ -53,8 +53,24 @@ His words: *"the most logic results that we are getting from bets api"*.
    unnormalised numbers across books silently weights the greediest one highest.
    A book quoting fewer than 12 lines is skipped — it cannot be normalised
    meaningfully.
-3. Averaged across every book that quotes the market, then ranked.
-   `tip` = most likely, `alt` = second most likely.
+3. Averaged across every book that quotes the market, then ranked. The
+   AVERAGE QUOTED PRICE is kept alongside the probability - he prices creative
+   in odds, and a fair `1/p` has the margin stripped out, so it is not a number
+   anybody can bet.
+4. `assign()` then chooses what each brand publishes. **Not the favourite.**
+   His correction: *"you picked always the lowest odd ... we know most of these
+   won't end like this and it's not interesting to watch"*. He is right - the
+   most likely exact score is an 8-12% shot, so publishing it weekly is a column
+   of near-identical 1:2s that is no more accurate than the line beside it. So:
+   only lines priced 5.00-20.00, target zone rotating short/middle/long down the
+   matchday, least-used scoreline first, and the two brands can never land on the
+   same score for one fixture. Depth is capped at the 12 likeliest lines - inside
+   a 5-20 band a 4:3 can technically qualify in a wide-open game.
+
+   A repeat inside one video is possible and legitimate: on the LuxTipps Premier
+   League sheet the only unused line left for Arsenal-Chelsea was 2:0, which
+   TippsArena had already taken for that same fixture. Verified as forced, not
+   as a tie-break accident.
 
 No season parameter on `/fixtures`. Today is in 2026/27; API-Football's
 `season=2025` is 2025/26, which is finished, and asking for it returns zero rows
@@ -73,9 +89,24 @@ python3 tips_video.py                        # both brands, six leagues
 python3 tips_video.py --brand luxtipps 140
 ```
 
-* **TippsArena publishes `tip`, LuxTipps publishes `alt`.** He asked for
-  different scorelines for the second brand; the honest way to differ is the
-  market's next-best line, not a number picked to be different.
+* **Both brands publish a real quoted line**, chosen by `assign()` above, and
+  the average quote is printed on screen under the score. A price nobody offers
+  is not a price.
+* **Kick-off times are local, not UTC.** They were raw UTC, which is the hour he
+  read as wrong. `TZ` renders the true local hour rather than a fixed offset, so
+  it stays right after 25 October. He asked for "+1"; Germany and the Balkans are
+  on summer time until then, so the correct clock today is +2 - flagged to him
+  rather than silently obeyed or silently ignored.
+* **The two footer CTA lines are gone**, both brands, at his request. The handle
+  stays: a video with no destination cannot convert.
+* **LuxTipps is rebuilt, not recoloured** - "completely different design so no
+  one can say hm this is actually same site". Cream instead of black, dark bands
+  top and bottom, a two-row scorecard read top-to-bottom instead of a
+  side-by-side, round badges instead of white squares, and the score arrives as
+  two numbers landing on two teams rather than one number in the middle.
+  The badge core is CREAM, not charcoal: measured against a charcoal disc,
+  Liverpool, Nottingham Forest and HSV have almost no ink bright enough to read,
+  and Liverpool is in the flagship video.
 * Header says **PROGNOSE**, never FULL TIME. His reference account posts results;
   these run before kick-off, and a viewer who reads a prediction as a result
   concludes the account lies the moment the real score lands.
@@ -86,11 +117,16 @@ python3 tips_video.py --brand luxtipps 140
   a 40-second video render in 20 seconds.
 * Crest tiles are white — a crest on a dark background is unreadable for half the
   clubs in Europe.
-* LuxTipps is black/gold from his own avatar plus a diagonal hairline texture, so
-  the two sets are told apart by more than hue.
 
 ## Verification
 `ffprobe` per file: `audio_streams=0`, 1080×1920, 30/1, frame count matching
-duration. Frames pulled back **out of the encoded mp4** with `ffmpeg -ss` and
-checked against `tips-<league>.json` — Betis–Real Madrid renders 1:2 for
-TippsArena and 0:2 for LuxTipps, which is exactly `tip` and `alt`.
+duration. Then a frame is pulled back **out of the encoded mp4** with
+`ffmpeg -ss` at the moment a chosen fixture's score is on screen, and diffed
+against the frame the code draws for that same fixture — mean abs error 1.6-1.8
+across all twelve, which is h.264 loss and nothing else. Reading the JSON and
+trusting the render would not have caught a mis-ordered segment or a wrong
+brand binding.
+
+Plus the data rules he asked for, asserted per file: every published price
+inside 5.00-20.00, no scoreline repeated unless forced, and no fixture where the
+two brands share a result. Package spread came out 5.34 to 18.34, average 10.56.
