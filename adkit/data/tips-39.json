@@ -1,0 +1,491 @@
+{
+  "league_id": 39,
+  "slug": "premier-league",
+  "league": "Premier League",
+  "country": "England",
+  "round": "Regular Season - 3",
+  "round_size": 10,
+  "no_market": [],
+  "fixtures": [
+    {
+      "id": 1557393,
+      "kickoff": "2026-09-04T19:00:00+00:00",
+      "home": "Ipswich",
+      "away": "Liverpool",
+      "home_short": "Ipswich",
+      "away_short": "Liverpool",
+      "home_id": 57,
+      "away_id": 40,
+      "home_crest": "57.png",
+      "away_crest": "40.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 2,
+        "p": 0.0874,
+        "outcome": "A"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0798,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "1:2",
+          "p": 0.0874
+        },
+        {
+          "score": "1:1",
+          "p": 0.0798
+        },
+        {
+          "score": "0:2",
+          "p": 0.0782
+        },
+        {
+          "score": "0:1",
+          "p": 0.0743
+        },
+        {
+          "score": "1:3",
+          "p": 0.0643
+        }
+      ]
+    },
+    {
+      "id": 1557395,
+      "kickoff": "2026-09-05T11:30:00+00:00",
+      "home": "Newcastle",
+      "away": "Bournemouth",
+      "home_short": "Newcastle",
+      "away_short": "Bournemouth",
+      "home_id": 34,
+      "away_id": 35,
+      "home_crest": "34.png",
+      "away_crest": "35.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0976,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.079,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.0976
+        },
+        {
+          "score": "2:1",
+          "p": 0.079
+        },
+        {
+          "score": "1:0",
+          "p": 0.0669
+        },
+        {
+          "score": "1:2",
+          "p": 0.0662
+        },
+        {
+          "score": "2:2",
+          "p": 0.0615
+        }
+      ]
+    },
+    {
+      "id": 1557388,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "home": "Brentford",
+      "away": "Sunderland",
+      "home_short": "Brentford",
+      "away_short": "Sunderland",
+      "home_id": 55,
+      "away_id": 746,
+      "home_crest": "55.png",
+      "away_crest": "746.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1059,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 2,
+        "away": 0,
+        "p": 0.0955,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:0",
+          "p": 0.1059
+        },
+        {
+          "score": "2:0",
+          "p": 0.0955
+        },
+        {
+          "score": "1:1",
+          "p": 0.0954
+        },
+        {
+          "score": "2:1",
+          "p": 0.0909
+        },
+        {
+          "score": "0:0",
+          "p": 0.0623
+        }
+      ]
+    },
+    {
+      "id": 1557389,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "home": "Brighton",
+      "away": "Leeds",
+      "home_short": "Brighton",
+      "away_short": "Leeds",
+      "home_id": 51,
+      "away_id": 63,
+      "home_crest": "51.png",
+      "away_crest": "63.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1039,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0943,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1039
+        },
+        {
+          "score": "1:0",
+          "p": 0.0943
+        },
+        {
+          "score": "2:1",
+          "p": 0.088
+        },
+        {
+          "score": "2:0",
+          "p": 0.0785
+        },
+        {
+          "score": "0:0",
+          "p": 0.0631
+        }
+      ]
+    },
+    {
+      "id": 1557391,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "home": "Fulham",
+      "away": "Crystal Palace",
+      "home_short": "Fulham",
+      "away_short": "Crystal Palace",
+      "home_id": 36,
+      "away_id": 52,
+      "home_crest": "36.png",
+      "away_crest": "52.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1107,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0844,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1107
+        },
+        {
+          "score": "1:0",
+          "p": 0.0844
+        },
+        {
+          "score": "2:1",
+          "p": 0.0796
+        },
+        {
+          "score": "0:1",
+          "p": 0.0708
+        },
+        {
+          "score": "0:0",
+          "p": 0.0678
+        }
+      ]
+    },
+    {
+      "id": 1557394,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "home": "Manchester City",
+      "away": "Coventry",
+      "home_short": "Man City",
+      "away_short": "Coventry",
+      "home_id": 50,
+      "away_id": 1346,
+      "home_crest": "50.png",
+      "away_crest": "1346.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 2,
+        "away": 0,
+        "p": 0.0954,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 3,
+        "away": 0,
+        "p": 0.0911,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "2:0",
+          "p": 0.0954
+        },
+        {
+          "score": "3:0",
+          "p": 0.0911
+        },
+        {
+          "score": "2:1",
+          "p": 0.0754
+        },
+        {
+          "score": "3:1",
+          "p": 0.0729
+        },
+        {
+          "score": "1:0",
+          "p": 0.0691
+        }
+      ]
+    },
+    {
+      "id": 1557396,
+      "kickoff": "2026-09-05T14:00:00+00:00",
+      "home": "Nottingham Forest",
+      "away": "Tottenham",
+      "home_short": "Nottm Forest",
+      "away_short": "Tottenham",
+      "home_id": 65,
+      "away_id": 47,
+      "home_crest": "65.png",
+      "away_crest": "47.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1136,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0872,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1136
+        },
+        {
+          "score": "1:0",
+          "p": 0.0872
+        },
+        {
+          "score": "0:1",
+          "p": 0.0824
+        },
+        {
+          "score": "0:0",
+          "p": 0.0743
+        },
+        {
+          "score": "2:1",
+          "p": 0.074
+        }
+      ]
+    },
+    {
+      "id": 1557392,
+      "kickoff": "2026-09-05T16:30:00+00:00",
+      "home": "Hull City",
+      "away": "Aston Villa",
+      "home_short": "Hull City",
+      "away_short": "Aston Villa",
+      "home_id": 64,
+      "away_id": 66,
+      "home_crest": "64.png",
+      "away_crest": "66.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1044,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 0,
+        "away": 1,
+        "p": 0.0962,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1044
+        },
+        {
+          "score": "0:1",
+          "p": 0.0962
+        },
+        {
+          "score": "1:2",
+          "p": 0.0872
+        },
+        {
+          "score": "0:2",
+          "p": 0.0787
+        },
+        {
+          "score": "0:0",
+          "p": 0.0674
+        }
+      ]
+    },
+    {
+      "id": 1557390,
+      "kickoff": "2026-09-06T13:00:00+00:00",
+      "home": "Everton",
+      "away": "Manchester United",
+      "home_short": "Everton",
+      "away_short": "Man United",
+      "home_id": 45,
+      "away_id": 33,
+      "home_crest": "45.png",
+      "away_crest": "33.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.104,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 2,
+        "p": 0.0802,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.104
+        },
+        {
+          "score": "1:2",
+          "p": 0.0802
+        },
+        {
+          "score": "0:1",
+          "p": 0.0762
+        },
+        {
+          "score": "2:1",
+          "p": 0.0659
+        },
+        {
+          "score": "1:0",
+          "p": 0.0627
+        }
+      ]
+    },
+    {
+      "id": 1557387,
+      "kickoff": "2026-09-06T15:30:00+00:00",
+      "home": "Arsenal",
+      "away": "Chelsea",
+      "home_short": "Arsenal",
+      "away_short": "Chelsea",
+      "home_id": 42,
+      "away_id": 49,
+      "home_crest": "42.png",
+      "away_crest": "49.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.098,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1
+        },
+        {
+          "score": "1:0",
+          "p": 0.098
+        },
+        {
+          "score": "2:1",
+          "p": 0.0903
+        },
+        {
+          "score": "2:0",
+          "p": 0.0864
+        },
+        {
+          "score": "0:0",
+          "p": 0.0662
+        }
+      ]
+    }
+  ]
+}

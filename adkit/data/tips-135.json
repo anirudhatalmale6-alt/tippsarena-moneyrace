@@ -1,0 +1,491 @@
+{
+  "league_id": 135,
+  "slug": "serie-a",
+  "league": "Serie A",
+  "country": "Italien",
+  "round": "Regular Season - 3",
+  "round_size": 10,
+  "no_market": [],
+  "fixtures": [
+    {
+      "id": 1550112,
+      "kickoff": "2026-09-04T18:45:00+00:00",
+      "home": "Genoa",
+      "away": "Como",
+      "home_short": "Genoa",
+      "away_short": "Como",
+      "home_id": 495,
+      "away_id": 895,
+      "home_crest": "495.png",
+      "away_crest": "895.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 0,
+        "away": 1,
+        "p": 0.1286,
+        "outcome": "A"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1116,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "0:1",
+          "p": 0.1286
+        },
+        {
+          "score": "1:1",
+          "p": 0.1116
+        },
+        {
+          "score": "0:2",
+          "p": 0.0944
+        },
+        {
+          "score": "0:0",
+          "p": 0.0924
+        },
+        {
+          "score": "1:2",
+          "p": 0.0817
+        }
+      ]
+    },
+    {
+      "id": 1550110,
+      "kickoff": "2026-09-05T13:00:00+00:00",
+      "home": "Fiorentina",
+      "away": "Torino",
+      "home_short": "Fiorentina",
+      "away_short": "Torino",
+      "home_id": 502,
+      "away_id": 503,
+      "home_crest": "502.png",
+      "away_crest": "503.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1127,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1126,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "1:0",
+          "p": 0.1127
+        },
+        {
+          "score": "1:1",
+          "p": 0.1126
+        },
+        {
+          "score": "2:0",
+          "p": 0.084
+        },
+        {
+          "score": "2:1",
+          "p": 0.0833
+        },
+        {
+          "score": "0:0",
+          "p": 0.0822
+        }
+      ]
+    },
+    {
+      "id": 1550113,
+      "kickoff": "2026-09-05T16:00:00+00:00",
+      "home": "Inter",
+      "away": "Napoli",
+      "home_short": "Inter",
+      "away_short": "Napoli",
+      "home_id": 505,
+      "away_id": 492,
+      "home_crest": "505.png",
+      "away_crest": "492.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1187,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1027,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "1:0",
+          "p": 0.1187
+        },
+        {
+          "score": "1:1",
+          "p": 0.1027
+        },
+        {
+          "score": "2:0",
+          "p": 0.0965
+        },
+        {
+          "score": "2:1",
+          "p": 0.0869
+        },
+        {
+          "score": "0:0",
+          "p": 0.0769
+        }
+      ]
+    },
+    {
+      "id": 1550107,
+      "kickoff": "2026-09-05T18:45:00+00:00",
+      "home": "AS Roma",
+      "away": "Atalanta",
+      "home_short": "Roma",
+      "away_short": "Atalanta",
+      "home_id": 497,
+      "away_id": 499,
+      "home_crest": "497.png",
+      "away_crest": "499.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1071,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1025,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "1:0",
+          "p": 0.1071
+        },
+        {
+          "score": "1:1",
+          "p": 0.1025
+        },
+        {
+          "score": "2:0",
+          "p": 0.0882
+        },
+        {
+          "score": "2:1",
+          "p": 0.087
+        },
+        {
+          "score": "0:0",
+          "p": 0.0721
+        }
+      ]
+    },
+    {
+      "id": 1550111,
+      "kickoff": "2026-09-06T13:00:00+00:00",
+      "home": "Frosinone",
+      "away": "Venezia",
+      "home_short": "Frosinone",
+      "away_short": "Venezia",
+      "home_id": 512,
+      "away_id": 517,
+      "home_crest": "512.png",
+      "away_crest": "517.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1143,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 0,
+        "away": 1,
+        "p": 0.0832,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1143
+        },
+        {
+          "score": "0:1",
+          "p": 0.0832
+        },
+        {
+          "score": "1:0",
+          "p": 0.0801
+        },
+        {
+          "score": "1:2",
+          "p": 0.0762
+        },
+        {
+          "score": "2:1",
+          "p": 0.0719
+        }
+      ]
+    },
+    {
+      "id": 1550115,
+      "kickoff": "2026-09-06T13:00:00+00:00",
+      "home": "Parma",
+      "away": "Monza",
+      "home_short": "Parma",
+      "away_short": "Monza",
+      "home_id": 523,
+      "away_id": 1579,
+      "home_crest": "523.png",
+      "away_crest": "1579.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1223,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1072,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1223
+        },
+        {
+          "score": "1:0",
+          "p": 0.1072
+        },
+        {
+          "score": "0:0",
+          "p": 0.0934
+        },
+        {
+          "score": "0:1",
+          "p": 0.0919
+        },
+        {
+          "score": "2:1",
+          "p": 0.0757
+        }
+      ]
+    },
+    {
+      "id": 1550108,
+      "kickoff": "2026-09-06T16:00:00+00:00",
+      "home": "Bologna",
+      "away": "Sassuolo",
+      "home_short": "Bologna",
+      "away_short": "Sassuolo",
+      "home_id": 500,
+      "away_id": 488,
+      "home_crest": "500.png",
+      "away_crest": "488.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.11,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1049,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.11
+        },
+        {
+          "score": "1:0",
+          "p": 0.1049
+        },
+        {
+          "score": "2:1",
+          "p": 0.0859
+        },
+        {
+          "score": "2:0",
+          "p": 0.0802
+        },
+        {
+          "score": "0:0",
+          "p": 0.0759
+        }
+      ]
+    },
+    {
+      "id": 1550114,
+      "kickoff": "2026-09-06T18:45:00+00:00",
+      "home": "Juventus",
+      "away": "AC Milan",
+      "home_short": "Juventus",
+      "away_short": "Milan",
+      "home_id": 496,
+      "away_id": 489,
+      "home_crest": "496.png",
+      "away_crest": "489.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1157,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1041,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1157
+        },
+        {
+          "score": "1:0",
+          "p": 0.1041
+        },
+        {
+          "score": "2:1",
+          "p": 0.0825
+        },
+        {
+          "score": "0:0",
+          "p": 0.0783
+        },
+        {
+          "score": "0:1",
+          "p": 0.0741
+        }
+      ]
+    },
+    {
+      "id": 1550109,
+      "kickoff": "2026-09-07T16:30:00+00:00",
+      "home": "Cagliari",
+      "away": "Lecce",
+      "home_short": "Cagliari",
+      "away_short": "Lecce",
+      "home_id": 490,
+      "away_id": 867,
+      "home_crest": "490.png",
+      "away_crest": "867.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1258,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1184,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "1:0",
+          "p": 0.1258
+        },
+        {
+          "score": "1:1",
+          "p": 0.1184
+        },
+        {
+          "score": "0:0",
+          "p": 0.0997
+        },
+        {
+          "score": "2:0",
+          "p": 0.0837
+        },
+        {
+          "score": "0:1",
+          "p": 0.0821
+        }
+      ]
+    },
+    {
+      "id": 1550116,
+      "kickoff": "2026-09-07T18:45:00+00:00",
+      "home": "Udinese",
+      "away": "Lazio",
+      "home_short": "Udinese",
+      "away_short": "Lazio",
+      "home_id": 494,
+      "away_id": 487,
+      "home_crest": "494.png",
+      "away_crest": "487.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1218,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 0,
+        "away": 1,
+        "p": 0.104,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1218
+        },
+        {
+          "score": "0:1",
+          "p": 0.104
+        },
+        {
+          "score": "1:0",
+          "p": 0.0993
+        },
+        {
+          "score": "0:0",
+          "p": 0.096
+        },
+        {
+          "score": "1:2",
+          "p": 0.0723
+        }
+      ]
+    }
+  ]
+}

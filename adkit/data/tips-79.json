@@ -1,0 +1,303 @@
+{
+  "league_id": 79,
+  "slug": "bundesliga-2",
+  "league": "2. Bundesliga",
+  "country": "Deutschland",
+  "round": "Regular Season - 4",
+  "round_size": 9,
+  "no_market": [
+    "SpVgg Greuther Fürth - 1. FC Heidenheim",
+    "Hertha BSC - 1. FC Magdeburg",
+    "VfL Osnabrück - Eintracht Braunschweig"
+  ],
+  "fixtures": [
+    {
+      "id": 1576161,
+      "kickoff": "2026-09-04T16:30:00+00:00",
+      "home": "Arminia Bielefeld",
+      "away": "FC St. Pauli",
+      "home_short": "Bielefeld",
+      "away_short": "St. Pauli",
+      "home_id": 188,
+      "away_id": 186,
+      "home_crest": "188.png",
+      "away_crest": "186.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1004,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.0806,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1004
+        },
+        {
+          "score": "2:1",
+          "p": 0.0806
+        },
+        {
+          "score": "1:0",
+          "p": 0.0727
+        },
+        {
+          "score": "1:2",
+          "p": 0.0671
+        },
+        {
+          "score": "0:1",
+          "p": 0.0613
+        }
+      ]
+    },
+    {
+      "id": 1576163,
+      "kickoff": "2026-09-04T16:30:00+00:00",
+      "home": "Hannover 96",
+      "away": "Karlsruher SC",
+      "home_short": "Hannover",
+      "away_short": "Karlsruhe",
+      "home_id": 166,
+      "away_id": 785,
+      "home_crest": "166.png",
+      "away_crest": "785.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 2,
+        "away": 1,
+        "p": 0.0873,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0828,
+        "outcome": "D"
+      },
+      "top5": [
+        {
+          "score": "2:1",
+          "p": 0.0873
+        },
+        {
+          "score": "1:1",
+          "p": 0.0828
+        },
+        {
+          "score": "2:0",
+          "p": 0.0716
+        },
+        {
+          "score": "1:0",
+          "p": 0.07
+        },
+        {
+          "score": "3:1",
+          "p": 0.0645
+        }
+      ]
+    },
+    {
+      "id": 1576165,
+      "kickoff": "2026-09-05T11:00:00+00:00",
+      "home": "Holstein Kiel",
+      "away": "1. FC Nürnberg",
+      "home_short": "Kiel",
+      "away_short": "Nürnberg",
+      "home_id": 191,
+      "away_id": 171,
+      "home_crest": "191.png",
+      "away_crest": "171.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1004,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.0765,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1004
+        },
+        {
+          "score": "2:1",
+          "p": 0.0765
+        },
+        {
+          "score": "1:2",
+          "p": 0.0714
+        },
+        {
+          "score": "1:0",
+          "p": 0.0678
+        },
+        {
+          "score": "0:1",
+          "p": 0.0635
+        }
+      ]
+    },
+    {
+      "id": 1576166,
+      "kickoff": "2026-09-05T11:00:00+00:00",
+      "home": "1. FC Kaiserslautern",
+      "away": "SV Darmstadt 98",
+      "home_short": "Kaiserslautern",
+      "away_short": "Darmstadt",
+      "home_id": 745,
+      "away_id": 181,
+      "home_crest": "745.png",
+      "away_crest": "181.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0984,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.079,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.0984
+        },
+        {
+          "score": "2:1",
+          "p": 0.079
+        },
+        {
+          "score": "1:0",
+          "p": 0.0687
+        },
+        {
+          "score": "1:2",
+          "p": 0.0681
+        },
+        {
+          "score": "2:2",
+          "p": 0.0616
+        }
+      ]
+    },
+    {
+      "id": 1576169,
+      "kickoff": "2026-09-05T11:00:00+00:00",
+      "home": "VfL Wolfsburg",
+      "away": "Energie Cottbus",
+      "home_short": "Wolfsburg",
+      "away_short": "Cottbus",
+      "home_id": 161,
+      "away_id": 1320,
+      "home_crest": "161.png",
+      "away_crest": "1320.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 2,
+        "away": 0,
+        "p": 0.0902,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.086,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "2:0",
+          "p": 0.0902
+        },
+        {
+          "score": "2:1",
+          "p": 0.086
+        },
+        {
+          "score": "1:0",
+          "p": 0.0804
+        },
+        {
+          "score": "3:0",
+          "p": 0.0733
+        },
+        {
+          "score": "1:1",
+          "p": 0.0719
+        }
+      ]
+    },
+    {
+      "id": 1576167,
+      "kickoff": "2026-09-05T18:30:00+00:00",
+      "home": "Dynamo Dresden",
+      "away": "VfL Bochum",
+      "home_short": "Dresden",
+      "away_short": "Bochum",
+      "home_id": 183,
+      "away_id": 176,
+      "home_crest": "183.png",
+      "away_crest": "176.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0996,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.0827,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.0996
+        },
+        {
+          "score": "2:1",
+          "p": 0.0827
+        },
+        {
+          "score": "1:0",
+          "p": 0.0736
+        },
+        {
+          "score": "1:2",
+          "p": 0.0651
+        },
+        {
+          "score": "2:2",
+          "p": 0.0601
+        }
+      ]
+    }
+  ]
+}

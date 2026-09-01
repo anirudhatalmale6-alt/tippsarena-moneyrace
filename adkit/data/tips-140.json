@@ -1,0 +1,491 @@
+{
+  "league_id": 140,
+  "slug": "la-liga",
+  "league": "La Liga",
+  "country": "Spanien",
+  "round": "Regular Season - 4",
+  "round_size": 10,
+  "no_market": [],
+  "fixtures": [
+    {
+      "id": 1570365,
+      "kickoff": "2026-09-04T19:00:00+00:00",
+      "home": "Real Betis",
+      "away": "Real Madrid",
+      "home_short": "Real Betis",
+      "away_short": "Real Madrid",
+      "home_id": 543,
+      "away_id": 541,
+      "home_crest": "543.png",
+      "away_crest": "541.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 2,
+        "p": 0.0842,
+        "outcome": "A"
+      },
+      "alt": {
+        "home": 0,
+        "away": 2,
+        "p": 0.0755,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:2",
+          "p": 0.0842
+        },
+        {
+          "score": "0:2",
+          "p": 0.0755
+        },
+        {
+          "score": "1:1",
+          "p": 0.0701
+        },
+        {
+          "score": "1:3",
+          "p": 0.0687
+        },
+        {
+          "score": "0:1",
+          "p": 0.0652
+        }
+      ]
+    },
+    {
+      "id": 1570364,
+      "kickoff": "2026-09-05T14:15:00+00:00",
+      "home": "Athletic Club",
+      "away": "Atletico Madrid",
+      "home_short": "Athletic",
+      "away_short": "Atlético",
+      "home_id": 531,
+      "away_id": 530,
+      "home_crest": "531.png",
+      "away_crest": "530.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.111,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 0,
+        "away": 1,
+        "p": 0.0839,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.111
+        },
+        {
+          "score": "0:1",
+          "p": 0.0839
+        },
+        {
+          "score": "1:2",
+          "p": 0.0779
+        },
+        {
+          "score": "1:0",
+          "p": 0.0762
+        },
+        {
+          "score": "2:1",
+          "p": 0.071
+        }
+      ]
+    },
+    {
+      "id": 1570370,
+      "kickoff": "2026-09-05T16:30:00+00:00",
+      "home": "Rayo Vallecano",
+      "away": "Racing Santander",
+      "home_short": "Rayo",
+      "away_short": "Racing",
+      "home_id": 728,
+      "away_id": 4665,
+      "home_crest": "728.png",
+      "away_crest": "4665.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1107,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0863,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1107
+        },
+        {
+          "score": "1:0",
+          "p": 0.0863
+        },
+        {
+          "score": "2:1",
+          "p": 0.0811
+        },
+        {
+          "score": "0:1",
+          "p": 0.0716
+        },
+        {
+          "score": "0:0",
+          "p": 0.0694
+        }
+      ]
+    },
+    {
+      "id": 1570372,
+      "kickoff": "2026-09-05T19:00:00+00:00",
+      "home": "Villarreal",
+      "away": "Deportivo La Coruna",
+      "home_short": "Villarreal",
+      "away_short": "Depor",
+      "home_id": 533,
+      "away_id": 544,
+      "home_crest": "533.png",
+      "away_crest": "544.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1041,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 2,
+        "away": 0,
+        "p": 0.1003,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:0",
+          "p": 0.1041
+        },
+        {
+          "score": "2:0",
+          "p": 0.1003
+        },
+        {
+          "score": "2:1",
+          "p": 0.0898
+        },
+        {
+          "score": "1:1",
+          "p": 0.088
+        },
+        {
+          "score": "3:0",
+          "p": 0.0682
+        }
+      ]
+    },
+    {
+      "id": 1570371,
+      "kickoff": "2026-09-06T14:15:00+00:00",
+      "home": "Valencia",
+      "away": "Barcelona",
+      "home_short": "Valencia",
+      "away_short": "Barcelona",
+      "home_id": 532,
+      "away_id": 529,
+      "home_crest": "532.png",
+      "away_crest": "529.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 0,
+        "away": 2,
+        "p": 0.0876,
+        "outcome": "A"
+      },
+      "alt": {
+        "home": 1,
+        "away": 2,
+        "p": 0.0837,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "0:2",
+          "p": 0.0876
+        },
+        {
+          "score": "1:2",
+          "p": 0.0837
+        },
+        {
+          "score": "0:1",
+          "p": 0.0753
+        },
+        {
+          "score": "1:1",
+          "p": 0.0721
+        },
+        {
+          "score": "0:3",
+          "p": 0.0698
+        }
+      ]
+    },
+    {
+      "id": 1570363,
+      "kickoff": "2026-09-06T16:30:00+00:00",
+      "home": "Alaves",
+      "away": "Osasuna",
+      "home_short": "Alaves",
+      "away_short": "Osasuna",
+      "home_id": 542,
+      "away_id": 727,
+      "home_crest": "542.png",
+      "away_crest": "727.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1171,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1145,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1171
+        },
+        {
+          "score": "1:0",
+          "p": 0.1145
+        },
+        {
+          "score": "0:0",
+          "p": 0.098
+        },
+        {
+          "score": "0:1",
+          "p": 0.0883
+        },
+        {
+          "score": "2:1",
+          "p": 0.0758
+        }
+      ]
+    },
+    {
+      "id": 1570369,
+      "kickoff": "2026-09-06T16:30:00+00:00",
+      "home": "Malaga",
+      "away": "Levante",
+      "home_short": "Malaga",
+      "away_short": "Levante",
+      "home_id": 535,
+      "away_id": 539,
+      "home_crest": "535.png",
+      "away_crest": "539.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1154,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0845,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1154
+        },
+        {
+          "score": "1:0",
+          "p": 0.0845
+        },
+        {
+          "score": "0:1",
+          "p": 0.0797
+        },
+        {
+          "score": "2:1",
+          "p": 0.076
+        },
+        {
+          "score": "0:0",
+          "p": 0.0738
+        }
+      ]
+    },
+    {
+      "id": 1570367,
+      "kickoff": "2026-09-06T19:00:00+00:00",
+      "home": "Espanyol",
+      "away": "Sevilla",
+      "home_short": "Espanyol",
+      "away_short": "Sevilla",
+      "home_id": 540,
+      "away_id": 536,
+      "home_crest": "540.png",
+      "away_crest": "536.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1179,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1108,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1179
+        },
+        {
+          "score": "1:0",
+          "p": 0.1108
+        },
+        {
+          "score": "0:0",
+          "p": 0.0944
+        },
+        {
+          "score": "0:1",
+          "p": 0.0935
+        },
+        {
+          "score": "2:1",
+          "p": 0.0734
+        }
+      ]
+    },
+    {
+      "id": 1570368,
+      "kickoff": "2026-09-07T17:00:00+00:00",
+      "home": "Getafe",
+      "away": "Celta Vigo",
+      "home_short": "Getafe",
+      "away_short": "Celta",
+      "home_id": 546,
+      "away_id": 538,
+      "home_crest": "546.png",
+      "away_crest": "538.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1234,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.1176,
+        "outcome": "H"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1234
+        },
+        {
+          "score": "1:0",
+          "p": 0.1176
+        },
+        {
+          "score": "0:0",
+          "p": 0.1173
+        },
+        {
+          "score": "0:1",
+          "p": 0.1083
+        },
+        {
+          "score": "2:1",
+          "p": 0.0674
+        }
+      ]
+    },
+    {
+      "id": 1570366,
+      "kickoff": "2026-09-07T19:30:00+00:00",
+      "home": "Elche",
+      "away": "Real Sociedad",
+      "home_short": "Elche",
+      "away_short": "Sociedad",
+      "home_id": 797,
+      "away_id": 548,
+      "home_crest": "797.png",
+      "away_crest": "548.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1114,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 0,
+        "away": 1,
+        "p": 0.0849,
+        "outcome": "A"
+      },
+      "top5": [
+        {
+          "score": "1:1",
+          "p": 0.1114
+        },
+        {
+          "score": "0:1",
+          "p": 0.0849
+        },
+        {
+          "score": "1:2",
+          "p": 0.0773
+        },
+        {
+          "score": "1:0",
+          "p": 0.076
+        },
+        {
+          "score": "0:0",
+          "p": 0.0697
+        }
+      ]
+    }
+  ]
+}
