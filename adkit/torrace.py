@@ -345,11 +345,16 @@ def pill(img, text, cy, size, fill, text_colour, outline=None, pad=34):
 
 def header(img: Image.Image, league_name: str, label: str) -> None:
     d = ImageDraw.Draw(img)
-    # The season number, ghosted, sitting behind the title pill.
+    # The season number, ghosted, clear ABOVE the title pill. It used to be
+    # centred at 392 with the pill's top edge at 417, so the bottom third of
+    # the digits was covered - his own earlier videos have the same problem and
+    # he asked for it lifted. GHOST_CY is the gap: 296 leaves ~60px of clean
+    # background between the digits and the pill.
+    GHOST_CY = 296
     ghost = Image.new("RGBA", (W, 260), (0, 0, 0, 0))
     ImageDraw.Draw(ghost).text((W / 2, 130), SEASON_LABEL, font=font(168, "Black"),
                                fill=(255, 255, 255, 52), anchor="mm")
-    img.paste(ghost, (0, 262), ghost)
+    img.paste(ghost, (0, GHOST_CY - 130), ghost)
 
     pill(img, f"{league_name.upper()} TOP-TORSCHÜTZEN", 452, 46, ORANGE, WHITE)
     pill(img, "OHNE ELFMETER", 546, 38, None, ORANGE, outline=ORANGE, pad=30)
