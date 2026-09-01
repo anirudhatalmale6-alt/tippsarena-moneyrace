@@ -89,16 +89,25 @@ python3 tips_video.py                        # both brands, six leagues
 python3 tips_video.py --brand luxtipps 140
 ```
 
-* **Both brands publish a real quoted line**, chosen by `assign()` above, and
-  the average quote is printed on screen under the score. A price nobody offers
-  is not a price.
+* **Both brands publish a real quoted line**, chosen by `assign()` above. The
+  price itself is **not on screen** - he asked for it off both brands. It still
+  governs the selection; it is simply not published.
 * **Kick-off times are local, not UTC.** They were raw UTC, which is the hour he
   read as wrong. `TZ` renders the true local hour rather than a fixed offset, so
-  it stays right after 25 October. He asked for "+1"; Germany and the Balkans are
-  on summer time until then, so the correct clock today is +2 - flagged to him
-  rather than silently obeyed or silently ignored.
-* **The two footer CTA lines are gone**, both brands, at his request. The handle
-  stays: a video with no destination cannot convert.
+  it stays right after 25 October. He first said "+1", then confirmed what he
+  actually wanted: *"Set them to the German local time zone at the moment."*
+  Europe/Berlin is that clock in both halves of the year.
+* **Nothing is written in the footer of either brand.** First the two CTA lines
+  went, then the handle with them: *"i don't need @tippsarenamoneyrace_Bot on it
+  or luxtippsbot"*. The dark brand grew its frame into the space; the light brand
+  keeps the band as a shape so the cream does not run off the screen.
+* **No title card.** *"the tips should start rightaway"* - frame one is the first
+  fixture. The "Quotenmarkt 5.00 bis 20.00" line he objected to lived on that
+  card and went with it.
+* **All copy comes from `STRINGS[lang]`.** LuxTipps is `en`, TippsArena is `de`,
+  and no draw call contains a literal word. That is what keeps "LuxTipps in
+  English" true after the next edit to a shared layout - including the weekday
+  and date format, which is `SAT 6 SEP` there and `SA 06.09.` here.
 * **LuxTipps is rebuilt, not recoloured** - "completely different design so no
   one can say hm this is actually same site". Cream instead of black, dark bands
   top and bottom, a two-row scorecard read top-to-bottom instead of a

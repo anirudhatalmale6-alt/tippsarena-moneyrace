@@ -10,22 +10,34 @@ LuxTipps with a different background and different scores.
 
 REVISION 2 SEPT, from his notes:
 
-  * the footer CTA lines come off both brands. He named them: "jetzt kostenlos
-    mitmachen" and "mitmachen auf telegram". The handle stays, because a video
-    with no destination is a video that cannot convert;
   * the scoreline is no longer the market favourite. "you picked always the
     lowest odd ... we know most of these won't end like this and it's not
     interesting to watch". He is right - the most likely exact score is an 8-12%
     shot, so publishing it every week is a column of 1:2s that is no more
     accurate than its neighbours. `fetch_tips.py` now picks inside a 5.00-20.00
     price band and rotates the zone down the matchday. Both brands still publish
-    a real quoted line, never one of mine, and the quote is printed on screen;
+    a real quoted line, never one of mine;
   * kick-off times are LOCAL, not UTC. They were raw UTC before, which is the
     hour he was reading as wrong;
   * LuxTipps is rebuilt rather than recoloured - "i need completely different
     design so no one can say hm this is actually same site". Cream instead of
     black, dark bands top and bottom, round badges instead of white tiles, a
     two-row scorecard instead of a side-by-side, and a different animation.
+
+REVISION 3, same day, after he watched them:
+
+  * ALL footer text is gone. Not just the two CTA lines - the bot handle too,
+    on both brands: "i don't need @tippsarenamoneyrace_Bot on it or luxtippsbot";
+  * LuxTipps is ENGLISH end to end. Every string on that brand comes out of
+    STRINGS["en"]; TippsArena stays German. Nothing is hardcoded in a draw call
+    any more, so a third brand in a third language is a dict entry;
+  * no odds on screen, either brand. He priced the SELECTION in odds, he does
+    not want the number published. The band still governs which line is chosen;
+  * the title card is gone. Frame one is the first fixture - "the tips should
+    start rightaway you don't need the first page prognose zum spieltag". That
+    also removes the "Quotenmarkt 5.00 bis 20.00" line, which he called out
+    separately;
+  * timezone confirmed by him: German local time. Europe/Berlin, unchanged.
 
 The header says PROGNOSE, never FULL TIME. His reference is a results account;
 these go out BEFORE kick-off, and a viewer who reads a prediction as a result
@@ -53,7 +65,6 @@ DATA = ROOT / "data"
 CRESTS = DATA / "img" / "teams"
 OUT = ROOT / "out" / "tips"
 
-INTRO = 2.4
 MATCH = 3.6
 OUTRO = 3.2
 REVEAL = 1.35          # when the score appears, inside each match segment
@@ -67,11 +78,43 @@ REVEAL = 1.35          # when the score appears, inside each match segment
 TZ = zoneinfo.ZoneInfo("Europe/Berlin")
 
 
+#: Every word that reaches the screen, per language. LuxTipps is English top to
+#: bottom now, TippsArena stays German, and neither renderer knows which it is
+#: drawing - it asks `b.t(...)`. The two brands share layout code and share no
+#: copy, which is the only way "LuxTipps in English" stays true after the next
+#: edit to the dark layout.
+STRINGS = {
+    "de": {
+        "round": "Spieltag {n}",
+        "prediction": "PROGNOSE",
+        "counter": "SPIEL {i} VON {n}",
+        "outro_1": "ALLE TIPPS",
+        "outro_2": "JEDEN SPIELTAG",
+        "days": ["MO", "DI", "MI", "DO", "FR", "SA", "SO"],
+        "when": "{day} {d:02d}.{m:02d}. · {hh:02d}:{mm:02d} UHR",
+    },
+    "en": {
+        "round": "Matchday {n}",
+        "prediction": "PREDICTION",
+        "counter": "MATCH {i} OF {n}",
+        "outro_1": "ALL TIPS",
+        "outro_2": "EVERY MATCHDAY",
+        "days": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
+        "when": "{day} {d} {mon} · {hh:02d}:{mm:02d}",
+    },
+}
+MONTHS_EN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+             "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+
+
 class Brand:
-    def __init__(self, key, name, style, bg, accent, ink, bot, disc):
-        self.key, self.name, self.style = key, name, style
+    def __init__(self, key, name, style, lang, bg, accent, ink, disc):
+        self.key, self.name, self.style, self.lang = key, name, style, lang
         self.bg, self.accent, self.ink = bg, accent, ink
-        self.bot, self.disc = bot, disc
+        self.disc = disc
+
+    def t(self, key: str, **kw) -> str:
+        return STRINGS[self.lang][key].format(**kw)
 
 
 def _tippsarena_disc(size: int) -> Image.Image:
@@ -101,14 +144,12 @@ GOLD = (201, 158, 60)
 
 BRANDS = {
     "tippsarena": Brand(
-        "tippsarena", "TIPPSARENA", "dark",
+        "tippsarena", "TIPPSARENA", "dark", "de",
         bg=(9, 12, 17), accent=P.ORANGE, ink=(10, 13, 17),
-        bot="@TippsArenaMoneyrace_bot",
         disc=_tippsarena_disc),
     "luxtipps": Brand(
-        "luxtipps", "LUXTIPPS", "light",
+        "luxtipps", "LUXTIPPS", "light", "en",
         bg=CREAM, accent=GOLD, ink=CHAR,
-        bot="@LuxTippsBot",
         disc=_lux_disc),
 }
 
@@ -162,22 +203,26 @@ def backdrop(b: Brand) -> Image.Image:
 
 
 # ------------------------------------------------------------------- furniture
-FRAME = (52, 372, W - 52, 1592)
+FRAME = (52, 372, W - 52, 1700)
 BAND_TOP = 300
-BAND_BOT = H - 232
+BAND_BOT = H - 132
 
 
 def chrome(img: Image.Image, b: Brand, league: str, round_label: str) -> None:
-    """Logo, league line, the frame, and the handle. Same on every frame of a
-    video, so it is drawn into the backdrop once.
+    """Logo, league line, and the frame. Same on every frame of a video, so it
+    is drawn into the backdrop once.
 
-    The two CTA lines that used to live under the handle are gone - he asked
-    for them off both brands.
+    There is no text in the footer of either brand. The CTA lines went first,
+    then the handle: "i don't need @tippsarenamoneyrace_Bot on it or
+    luxtippsbot". The light brand keeps its dark band as a shape - it closes the
+    page and stops the cream running off the bottom of the screen - and the dark
+    brand simply grows its frame into the space the handle used to occupy.
     """
     d = ImageDraw.Draw(img)
     if b.style == "light":
         d.rectangle((0, 0, W, BAND_TOP), fill=CHAR)
         d.rectangle((0, BAND_BOT, W, H), fill=CHAR)
+        d.rectangle((0, BAND_BOT, W, BAND_BOT + 7), fill=b.accent)
         disc = b.disc(104)
         f = P.font(62, "Black")
         tw = d.textlength(b.name, font=f)
@@ -188,8 +233,6 @@ def chrome(img: Image.Image, b: Brand, league: str, round_label: str) -> None:
         d.text((W / 2, 372), f"{league.upper()} · {round_label.upper()}",
                font=P.font(40, "Black"), fill=CHAR, anchor="mm")
         d.line((330, 404, W - 330, 404), fill=b.accent, width=5)
-        d.text((W / 2, BAND_BOT + 116), b.bot, font=P.font(52, "Black"),
-               fill=b.accent, anchor="mm")
         return
 
     disc = b.disc(96)
@@ -204,8 +247,6 @@ def chrome(img: Image.Image, b: Brand, league: str, round_label: str) -> None:
            font=P.font(38, "Black"), fill=b.accent, anchor="mm")
     ImageDraw.Draw(img).rounded_rectangle(FRAME, radius=54, outline=P.WHITE,
                                           width=7)
-    d.text((W / 2, 1720), b.bot, font=P.font(50, "Black"), fill=b.accent,
-           anchor="mm")
 
 
 def tile(crest: str | None, size: int = 300) -> Image.Image:
@@ -281,25 +322,17 @@ def _local(iso: str) -> dt.datetime:
     return dt.datetime.fromisoformat(iso).astimezone(TZ)
 
 
-_DAYS = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"]
+def _when(fx: dict, b: Brand) -> str:
+    """Kick-off in German local time, worded in the brand's language.
 
-
-def _weekday(iso: str) -> str:
-    t = _local(iso)
-    return _DAYS[t.weekday()] + t.strftime(" %d.%m.")
-
-
-def _when(fx: dict) -> str:
-    return f"{_weekday(fx['kickoff'])} · {_local(fx['kickoff']):%H:%M} UHR"
-
-
-def _quote(tip: dict) -> str | None:
-    """German decimals. Only ever a price a bookmaker actually published - a
-    Poisson fixture carries a fair 1/p, which is not a quote and does not go on
-    screen as one."""
-    if not tip.get("quoted"):
-        return None
-    return "QUOTE " + f"{tip['odds']:.2f}".replace(".", ",")
+    He confirmed the clock: "Set them to the German local time zone at the
+    moment." Europe/Berlin is that clock all year - +2 now, +1 from 25 October -
+    so this keeps reading correctly through the changeover without an edit.
+    """
+    t = _local(fx["kickoff"])
+    return b.t("when", day=STRINGS[b.lang]["days"][t.weekday()],
+               d=t.day, m=t.month, mon=MONTHS_EN[t.month - 1],
+               hh=t.hour, mm=t.minute)
 
 
 def _tip_of(fx: dict, b: Brand) -> dict:
@@ -315,9 +348,9 @@ def match_layers_dark(base, b, fx, index, total):
 
     pre = base.copy()
     d = ImageDraw.Draw(pre)
-    d.text((cx, 470), "PROGNOSE", font=P.font(104, "Black"), fill=P.WHITE,
-           anchor="mm")
-    d.text((cx, 552), _when(fx), font=P.font(34, "Black"),
+    d.text((cx, 470), b.t("prediction"), font=P.font(104, "Black"),
+           fill=P.WHITE, anchor="mm")
+    d.text((cx, 552), _when(fx, b), font=P.font(34, "Black"),
            fill=(150, 163, 178), anchor="mm")
 
     # Names sit UNDER their own tile, not centred on the canvas - a long name
@@ -330,8 +363,8 @@ def match_layers_dark(base, b, fx, index, total):
 
     if total:
         # A viewer scrolling a 40-second video wants to know how much is left.
-        d.text((cx, 1532), f"SPIEL {index} VON {total}", font=P.font(34, "Black"),
-               fill=(132, 145, 160), anchor="mm")
+        d.text((cx, 1600), b.t("counter", i=index, n=total),
+               font=P.font(34, "Black"), fill=(132, 145, 160), anchor="mm")
 
     post = pre.copy()
     _score_dark(post, b, tip, 1.0)
@@ -345,12 +378,10 @@ def _score_dark(img: Image.Image, b: Brand, tip: dict, k: float) -> None:
     if k != 1.0:
         lay = lay.resize((max(1, int(lay.width * k)), max(1, int(lay.height * k))),
                          Image.LANCZOS)
-    P.glow_behind(img, W // 2, 1320, int(300 * k), int(150 * k), b.accent, 0.45)
-    P.paste_c(img, lay, W // 2, 1320)
-    q = _quote(tip)
-    if q and k > 0.9:
-        ImageDraw.Draw(img).text((W // 2, 1432), q, font=P.font(40, "Black"),
-                                 fill=b.accent, anchor="mm")
+    # No odds on screen. The 5.00-20.00 band still decides WHICH line this is;
+    # he just does not want the number published, on either brand.
+    P.glow_behind(img, W // 2, 1350, int(300 * k), int(150 * k), b.accent, 0.45)
+    P.paste_c(img, lay, W // 2, 1350)
 
 
 def _vs(img: Image.Image, b: Brand, cx: int, cy: int, k: float = 1.0) -> None:
@@ -381,7 +412,7 @@ def match_layers_light(base, b, fx, index, total):
     d = ImageDraw.Draw(pre)
 
     # kick-off, in a dark pill
-    label = _when(fx)
+    label = _when(fx, b)
     f = P.font(36, "Black")
     tw = d.textlength(label, font=f)
     bw = tw + 76
@@ -401,7 +432,7 @@ def match_layers_light(base, b, fx, index, total):
              (ROW_Y[0] + ROW_Y[1]) // 2), fill=(206, 200, 186), width=3)
 
     if total:
-        d.text((W / 2, 1590), f"SPIEL {index} VON {total}",
+        d.text((W / 2, 1620), b.t("counter", i=index, n=total),
                font=P.font(34, "Black"), fill=(140, 133, 118), anchor="mm")
 
     post = pre.copy()
@@ -425,47 +456,32 @@ def _score_light(img: Image.Image, b: Brand, tip: dict, k: float) -> None:
                    font=P.font(int(96 * min(1.0, k)), "Black"), fill=b.accent,
                    anchor="mm")
 
-    w = int((W - 184) * min(1.0, k))
+    # The odds used to sit at the right end of a full-width bar. With them gone
+    # a bar that wide is a button with nothing in it, so the label became a chip
+    # that opens from the centre instead of wiping across.
+    full = 560
+    w = int(full * min(1.0, k))
     if w < 20:
         return
-    d.rounded_rectangle((92, 1286, 92 + w, 1406), radius=16, fill=b.accent)
+    d.rounded_rectangle(((W - w) / 2, 1296, (W + w) / 2, 1396), radius=50,
+                        fill=b.accent)
     if k > 0.85:
-        d.text((132, 1346), "PROGNOSE", font=P.font(46, "Black"), fill=CHAR,
-               anchor="lm")
-        q = _quote(tip)
-        if q:
-            d.text((W - 132, 1346), q, font=P.font(46, "Black"), fill=CHAR,
-                   anchor="rm")
+        d.text((W / 2, 1346), b.t("prediction"), font=P.font(44, "Black"),
+               fill=CHAR, anchor="mm")
 
 
 # ------------------------------------------------------------------- rendering
 def cards(b: Brand, data: dict):
     """Yield every frame of the video, in order, as RGB images."""
     base = backdrop(b)
-    chrome(base, b, data["league"], _round_label(data["round"]))
+    chrome(base, b, data["league"], _round_label(data["round"], b))
     light = b.style == "light"
     ink = CHAR if light else P.WHITE
-    dim = (140, 133, 118) if light else (160, 172, 186)
 
-    # --- intro
-    intro = base.copy()
-    d = ImageDraw.Draw(intro)
-    d.text((W / 2, 760), "PROGNOSEN", font=P.font(120, "Black"), fill=ink,
-           anchor="mm")
-    d.text((W / 2, 880), "ZUM SPIELTAG", font=P.font(70, "Black"),
-           fill=b.accent if not light else CHAR, anchor="mm")
-    d.text((W / 2, 1020), data["league"].upper(), font=P.font(64, "Black"),
-           fill=ink, anchor="mm")
-    when = f"{_weekday(data['fixtures'][0]['kickoff'])} – " \
-           f"{_weekday(data['fixtures'][-1]['kickoff'])}"
-    d.text((W / 2, 1110), when, font=P.font(40, "Bold"), fill=dim, anchor="mm")
-    d.text((W / 2, 1300), f"{len(data['fixtures'])} SPIELE",
-           font=P.font(52, "Black"), fill=b.accent, anchor="mm")
-    # Says where the numbers come from, on screen, in the video itself.
-    d.text((W / 2, 1500), "Ergebnisse aus dem Quotenmarkt · 5.00 bis 20.00",
-           font=P.font(30, "Bold"), fill=dim, anchor="mm")
-    for _ in range(int(INTRO * FPS)):
-        yield intro
+    # No title card. Frame one is the first fixture: "the tips should start
+    # rightaway you don't need the first page prognose zum spieltag". The
+    # "Quotenmarkt 5.00 bis 20.00" line lived on it and went with it - the
+    # league and the matchday are already in the header of every frame.
 
     # --- one segment per fixture
     n = int(MATCH * FPS)
@@ -527,36 +543,24 @@ def cards(b: Brand, data: dict):
     outro = base.copy()
     d = ImageDraw.Draw(outro)
     disc = b.disc(300)
-    outro.paste(disc, ((W - disc.width) // 2, 560), disc)
-    d.text((W / 2, 960), "ALLE TIPPS", font=P.font(96, "Black"), fill=ink,
+    outro.paste(disc, ((W - disc.width) // 2, 640), disc)
+    d.text((W / 2, 1060), b.t("outro_1"), font=P.font(96, "Black"), fill=ink,
            anchor="mm")
-    d.text((W / 2, 1058), "JEDEN SPIELTAG", font=P.font(70, "Black"),
+    d.text((W / 2, 1158), b.t("outro_2"), font=P.font(70, "Black"),
            fill=b.accent if not light else CHAR, anchor="mm")
-    # The CTA line he struck out used to sit in this pill. The handle is the
-    # only thing left that tells a viewer where to go, so the handle takes it.
-    f = P.font(50, "Black")
-    label = b.bot
-    tw = d.textlength(label, font=f)
-    bw, bh = tw + 190, 124
-    box = ((W - bw) / 2, 1250, (W + bw) / 2, 1250 + bh)
-    if not light:
-        P.glow_behind(outro, W // 2, 1250 + bh // 2, int(bw * 0.55),
-                      int(bh * 1.1), b.accent, 0.30)
-    P.pill(outro, box, b.accent if not light else CHAR)
-    dd = ImageDraw.Draw(outro)
-    x = (W - (tw + 96)) / 2
-    fg = b.ink if not light else CREAM
-    dd.text((x, 1250 + bh / 2 + 2), label, font=f, fill=fg, anchor="lm")
-    P.arrow(dd, int(x + tw + 46), int(1250 + bh / 2), 44, fg)
+    # The handle used to sit in a pill under this. Both it and the CTA line
+    # above it are gone, so the card is the mark and the two lines - which is
+    # why they moved down: they were sitting on top of a hole.
+    d.line((W / 2 - 150, 1258, W / 2 + 150, 1258), fill=b.accent, width=6)
     for _ in range(int(OUTRO * FPS)):
         yield outro
 
 
-def _round_label(rnd: str) -> str:
-    """'Regular Season - 3' is API-Football's wording, not something a German
-    football fan has ever read."""
+def _round_label(rnd: str, b: Brand) -> str:
+    """'Regular Season - 3' is API-Football's wording, not something a football
+    fan has ever read - in either language."""
     tail = rnd.rsplit("-", 1)[-1].strip()
-    return f"Spieltag {tail}" if tail.isdigit() else rnd
+    return b.t("round", n=tail) if tail.isdigit() else rnd
 
 
 def render(brand_key: str, league_id: int) -> pathlib.Path:
