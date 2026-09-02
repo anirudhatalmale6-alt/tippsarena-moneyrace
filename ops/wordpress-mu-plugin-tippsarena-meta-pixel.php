@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: TippsArena Meta Pixel
- * Description: Meta (Facebook) pixel 1728062018436249 on the public WordPress pages.
+ * Description: Meta (Facebook) pixel 1595359095532832 on the public WordPress pages.
  * Version:     1.0
  *
  * An mu-plugin, not header.php. The theme header is edited most weeks; a
@@ -19,7 +19,7 @@
 
 defined('ABSPATH') || exit;
 
-const TIPPSARENA_PIXEL_ID = '1728062018436249';
+const TIPPSARENA_PIXEL_ID = '1595359095532832';
 
 /**
  * Fires for logged-in editors too, on purpose: excluded traffic is invisible

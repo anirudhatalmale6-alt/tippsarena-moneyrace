@@ -1,4 +1,4 @@
-"""Verify Meta pixel 1728062018436249 on tippsarena.com.
+"""Verify Meta pixel 1595359095532832 on tippsarena.com.
 
 What this can and cannot prove
 ------------------------------
@@ -30,7 +30,7 @@ import sys
 import json
 from playwright.sync_api import sync_playwright
 
-PIXEL = "1728062018436249"
+PIXEL = "1595359095532832"
 PUBLIC = ["https://tippsarena.com/",
           "https://tippsarena.com/gratiswetten/",
           "https://tippsarena.com/moneyrace",

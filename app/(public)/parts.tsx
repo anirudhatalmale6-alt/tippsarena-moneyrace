@@ -24,10 +24,14 @@ export function Header({ active }: { active?: string }) {
           TIPPS<span>ARENA</span>
         </span>
       </a>
+      {/* /dach is deliberately NOT in here any more. Since 2 Sept it is the VIP
+          betting-tips page, and these two pages sell a free game with no stake;
+          a nav link would walk someone who came for the giveaway straight into
+          a page about bet builders, and would put a betting link on a page whose
+          own legal block promises there is no betting on it. */}
       <nav>
         {link("/moneyrace", "MoneyRace")}
         {link("/leaderboard", "Leaderboard")}
-        {link("/dach", "Community")}
       </nav>
     </header>
   );
@@ -43,8 +47,7 @@ export function Footer() {
         </p>
         <p style={{ marginTop: 8 }}>
           <a href="/moneyrace">MoneyRace</a> ·{" "}
-          <a href="/leaderboard">Leaderboard</a> ·{" "}
-          <a href="/dach">Community</a>
+          <a href="/leaderboard">Leaderboard</a>
         </p>
       </div>
     </footer>

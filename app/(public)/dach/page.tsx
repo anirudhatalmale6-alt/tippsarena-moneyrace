@@ -1,274 +1,319 @@
 /**
- * tippsarena.com/dach - the second paid-traffic page.
+ * tippsarena.com/dach - the VIP-channel landing page.
  *
- * He asked for a page for Facebook ads that is NOT the MoneyRace page. So this
- * one sells a different thing to a different feeling: not "there is money on
- * the table" but "you already argue about football every weekend - here is
- * where you get to be right in front of people".
+ * REBUILT 2 Sept 2026. It used to sell the free MoneyRace tipping round, and
+ * every word of that is gone: he is now running Facebook posts showing winning
+ * slips, and this page is the one step between that post and his Telegram chat.
  *
- * Deliberately different from /moneyrace in headline, hook, proof and copy, so
- * the two can be run against each other and the winner actually means
- * something. Same single action, and its own campaign code fb_dach.
+ * That flow decides everything on the page.
+ *
+ *  * The visitor arrives having just seen a WIN. The first line has to pick up
+ *    that thought mid-sentence, not introduce the brand from scratch.
+ *  * The destination is a t.me chat link, not the bot. There is no deep link
+ *    and therefore no ?start= campaign code, so the only conversion signal that
+ *    can exist is a pixel event fired on the tap - see VipCta.
+ *  * One action, everywhere. No nav, no leaderboard link, no link out to the
+ *    match page under a slip. The old page had all three.
+ *
+ * The slips are real and live. They are fetched from the site's own REST API at
+ * request time (lib/tips.ts), so the page shows the same fixtures and the same
+ * percentages the site does, and it can never be caught advertising a match
+ * that was played last month. If that fetch fails the section simply is not
+ * rendered - a paid click must never meet an error page.
+ *
+ * Nothing here claims a win rate, a profit or a member count, because nothing
+ * has measured one. The percentages on screen are the model's own numbers.
  */
 import type { Metadata } from "next";
-import {
-  botLink, campaignCode, channelLink, competitionFixtures, nextCompetition,
-  publicStats,
-} from "@/lib/public.ts";
-import { Footer, Header, Section, euro, germanWhen } from "../parts.tsx";
-import { Countdown } from "../countdown.tsx";
-import { Cta, Facts, Legal, Mark, Pains, Preview, Quote, Ticker } from "../ad.tsx";
-import { StickyCta } from "../sticky.tsx";
+import { allTips, isToday, leaguesIn, slips, todayCount } from "@/lib/tips.ts";
+import { Section } from "../parts.tsx";
+import { Facts, Pains, Ticker } from "../ad.tsx";
+import { LegalTips, Slip, VipCta, VipFooter, VipHeader, VipSticky } from "../vip.tsx";
 import "../public.css";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Where every button goes. He sent this link on 2 Sept; it is his own Telegram
+ * chat, not the MoneyRace bot.
+ */
+const VIP_LINK = "https://t.me/m/Wi0KIlhOZDZk";
+
+/** The word he wants people to open with, so the page and the chat agree. */
+const KEYWORD = "VIP";
+
+/**
+ * The price line, or null.
+ *
+ * Deliberately empty. "What does it cost" is the first question a reader has
+ * and I do not know the answer; a number invented here would be on his brand,
+ * in his ad, long after it stopped being a line of my code. Give me the figure
+ * (or "kostenlos") and it appears in the hero and in the FAQ - nothing else
+ * needs to change.
+ */
+const PRICE: string | null = null;
+
 export const metadata: Metadata = {
-  title: "TippsArena — Die Tipprunde für Deutschland, Österreich und die Schweiz",
+  title: "TippsArena VIP — Bet-Builder-Tipps direkt auf Telegram",
   description:
-    "Jede Woche gegen andere Fußballfans tippen. Kostenlos, ohne Einsatz, direkt in Telegram. Beweise, dass du mehr Ahnung hast.",
+    "Die Bet-Builder-Kombis des Tages mit den Zahlen dahinter, vor dem Anpfiff auf Telegram. Für Deutschland, Österreich und die Schweiz. Ab 18.",
 };
 
-export default async function DachPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const competition = await nextCompetition();
-  const stats = await publicStats();
-  const link = await botLink(campaignCode((await searchParams).c, "fb_dach"));
-  const channel = await channelLink();
-  const hasRace = Boolean(competition?.locks_at);
-  const fixtures = competition ? await competitionFixtures(competition.id) : [];
-  const needsChannel = Boolean(competition?.requires_membership);
+export default async function DachPage() {
+  const all = await allTips();
+  const { fixtures, mode } = slips(all, 2);
+  const count = todayCount(all);
 
-  // The bot preview, built from the round that is actually open. It used to be
-  // four hand-written bubbles naming a fixture from August; an ad quoting this
-  // weekend's prize and then showing last month's match reads as a mock-up.
-  const previewLines: Array<[string, boolean]> = [
-    [`⚽ <b>${competition?.name ?? "Die nächste Runde"}</b><br/>` +
-      (fixtures.length ? `${fixtures.length} ${fixtures.length === 1 ? "Spiel." : "Spiele."}` : "Die Spiele der Runde.") +
-      (hasRace ? ` Tippschluss ${germanWhen(competition!.locks_at)}.` : ""), false],
-  ];
-  if (needsChannel) {
-    // The channel step is real when requires_membership is on. Leaving it out
-    // does not remove it, it just moves the surprise to after the click.
-    previewLines.push(["📣 Tritt dem Kanal bei, dann geht es los.", false]);
-    previewLines.push(["Beigetreten", true]);
-  }
-  if (fixtures.length) {
-    const f = fixtures[0];
-    const left = fixtures.length - 1;
-    previewLines.push([`⚽ <b>${f.home_team} — ${f.away_team}</b><br/>Wer gewinnt?`, false]);
-    previewLines.push(["🤝 Unentschieden", true]);
-    previewLines.push([`✅ Gespeichert. Noch ${left} ${left === 1 ? "Spiel." : "Spiele."}`, false]);
-  } else {
-    previewLines.push(["⚽ Die Spiele der Runde erscheinen hier.", false]);
-  }
+  // The leagues are listed rather than described, and they are read out of the
+  // same feed as the slips. "Die großen europäischen Ligen" is a sentence
+  // anybody can write; naming the fourteen that actually have tips in them is
+  // not, and it cannot drift away from what the site is really covering.
+  const leagues = leaguesIn(all);
 
   return (
-    <div className="lp lp-ad">
+    <div className="lp lp-ad vip">
       <Ticker
         items={[
+          "Bet-Builder-Tipps",
           "Deutschland · Österreich · Schweiz",
-          "Jede Woche eine neue Runde",
-          "Kostenlos ohne Einsatz",
-          "Nur Telegram, sonst nichts",
-          "Bundesliga · 2. Liga · Europa",
+          "Jeden Spieltag vor Anpfiff",
+          "Direkt auf Telegram",
+          "Ab 18 · Glücksspiel kann süchtig machen",
         ]}
       />
-      <Header active="/dach" />
+      <VipHeader />
 
       {/* ------------------------------------------------------------ hero */}
       <section className="lp-hero">
         <div className="lp-wrap">
-          <Mark />
-          <div className="lp-eyebrow">Deutschland · Österreich · Schweiz</div>
+          <div className="lp-eyebrow">VIP-Zugang · Telegram</div>
           <h1>
-            Jeder am Tisch weiß es besser.
+            Du hast den Gewinn gesehen.
             <br />
-            <em>Beweis es.</em>
+            <em>Hier kommt der nächste Tipp.</em>
           </h1>
           <p className="lp-sub">
-            Jede Woche eine neue Tipprunde gegen andere Fußballfans aus dem
-            DACH-Raum. Kostenlos, ohne Einsatz, direkt in Telegram. Am Montag
-            steht schwarz auf weiß, wer recht hatte.
+            Bet-Builder-Kombis für die Spiele des Tages — mit den Zahlen
+            dahinter. Auf dein Handy, bevor der Schiedsrichter anpfeift.
           </p>
 
-          <div className="lp-pill">Kein Einsatz · Keine Wette · Kein Konto</div>
+          <div className="lp-pill">
+            Kein Konto · Keine E-Mail · Ein Klick{PRICE ? ` · ${PRICE}` : ""}
+          </div>
 
           <div className="lp-ctas">
-            <Cta href={link}>⚽ Kostenlos mitspielen</Cta>
+            <VipCta href={VIP_LINK}>📲 Zum VIP-Zugang</VipCta>
           </div>
           <p className="lp-note">
-            Ein Klick, Telegram öffnet sich, du bist drin. Keine E-Mail, keine
-            Kreditkarte, keine Registrierung.
+            Der Knopf öffnet Telegram und du landest direkt im Chat. Schreib
+            einfach „{KEYWORD}“ — alles Weitere klären wir dort.
           </p>
 
           <Facts
             items={[
-              ["0 €", "Einsatz"],
-              ["< 1 Min", "pro Runde"],
-              ["Jede Woche", "eine neue Runde"],
+              count > 0
+                ? [`${count} Spiele`, "heute analysiert"]
+                : ["Täglich", "neue Analysen"],
+              ["5 Märkte", "Tore · Ecken · Karten · Schüsse · BTTS"],
+              ["3 Beine", "statt einer Einzelwette"],
             ]}
           />
-
-          {hasRace ? (
-            <div className="lp-pot" style={{ marginTop: 30 }}>
-              <div className="lp-for">Diese Woche läuft</div>
-              <div style={{ fontSize: 21, fontWeight: 800, margin: "6px 0 4px" }}>
-                {competition!.name}
-              </div>
-              <Countdown target={new Date(competition!.locks_at!).toISOString()} />
-              <div className="lp-note">
-                Tippschluss: {germanWhen(competition!.locks_at)}
-              </div>
-            </div>
-          ) : null}
         </div>
       </section>
 
-      {/* ------------------------------------------------------------ pains */}
-      <Section
-        title="Für alle, die am Wochenende sowieso mitreden"
-        lead="Du musst kein Experte sein. Eine Meinung reicht."
-      >
-        <Pains
-          items={[
-            "Du diskutierst jedes Wochenende über Aufstellungen — hier zählt es endlich.",
-            "Du willst nicht wetten und trotzdem mitfiebern.",
-            "Du hast keine Lust auf Quoten, Systeme und Tabellen lesen.",
-            "Eine Runde dauert unter einer Minute. Kein Zeitfresser.",
-            "Bundesliga, 2. Liga und die großen europäischen Spiele — die, über die alle reden.",
-            "Keine App installieren, kein Konto anlegen: Telegram hast du schon.",
-          ]}
-        />
-      </Section>
+      {/* ------------------------------------------------- live proof of work */}
+      {fixtures.length ? (
+        <Section
+          title={
+            mode === "recent"
+              ? "Zuletzt veröffentlicht"
+              : fixtures.every(isToday)
+                ? "Das läuft heute"
+                : "Die nächsten Bet-Builder"
+          }
+          lead={
+            mode === "recent"
+              ? "Kein Beispielbild. Genau diese Kombis standen zuletzt auf tippsarena.com. Die für den nächsten Spieltag kommen am Vormittag."
+              : "Kein Beispielbild. Genau diese Kombis stehen gerade auf tippsarena.com — und sie wechseln, sobald angepfiffen wird."
+          }
+        >
+          <div className="vip-slips">
+            {fixtures.map((f) => (
+              <Slip key={f.id} fixture={f} today={mode === "upcoming" && isToday(f)} />
+            ))}
+          </div>
+          <p className="lp-note vip-center">
+            Im Kanal bekommst du sie, ohne die Seite zu öffnen.
+          </p>
+          <div className="lp-ctas vip-center">
+            <VipCta href={VIP_LINK}>📲 Zum VIP-Zugang</VipCta>
+          </div>
+        </Section>
+      ) : null}
 
-      {/* -------------------------------------------------- what it looks like */}
+      {/* ------------------------------------------------------ what you get */}
       <Section
-        title="So sieht es im Bot aus"
-        lead="Kein Formular, keine Anmeldung. Ein Chat, drei Knöpfe."
+        title="Was im Kanal passiert"
+        lead="Vier Dinge, und nichts sonst."
       >
-        <Preview lines={previewLines} />
+        <div className="lp-grid lp-2">
+          <div className="lp-card">
+            <h3>⚽ Die Kombi vor dem Anpfiff</h3>
+            <p>
+              Die Bet-Builder des Tages kommen zu dir, solange du noch etwas
+              damit anfangen kannst. Nicht am nächsten Morgen, wenn alles schon
+              gelaufen ist.
+            </p>
+          </div>
+          <div className="lp-card">
+            <h3>📊 Die Zahlen, nicht nur den Tipp</h3>
+            <p>
+              Zu jedem Bein die Einschätzung aus Form, Ecken, Karten und
+              Torschüssen der letzten Spiele. Du siehst, worauf sie beruht, statt
+              sie glauben zu müssen.
+            </p>
+          </div>
+          <div className="lp-card">
+            <h3>🎯 Drei Beine statt einer Wette</h3>
+            <p>
+              Doppelte Chance, Über/Unter Tore, Karten, Ecken, Torschüsse —
+              kombiniert auf ein einziges Spiel. Genau das, was du auf Facebook
+              gesehen hast.
+            </p>
+          </div>
+          <div className="lp-card">
+            <h3>💬 Ein Chat, kein Newsletter</h3>
+            <p>
+              Du kannst zurückschreiben. Fragen zu einem Spiel gehen direkt an
+              uns und nicht in ein Kontaktformular.
+            </p>
+          </div>
+        </div>
       </Section>
 
       {/* ------------------------------------------------------------ steps */}
-      <Section title="So läuft eine Runde">
+      <Section title="So kommst du rein">
         <div className="lp-grid">
           <div className="lp-card">
             <span className="lp-step">1</span>
-            <h3>Vor dem Anpfiff</h3>
+            <h3>Knopf antippen</h3>
             <p>
-              Du bekommst die Spiele der Woche und tippst Heim, Unentschieden
-              oder Auswärts. Bis zum Tippschluss änderbar.
+              Telegram öffnet sich, du stehst im Chat. Kein Konto, keine
+              E-Mail-Adresse, keine Telefonnummer für uns.
             </p>
           </div>
           <div className="lp-card">
             <span className="lp-step">2</span>
-            <h3>Während der Spiele</h3>
+            <h3>„{KEYWORD}“ schreiben</h3>
             <p>
-              Nichts zu tun. Die Ergebnisse kommen automatisch vom offiziellen
-              Ergebnisdienst herein.
+              Ein Wort reicht. Mehr musst du nicht tippen, und ein Formular gibt
+              es nicht.
             </p>
           </div>
           <div className="lp-card">
             <span className="lp-step">3</span>
-            <h3>Danach</h3>
+            <h3>Tipps bekommen</h3>
             <p>
-              Die Tabelle steht sofort. Du siehst genau, wer richtig lag — und
-              wer nur laut war.
+              Ab dann laufen die Kombis des Tages bei dir ein — an jedem Tag, an
+              dem in unseren Ligen gespielt wird.
             </p>
           </div>
         </div>
       </Section>
 
-      {/* ------------------------------------------------------------ proof */}
-      <Section title="Ehrlich gespielt">
-        <div className="lp-grid lp-2">
-          <Quote
-            text="Nach dem Tippschluss ist Schluss. Kein Tipp lässt sich danach noch ändern, auch nicht von uns — das ist in der Datenbank festgeschrieben, nicht bloß versprochen."
-            who="Die einzige Regel, die zählt"
-          />
-          <div className="lp-card">
-            <h3>Jede Runde ist öffentlich</h3>
-            <p style={{ marginBottom: 14 }}>
-              {stats.competitions_finished > 0
-                ? `${stats.competitions_finished} abgeschlossene Runde${
-                    stats.competitions_finished === 1 ? "" : "n"
-                  } stehen auf der Leaderboard-Seite — jede Platzierung nachlesbar, die Namen abgekürzt.`
-                : "Jede abgeschlossene Runde steht auf der Leaderboard-Seite — jede Platzierung nachlesbar, die Namen abgekürzt."}
-            </p>
-            <a className="lp-cta lp-ghost" href="/leaderboard">
-              Leaderboard ansehen
-            </a>
-          </div>
-        </div>
+      {/* ------------------------------------------------------------ pains */}
+      <Section
+        title="Für wen das gedacht ist"
+        lead="Du musst kein Statistiker sein. Aber du solltest wissen wollen, warum."
+      >
+        <Pains
+          items={[
+            "Du spielst ohnehin Bet Builder und suchst die Beine nicht gern selbst zusammen.",
+            "Du willst sehen, worauf eine Einschätzung beruht, statt sie einfach zu glauben.",
+            "Du hast keine Lust, jeden Abend zehn Statistikseiten durchzugehen.",
+            "Du willst den Tipp vor dem Anpfiff und nicht danach.",
+            "Du bist über 18 und setzt nur, was du auch verlieren kannst.",
+          ]}
+        />
       </Section>
 
       {/* -------------------------------------------------------------- faq */}
       <Section title="Kurz gefragt">
         <div className="lp-faq">
           <details>
-            <summary>Ist das eine Wette?</summary>
+            <summary>Ist das ein Wettanbieter?</summary>
             <p>
-              Nein. Es wird kein Einsatz angenommen und keine Quote ausgezahlt.
-              Du tippst gegen andere Teilnehmer, nicht gegen einen Buchmacher.
+              Nein. Wir nehmen keine Einsätze an und zahlen keine Gewinne aus.
+              Wir veröffentlichen Analysen und Tipps. Wo und ob du spielst,
+              bleibt vollständig deine Entscheidung.
             </p>
           </details>
           <details>
-            <summary>Was kostet die Teilnahme?</summary>
-            <p>Nichts. Es gibt keine Gebühr und keine Bezahlseite.</p>
+            <summary>Was bedeuten die Prozentangaben?</summary>
+            <p>
+              Sie sind die Einschätzung unseres Modells auf Basis der letzten
+              Spiele beider Mannschaften — Form, Tore, Ecken, Karten,
+              Torschüsse. Eine Einschätzung ist keine Garantie: auch 88 % gehen
+              regelmäßig daneben.
+            </p>
           </details>
+          <details>
+            <summary>Wie oft kommen Tipps?</summary>
+            <p>
+              An jedem Tag, an dem in unseren Ligen gespielt wird, und immer vor
+              dem Anpfiff.
+            </p>
+          </details>
+          {leagues.length ? (
+            <details>
+              <summary>Welche Ligen?</summary>
+              <p>
+                Aktuell im Programm: {leagues.join(" · ")}. Welche Spiele
+                anstehen, siehst du jeden Tag im Kanal.
+              </p>
+            </details>
+          ) : null}
           <details>
             <summary>Muss ich mich anmelden?</summary>
             <p>
-              Nein. Du startest den Bot in Telegram und bist dabei. Keine E-Mail,
-              keine Telefonnummer, kein Passwort.
+              Nein. Du brauchst nur Telegram. Keine E-Mail-Adresse, kein
+              Passwort, keine Registrierung auf dieser Seite.
             </p>
           </details>
-          <details>
-            <summary>Wie viel Zeit kostet mich das?</summary>
-            <p>
-              Eine Runde tippst du in unter einer Minute. Danach musst du gar
-              nichts mehr tun.
-            </p>
-          </details>
-          <details>
-            <summary>Wer kann mitmachen?</summary>
-            <p>
-              Alle ab 18 Jahren aus Deutschland, Österreich und der Schweiz — und
-              alle anderen, die Deutsch verstehen und Telegram haben.
-            </p>
-          </details>
+          {PRICE ? (
+            <details>
+              <summary>Was kostet das?</summary>
+              <p>{PRICE}</p>
+            </details>
+          ) : null}
         </div>
       </Section>
 
       {/* ----------------------------------------------------------- closing */}
-      <section className="lp-section" style={{ textAlign: "center" }}>
+      <section className="lp-section vip-close">
         <div className="lp-wrap">
-          <h2 style={{ marginBottom: 10 }}>Diese Woche mitspielen</h2>
+          <h2>Der nächste Anpfiff wartet nicht.</h2>
           <p className="lp-sub">
-            {hasRace
-              ? `Tippschluss ist ${germanWhen(competition!.locks_at)}. Wer danach kommt, ist erst nächste Woche dabei.`
-              : "Die nächste Runde geht bald auf. Im Bot bekommst du Bescheid, sobald sie startet."}
+            {mode === "upcoming" && fixtures.length
+              ? `Das nächste Spiel läuft ${
+                  isToday(fixtures[0]) ? "heute" : "demnächst"
+                } — die Kombi dazu steht schon.`
+              : "Morgen früh stehen die nächsten Kombis. Sei vorher drin."}
           </p>
           <div className="lp-ctas">
-            <Cta href={link}>⚽ Kostenlos mitspielen</Cta>
-            {channel ? (
-              <Cta href={channel} ghost>
-                Kanal ansehen
-              </Cta>
-            ) : null}
+            <VipCta href={VIP_LINK}>📲 Zum VIP-Zugang</VipCta>
           </div>
+          <p className="lp-note">
+            Ein Klick. Danach schreibst du „{KEYWORD}“ und bist drin.
+          </p>
         </div>
       </section>
 
-      <Footer />
+      <VipFooter />
       <div className="lp-wrap">
-        <Legal />
+        <LegalTips />
       </div>
-      <StickyCta href={link} label="⚽ Kostenlos mitspielen" />
+      <VipSticky href={VIP_LINK} label="📲 Zum VIP-Zugang" />
     </div>
   );
 }

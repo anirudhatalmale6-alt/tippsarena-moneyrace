@@ -386,3 +386,113 @@
 @media (max-width: 460px) {
   .lp-facts { grid-template-columns: 1fr; max-width: 300px; }
 }
+
+
+/* ============================================================== /dach VIP
+   The VIP-channel page. Everything under .vip is only ever loaded by that one
+   page, and it is appended rather than woven in so the two pages that still
+   sell the free game cannot be changed by accident.
+
+   The slips are the point of the page: they are the proof that there is a real
+   model behind the ad, and they are the only place a visitor spends more than a
+   second. They read on a phone first - one column below 720px, no horizontal
+   scroll, and nothing inside them is a link. */
+
+.vip-top { border-bottom: 1px solid var(--lp-line); }
+.vip-flag {
+  font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--lp-accent); border: 1px solid rgba(255,110,3,.45);
+  border-radius: 999px; padding: 5px 12px; white-space: nowrap;
+}
+
+.vip-slips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (max-width: 720px) { .vip-slips { grid-template-columns: 1fr; } }
+
+.vip-slip {
+  background: var(--lp-card); border: 1px solid var(--lp-line);
+  border-radius: 16px; padding: 16px 16px 14px; text-align: left;
+}
+/* min-width:0 on the league, and the kickoff never shrinking.
+   Without both, "Österreichische Bundesliga" plus "Mi., 02.09. 20:30 Uhr" is
+   wider than a 390px phone and the row pushes its own right-hand end out past
+   the card. It did not show up as page overflow, because .lp sets
+   overflow-x: hidden and simply clipped it - measured on the card itself
+   (scrollWidth vs clientWidth), not on the document. */
+.vip-slip-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 4px 10px; flex-wrap: wrap;
+  font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--lp-muted); margin-bottom: 12px;
+}
+.vip-league {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vip-when { flex: 0 0 auto; color: var(--lp-accent); font-weight: 800; white-space: nowrap; }
+
+.vip-teams {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 17px; font-weight: 800; line-height: 1.25; margin-bottom: 4px;
+}
+.vip-team { display: inline-flex; align-items: center; gap: 8px; }
+/* The crests are 26px on a dark card and a few of them are dark-on-transparent;
+   the pale disc behind is what keeps those from disappearing entirely. */
+.vip-team img {
+  width: 26px; height: 26px; object-fit: contain; border-radius: 50%;
+  background: rgba(255,255,255,.10); padding: 2px;
+}
+.vip-vs { color: var(--lp-muted); font-weight: 700; font-size: 13px; }
+
+.vip-combo {
+  margin: 12px 0 8px; font-size: 12px; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--lp-accent);
+}
+
+.vip-leg { padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.vip-leg:last-of-type { border-bottom: 0; }
+/* Same story as the head: the label is the part allowed to shrink and wrap, the
+   percentage is the part that must never be clipped. "Über 7.5 Schüsse aufs
+   Tor" ran the 72% straight off the edge of the card before min-width:0. */
+.vip-leg-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font-size: 14.5px;
+}
+.vip-leg-row > span {
+  display: flex; align-items: baseline; gap: 8px;
+  flex: 1 1 auto; min-width: 0;
+}
+.vip-leg-row em {
+  flex: 0 0 auto;
+  font-style: normal; font-weight: 800; font-size: 13px;
+  font-variant-numeric: tabular-nums; color: var(--lp-text);
+}
+.vip-tick { flex: 0 0 auto; color: var(--lp-accent); font-weight: 800; }
+.vip-bar {
+  height: 5px; border-radius: 3px; background: rgba(255,255,255,.09);
+  margin-top: 7px; overflow: hidden;
+}
+.vip-bar i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--lp-accent), var(--lp-accent-2));
+}
+.vip-conf {
+  margin-top: 12px; font-size: 11.5px; font-weight: 800; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--lp-muted);
+}
+
+.vip-center { text-align: center; margin-top: 20px; }
+.vip-close { text-align: center; }
+.vip-close h2 { margin-bottom: 10px; }
+.vip .lp-card h3 { font-size: 16.5px; }
+.lp-nowrap { white-space: nowrap; }
+.lp-legal a { color: #8fa0b1; text-decoration: underline; }
+
+/* The sticky button is the one on the page that is always a full-width block;
+   .lp-stick already does this for .lp-cta, and vip-block says it out loud so a
+   future change to that rule cannot quietly shrink it back to a pill. */
+.vip-block { display: block; width: 100%; text-align: center; }
+
+/* The FAQ marker was still the lime from the reference site: green + and – on a
+   page whose every other accent is his orange. Scoped to .lp-ad so the two
+   paid-traffic pages agree with each other. */
+.lp-ad .lp-faq summary::after { color: var(--lp-accent); }
