@@ -6,7 +6,13 @@
  */
 import "./public.css";
 import type { ReactNode } from "react";
+import MetaPixel from "./pixel";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
-  return <div className="lp">{children}</div>;
+  return (
+    <div className="lp">
+      <MetaPixel />
+      {children}
+    </div>
+  );
 }
