@@ -153,6 +153,15 @@ repo (~180 MB of binary that never changes).
   verifier reads that. Recomputing it describes a track that never existed —
   which is exactly how the first check reported a 4-frame mismatch that was its
   own fault.
+* **Every tip line is listened to before it is used.** The German voice slurs
+  "null" into something like "Müll" about one line in fifty - one of them
+  shipped, in the La Liga set, and only a transcript caught it. It is a
+  lottery, not a phrasing problem: over 48 samples a colon before the score
+  scored 48/48 and a comma 47/48, so my first theory (punctuation) was noise.
+  `narrate.confirm()` transcribes each tip and asks piper for another take
+  until the digits are audible, then refuses rather than shipping. Tested both
+  ways - a true claim passes with no retake, a false one retries and then
+  raises; a guard that never fires proves nothing.
 * Club names are spoken from a small `SAY` map where the on-screen short name
   would be read wrong: PSG, HSV, "Mainz 05", "Nottm Forest", "Man United". The
   German voice gets `oe`/`ue` spellings, which it reads correctly.

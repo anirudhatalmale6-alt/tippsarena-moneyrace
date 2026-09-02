@@ -283,7 +283,17 @@ def plan(b: T.Brand, segs: list[dict], model) -> dict:
     segment has to be. The voice sets the length; nothing is spoken faster to
     fit a grid, and nothing is cut off at a boundary."""
     lines = {ln.key: ln.text for sg in segs for ln in sg["lines"]}
-    clips = N._synth(b.lang, lines, f"reel-{b.key}")
+    tag = f"reel-{b.key}"
+    clips = N._synth(b.lang, lines, tag)
+    # Same guard as the long cut: a tip line whose numbers cannot be heard gets
+    # another take. The voice slurs "null" about one line in fifty, and here it
+    # would also mistime the caption that draws the score.
+    expect = {}
+    for sg in segs:
+        if sg["kind"] == "pick":
+            expect[sg["lines"][1].key] = [
+                c for c in sg["fx"]["picks"][b.key]["score"] if c.isdigit()]
+    clips = N.confirm(b.lang, lines, clips, expect, tag)
 
     frames, at = [], 0                      # `at` counts FRAMES, never seconds
     audio, caps, reveals = {}, [], []

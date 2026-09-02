@@ -217,6 +217,53 @@ def _synth(lang: str, lines: dict, tag: str) -> dict:
     return json.loads(r.stdout)
 
 
+def confirm(lang: str, lines: dict, clips: dict, expect: dict, tag: str,
+            tries: int = 4) -> dict:
+    """Re-synthesize any line whose numbers cannot be heard in it.
+
+    The German voice slurs "null" into something like "Müll" now and then -
+    measured at roughly one line in fifty, and it is a lottery, not a phrasing
+    problem: over 48 samples a colon and a comma before the score scored 48/48
+    and 47/48, so the punctuation theory I tested first was noise. Since piper
+    samples a fresh duration and prosody every call, the cure is simply to
+    listen to what came out and ask for another take.
+
+    Only lines with an `expect` entry are checked, and only their digits - this
+    is a guard against a scoreline nobody can hear, not a judgement on the
+    reading.
+    """
+    from faster_whisper import WhisperModel
+    model = WhisperModel("small", device="cpu", compute_type="int8")
+
+    def heard(path: str) -> list[str]:
+        segs, _ = model.transcribe(path, language=lang)
+        text = " ".join(s.text for s in segs)
+        digits = []
+        for w in text.split():
+            w = "".join(c for c in _plain(w).lower() if c.isalnum())
+            w = _DIGIT.get(w, w)
+            digits += [c for c in w if c.isdigit()]
+        return digits
+
+    for attempt in range(tries):
+        bad = {k: lines[k] for k, want in expect.items()
+               if heard(clips[k]["file"])[-len(want):] != want}
+        if not bad:
+            return clips
+        print(f"  retake {sorted(bad)} (attempt {attempt + 1})")
+        clips.update(_synth(lang, bad, tag))
+    left = [k for k, want in expect.items()
+            if heard(clips[k]["file"])[-len(want):] != want]
+    if left:
+        raise SystemExit(f"{tag}: {left} still unintelligible after {tries}")
+    return clips
+
+
+_DIGIT = {w: str(i) for i, w in enumerate(NUM["de"])}
+_DIGIT.update({w: str(i) for i, w in enumerate(NUM["en"])})
+_DIGIT.update({"zero": "0", "nought": "0"})
+
+
 def build(brand, data: dict, match: float, outro: float, reveal: float,
           fps: int) -> Track:
     """Synthesize every line for one video and work out how long each segment
@@ -231,7 +278,14 @@ def build(brand, data: dict, match: float, outro: float, reveal: float,
             score=score_words(fx["picks"][brand.key]["score"], lang))
     lines["outro"] = tmpl["outro"]
 
-    clips = _synth(lang, lines, f"{brand.key}-{data['slug']}")
+    tag = f"{brand.key}-{data['slug']}"
+    clips = _synth(lang, lines, tag)
+    # A scoreline nobody can hear is the one defect this format cannot absorb,
+    # so every tip line is listened to before it is used.
+    expect = {f"t{i}": list(fx["picks"][brand.key]["score"].replace(":", ""))
+              for i, fx in enumerate(data["fixtures"], 1)}
+    clips = confirm(lang, lines, clips, expect, tag)
+
     segments, offsets, at = [], {}, 0        # `at` counts FRAMES, not seconds
     for i in range(1, len(data["fixtures"]) + 1):
         m, t = clips[f"m{i}"]["dur"], clips[f"t{i}"]["dur"]
