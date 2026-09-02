@@ -432,3 +432,113 @@ complaints, naming the right rungs.
 nothing published has settled. A "CASHED ✅" on a match we never tipped is a
 fabricated track record. It gets built against real settled picks, with the
 render refusing any fixture that has no stored pick matching the result.
+
+---
+
+## v3 — the hook, the emojis, and no footage at all (2 Sept, second round)
+
+He watched v2 and was blunt again: the voice is dead, the stock clips suck, the
+video does not hold anyone, it needs a hook like *"Easiest way to earn 1000€
+today"*, and it needs emojis next to the title.
+
+### The hook
+
+Three stacked lines held for two seconds, with the money figure at 250px —
+the largest thing that appears anywhere in the reel:
+
+```
+    HEUTE ABEND MÖGLICH
+        1.000 €
+    ICH ZEIG DIR WIE ⚽
+```
+
+Held, not cut into pieces. A hook that changes every half-beat reads as motion
+rather than as a sentence, and this one has to be *read*: it is the only claim
+in the reel a viewer decides on before they have watched anything.
+
+Five variants per language, rotated by fixture id, and the figure is
+`--amount`. **The concern is stated once, here, and then not argued again:** a
+stated earnings figure is the line Meta and TikTok enforce hardest on gambling
+creatives, and it is his ad account it lands on. He asked for it knowing that,
+which is his call. What it changed in the code is that nothing is baked in —
+swapping the entire hook is one argument, not a re-render.
+
+Building it found a real defect. The caption loop ran `for c in caps: … break`,
+stopping at the first caption whose window contained the current frame. A
+three-line hook is three captions at three offsets, so it would have drawn one
+line and dropped the other two — including the figure the whole hook is about —
+with no error anywhere. Captions now carry a `dy`, all active ones are drawn,
+and `verify_bbreel` looks for content in the band **at each caption's own
+offset** instead of at a fixed y, so the fixed-band version of that check could
+not have caught it either.
+
+### Emojis
+
+`P.emoji()` composites from Noto Color Emoji, which is a bitmap font that only
+loads at 109px. They are *not* typed into the caption string: Lato has no emoji
+coverage at all, so the character draws as a blank box — and worse, a blank box
+that the 17px stroke outlines, which looks deliberate.
+
+One on the closing chunk of each pick, keyed to the same market icon the rung
+below it uses (`LEG_EMOJI`), one in the hook, one on the CTA. Not one per
+chunk: on every card it reads as decoration attached to nothing.
+
+### The footage — `--bg motion`
+
+He has now said twice that the stock clips look like stock clips, and looking
+at every clip's own frames rather than its filename, he is right. The free pool
+is park football: bibs, chain-link fences, phone-height cameras. Two were
+dropped outright (`DROP`) — one is the Manhattan skyline behind a park pitch,
+the other an empty stand behind a blue athletics track, both filed under
+"soccer" by the stock library. That does not fix the pool and pretending it
+does would be the wrong lesson.
+
+He wants broadcast highlights with the logos edited over. I am not sourcing
+those: it is his account and his brand the strike lands on, and the edits
+people suggest for hiding a broadcaster's mark are what the rights holders'
+matching runs on.
+
+So `--bg motion` uses **no footage at all** — a drawn floodlit stadium, blurred
+hard and taken down 42% toward black, a brand wash, a light sweep crossing the
+frame every four bars, and a glow pulsing on the beat. It cannot look like
+cheap stock because it is not stock, and nothing in it can be claimed by
+anyone. Most of the accounts in his own reference feed run exactly this.
+
+Two things had to be measured rather than assumed:
+
+* **The pulse washed the frame.** At 0.55 it turned the lower two thirds orange
+  on every hit and bleached the percentage caption — the same defect as the v2
+  impact flash, one layer down. 0.22.
+* **Three consecutive shots looked identical.** With one continuous background
+  there is nothing to cut *between*, and drift alone left the first 1.6 s
+  reading as a still. Alternate shots are mirrored: one numpy view, every pixel
+  different, which is what a cut is. `verify_bbreel` finds 14/14 cuts on the
+  motion renders, so this is measured on the encoded file and not assumed.
+
+### What the verifier caught this round
+
+`rung 3 already has as much detail at frame 384 (22.37) as it does once lit at
+408 (37.67)` — on LuxTipps only.
+
+The skeleton bars were drawn white at alpha 46. `ImageDraw` **sets** pixels, it
+does not blend them, so those two rectangles punched a nearly transparent hole
+straight through the card. On the dark brand the hole showed dark background
+and happened to look like a faint bar; on LuxTipps, whose card is cream, it
+showed the same dark background — two hard charcoal bars, higher contrast than
+the real text that replaces them. Now opaque and per style.
+
+Worth noting what this means: the check was written for a *content leak* and it
+found a *rendering bug*, on the brand I look at least. Both are "the unlit
+state has too much structure", which is why it was written about pixels in the
+rung's own rectangle rather than about the text.
+
+### Also in v3
+
+* A punch-in on every cut: each shot lands 8.5% zoomed and settles over 0.4 s.
+  `k` restarts at each shot, so the punch is on the beat by construction rather
+  than by a timing calculation that could drift.
+* A `TIPP n/3` badge between the card and the ladder — "how many are left"
+  answerable in the first glance rather than the second. Centred at caption
+  height it sat on the second rung; the ladder runs x 52–528 and the pill is
+  centred on 540, so they touch.
+* The voice stays off. `--vo` still works and v3 does not use it.

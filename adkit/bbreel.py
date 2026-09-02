@@ -4,6 +4,32 @@
     python3 bbreel.py                          # best upcoming fixture, both brands
     python3 bbreel.py --brand tippsarena --n 3
     python3 bbreel.py --fixture 1517 --vo
+    python3 bbreel.py --bg motion --amount 500 # drawn background, other figure
+
+WHAT CHANGED IN v3 (2 Sept, second round of his feedback).
+
+He watched v2 and said the voice is dead, the stock clips suck, and the whole
+thing does not hold a viewer - it needs a hook like "Easiest way to earn 1000€
+today", and emojis next to the title.
+
+  * THE HOOK is now three stacked lines held for two seconds, with the money
+    figure at 250px in the middle - the largest thing in the reel. It is a
+    table, rotated by fixture id, and the figure is --amount, so changing the
+    whole hook is an argument rather than an edit. It also forced a real fix:
+    the caption loop stopped at the first caption whose window contained the
+    current frame, so a stacked hook would have drawn one line and dropped the
+    other two without any error at all.
+  * EMOJIS beside the closing chunk of each pick, keyed to the same market icon
+    the rung below uses, plus one in the hook and one on the CTA. Composited
+    from Noto Color Emoji rather than typed into the string: Lato has no
+    coverage and would have drawn an outlined blank box.
+  * THE VOICE is off unless you pass --vo, and v3 does not use it.
+  * THE FOOTAGE. `--bg motion` draws the background instead - floodlit stadium,
+    brand wash, a light sweep, a glow pulsing on the beat. No stock, no
+    broadcast, nothing that can look cheap or get an account struck. `--bg
+    clips` still uses broll/custom/ if he ever sends his own.
+  * A PUNCH-IN on every cut and a TIPP n/3 badge, because "how many are left"
+    should be answerable in a glance rather than by counting rungs.
 
 WHAT CHANGED FROM THE FIRST VERSION, AND WHY.
 
@@ -86,49 +112,98 @@ CAP_Y = 1372
 
 CAP_FILL = {"tippsarena": (255, 110, 3), "luxtipps": (34, 255, 85)}
 
-#: Rotated by fixture id so a week of these is not the same two seconds
-#: fourteen times. All of them are curiosity, none of them is a promise -
-#: "the easiest money today" is the one line that turns a creative for a
-#: licensed gambling brand into a compliance problem.
+#: The hook: three stacked lines and an emoji, held for two seconds.
+#:
+#: The previous set was two words of curiosity - "DAS KLINGT / VERRÜCKT" - and
+#: he was blunt that it does not stop a thumb. What he asked for by name is a
+#: money line: "Easiest way to earn 1000€ today". So the middle line is the
+#: figure, at 250px, and it is the largest thing that appears in the whole
+#: reel.
+#:
+#: I told him once and it is written here rather than argued again: a stated
+#: earnings figure is the line Meta and TikTok enforce hardest on gambling
+#: creatives, and it is his account it lands on. He asked for it anyway, which
+#: is his call to make. What that DOES change is the code: the amount is a
+#: parameter (--amount), the lines are a table, and none of it is baked into a
+#: render - so swapping the whole hook is one argument, not a rebuild.
+#:
+#: Rotated by fixture id, so a week of these is not the same two seconds
+#: fourteen times over.
 HOOKS = {
-    "de": [("DAS KLINGT", "VERRÜCKT"), ("MEIN BESTER", "TIPP HEUTE"),
-           ("DEN HIER", "LIEBE ICH"), ("DAS MUSST", "DU SEHEN"),
-           ("SCHAU DIR", "DAS AN")],
-    "en": [("THIS SOUNDS", "CRAZY"), ("MY BEST", "PICK TODAY"),
-           ("I LOVE", "THIS ONE"), ("YOU NEED", "TO SEE THIS"),
-           ("LOOK AT", "THIS ONE")],
+    "de": [("SO VERDIENST DU HEUTE", "{amount}", "SCHAU DIR DAS AN", "💰"),
+           ("DER EINFACHSTE WEG ZU", "{amount}", "HEUTE ABEND", "🔥"),
+           ("EIN SPIEL, DREI TIPPS", "{amount}", "SO GEHT'S", "🚨"),
+           ("NICHT WEITERSCROLLEN", "{amount}", "MIT EINER KOMBI", "👀"),
+           ("HEUTE ABEND MÖGLICH", "{amount}", "ICH ZEIG DIR WIE", "⚽")],
+    "en": [("HOW TO MAKE TODAY", "{amount}", "WATCH THIS", "💰"),
+           ("THE EASIEST WAY TO", "{amount}", "TONIGHT", "🔥"),
+           ("ONE MATCH, THREE PICKS", "{amount}", "HERE'S HOW", "🚨"),
+           ("DON'T SCROLL PAST", "{amount}", "ONE BET BUILDER", "👀"),
+           ("POSSIBLE TONIGHT", "{amount}", "LET ME SHOW YOU", "⚽")],
 }
+
+#: German writes a thousands dot and puts the sign after the number; English
+#: puts it in front and uses a comma. Getting this wrong is the kind of detail
+#: that tells a viewer the account is not really theirs.
+def money(amount: int, lang: str) -> str:
+    return (f"{amount:,}".replace(",", ".") + " €" if lang == "de"
+            else "€" + f"{amount:,}")
+
+#: An emoji beside the pick, keyed off the same icon the rung uses, so the
+#: caption and the ladder rung below it are talking about the same market.
+#: He asked for these by name: "there have to be emojis next to the title".
+LEG_EMOJI = {"goal": "⚽", "card": "🟨", "corner": "🚩", "shot": "🎯",
+             "btts": "🥅", "shield": "🛡️"}
 
 STR = {
     "de": {"three": "DREI TIPPS", "three_say": "Drei Tipps",
            "all3": "ALLE DREI", "one": "IN EINER WETTE",
            "conf": "KONFIDENZ", "cta1": "TÄGLICH NEUE TIPPS",
-           "cta2": "MEHR TIPPS IN BIO", "combo": "KOMBI"},
+           "cta2": "MEHR TIPPS IN BIO", "combo": "KOMBI", "tip": "TIPP"},
     "en": {"three": "THREE PICKS", "three_say": "Three picks",
            "all3": "ALL THREE", "one": "IN ONE BET",
            "conf": "CONFIDENCE", "cta1": "NEW PICKS DAILY",
-           "cta2": "MORE PICKS IN BIO", "combo": "BUILDER"},
+           "cta2": "MORE PICKS IN BIO", "combo": "BUILDER", "tip": "PICK"},
 }
 
 
 # ------------------------------------------------------------------- the plan
-def beats(fx: B.Fixture, lang: str) -> dict:
+def beats(fx: B.Fixture, lang: str, amount: int = 1000) -> dict:
     """Everything that happens, in beats. No pixels and no audio yet.
 
     Keeping this separate is what makes the video checkable: verify_bbreel.py
     reads this structure back out of the manifest and asserts against the
     encoded file, rather than trusting that the renderer did what it said.
+
+    Captions carry a `dy`. They used to be a single line at CAP_Y and only one
+    could ever be on screen, which is why the hook could only be two words: a
+    three-line hook is three captions at three offsets, up at eye level rather
+    than down where the pick text lives.
     """
     s = STR[lang]
     hook = HOOKS[lang][fx.id % len(HOOKS[lang])]
+    pre, mid, post, emo = hook
+    mid = mid.format(amount=money(amount, lang))
     caps, rungs, hits = [], [], []
 
-    def cap(at, dur, text, size="big"):
-        caps.append({"at": at, "off": at + dur, "text": text, "size": size})
+    def cap(at, dur, text, size="big", dy=0, emo=None):
+        caps.append({"at": at, "off": at + dur, "text": text, "size": size,
+                     "dy": dy, "emo": emo})
 
-    cap(0, 2, hook[0])
-    cap(2, 2, hook[1])
-    cap(4, 4, fx.league.upper(), "mid")
+    # --- the hook: two seconds, three lines, held still ------------------
+    # Held, not cut into pieces. A hook that changes every half-beat is read
+    # as motion and not as a sentence, and this one has to be READ - it is the
+    # only claim in the reel a viewer decides on before they have watched
+    # anything. The picture underneath still cuts twice; the words do not.
+    cap(0, 5, pre, "mid", dy=-330)
+    cap(0, 5, mid, "hook", dy=-110)
+    cap(0, 5, post, "mid", dy=110, emo=emo)
+    # Beat 2, not beat 0. An impact placed at t=0 has its attack truncated by
+    # the start of the file, so there is nothing for an onset detector to find
+    # and the hit check fails on a sound that is genuinely there. Beat 2 is
+    # also a planned cut, so the accent and the cut reinforce each other.
+    hits.append(2)
+    cap(5, 3, fx.league.upper(), "mid")
     cap(8, 4, s["three"])
 
     for i, leg in enumerate(fx.legs):
@@ -137,8 +212,13 @@ def beats(fx: B.Fixture, lang: str) -> dict:
         # something; a card reading only "1X" was the first version and it is
         # not a bet anybody can read off the screen.
         step = 5.0 / len(leg.hero)
+        last = len(leg.hero) - 1
         for k, tok in enumerate(leg.hero):
-            cap(round((b0 + k * step) * 2) / 2, step, tok)
+            # The emoji goes on the LAST chunk only. On every chunk it reads as
+            # decoration attached to nothing; on the closing one it lands with
+            # the completed pick, which is the thing it is labelling.
+            cap(round((b0 + k * step) * 2) / 2, step, tok,
+                emo=LEG_EMOJI.get(leg.icon) if k == last else None)
         light = round((b0 + 5.0) * 2) / 2
         # The rung lights AFTER the whole leg has been shown, never before it.
         # A bar that fills early is the same defect as a card that reveals
@@ -153,8 +233,9 @@ def beats(fx: B.Fixture, lang: str) -> dict:
     cap(40, 4, f"{fx.conf}%", "pct")
     hits.append(40)
     cap(44, 4, s["cta1"], "mid")
-    cap(48, 4, s["cta2"], "mid")
-    return {"caps": caps, "rungs": rungs, "hits": hits, "hook": list(hook)}
+    cap(48, 4, s["cta2"], "mid", emo="📲")
+    return {"caps": caps, "rungs": rungs, "hits": hits,
+            "hook": [pre, mid, post, emo], "amount": amount}
 
 
 def narration(fx: B.Fixture, lang: str) -> dict:
@@ -283,9 +364,20 @@ def rung(b: T.Brand, leg: B.Leg, live: bool) -> Image.Image:
     sub = (150, 163, 178) if dark else (120, 116, 106)
 
     if not live:
-        # skeleton, deliberately not words
-        d.rounded_rectangle((x, 40, x + 250, 58), 9, fill=(255, 255, 255, 46))
-        d.rounded_rectangle((x, 70, x + 160, 88), 9, fill=(255, 255, 255, 32))
+        # Skeleton, deliberately not words - and OPAQUE, per style.
+        #
+        # It used to be white at alpha 46, which is not a pale bar: ImageDraw
+        # sets pixels, it does not blend them, so those two rectangles punched
+        # a nearly transparent hole straight through the card. On the dark
+        # brand the hole showed dark background and happened to look like a
+        # faint bar. On LuxTipps, whose card is cream, it showed the same dark
+        # background - two hard charcoal bars on a light card, higher contrast
+        # than the real text that replaces them. verify_bbreel caught it as
+        # "rung 3 already has as much detail before it lights as after", which
+        # is exactly what it was.
+        bar = (48, 55, 66, 255) if dark else (206, 201, 190, 255)
+        d.rounded_rectangle((x, 40, x + 250, 58), 9, fill=bar)
+        d.rounded_rectangle((x, 70, x + 160, 88), 9, fill=bar)
         P._cache[key] = im
         return im
 
@@ -361,24 +453,47 @@ def match_card(b: T.Brand, fx: B.Fixture) -> Image.Image:
 
 
 _cap: dict = {}
-SIZES = {"big": 176, "mid": 104, "pct": 240}
+SIZES = {"hook": 250, "big": 176, "mid": 104, "pct": 240}
 
 
-def word(text: str, fill, size_key: str) -> Image.Image:
-    key = (text, fill, size_key)
+def word(text: str, fill, size_key: str, emo: str | None = None) -> Image.Image:
+    """A caption, outlined, with an optional emoji beside it.
+
+    The emoji is composited as an image rather than typed into the string. Lato
+    has no emoji coverage at all, so an emoji in the text argument draws a
+    blank box - and worse, it draws a blank box that the stroke outlines, which
+    looks deliberate. Noto Color Emoji is a bitmap font that only loads at
+    109px (P.emoji does that and scales down), and it will not shape inside a
+    Lato run anyway.
+
+    It sits at 0.62 of the cap height and on the baseline of the text, not
+    centred on the box: centred, a 110px square emoji beside a 104px line with
+    no descenders floats visibly high.
+    """
+    key = (text, fill, size_key, emo)
     if key in _cap:
         return _cap[key]
     size, pad = SIZES[size_key], 34
     f = P.font(size)
-    while f.getlength(text) > 900 and size > 44:
+    room = 900 if not emo else 900 - int(size * 0.94)
+    while f.getlength(text) > room and size > 44:
         size -= 6
         f = P.font(size)
     box = f.getbbox(text, stroke_width=17)
-    im = Image.new("RGBA", (box[2] - box[0] + pad * 2,
-                            box[3] - box[1] + pad * 2), (0, 0, 0, 0))
+    tw, th = box[2] - box[0], box[3] - box[1]
+
+    es = int(size * 0.80) if emo else 0
+    eim = P.emoji(emo, es) if emo else None
+    gap = int(size * 0.20) if emo else 0
+    ew = (eim.width + gap) if eim else 0
+
+    im = Image.new("RGBA", (tw + pad * 2 + ew, th + pad * 2), (0, 0, 0, 0))
     ImageDraw.Draw(im).text((pad - box[0], pad - box[1]), text, font=f,
                             fill=fill + (255,), stroke_width=17,
                             stroke_fill=(0, 0, 0, 255))
+    if eim:
+        im.alpha_composite(eim, (pad + tw + gap,
+                                 pad + th - eim.height - int(size * 0.06)))
     sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
     sh.putalpha(im.getchannel("A").filter(ImageFilter.GaussianBlur(13)))
     out = Image.new("RGBA", im.size, (0, 0, 0, 0))
@@ -386,6 +501,24 @@ def word(text: str, fill, size_key: str) -> Image.Image:
     out.alpha_composite(im)
     _cap[key] = out
     return out
+
+
+def badge(b: T.Brand, text: str) -> Image.Image:
+    """"TIPP 2/3" - a pill above the pick, so the viewer knows how many are
+    left without counting rungs. The ladder already answers it; a number
+    answers it in the first glance rather than the second."""
+    key = ("bbbadge", b.key, text)
+    if key in P._cache:
+        return P._cache[key]
+    f = P.font(46)
+    w = int(f.getlength(text)) + 62
+    im = Image.new("RGBA", (w, 78), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, w - 1, 77), 39, fill=(0, 0, 0, 190),
+                        outline=b.accent + (255,), width=4)
+    d.text((w // 2, 40), text, font=f, fill=b.accent, anchor="mm")
+    P._cache[key] = im
+    return im
 
 
 def _alpha(im: Image.Image, a: float) -> Image.Image:
@@ -446,14 +579,117 @@ def clip_pool() -> list[pathlib.Path]:
     custom = sorted((BROLL / "custom").glob("*.mp4"))
     if custom:
         return custom
-    pool = sorted(p for p in BROLL.glob("*.mp4"))
+    pool = sorted(p for p in BROLL.glob("*.mp4") if p.stem not in DROP)
     if not pool:
         raise SystemExit(f"no footage in {BROLL} - run fetch_broll.sh, or put "
                          f"his clips in {BROLL / 'custom'}")
     return pool
 
 
+#: Pulled out of the free pool after looking at every clip's own frames rather
+#: than at its filename. Both are called "soccer" by the stock library and
+#: neither reads as football on screen: 4337 is the Manhattan skyline behind a
+#: park pitch, and -30 is an empty stand behind a blue athletics track. Under a
+#: DFB-Pokal pick they land as a mistake.
+#:
+#: This does not fix the pool, and pretending it does would be the wrong
+#: lesson. What is left is still park football - bibs, chain-link fences,
+#: phone-height cameras - and no arrangement of it looks like the Allianz
+#: Arena. That is his complaint and he is right about it. The two real answers
+#: are his own clips in broll/custom/, or `--bg motion`, which uses none.
+DROP = {"soccer-match-with-a-view-4337",
+        "goalkeeper-during-a-soccer-match-30"}
+
 OVER = 1.26
+
+_MOTION: dict = {}
+
+
+def motion_layers(b: T.Brand, ow: int, oh: int):
+    """The pieces of the drawn background, built once.
+
+    WHY THIS EXISTS. He has said twice that the stock clips look like stock
+    clips, and he is right - a generic warm-up drill under a Bundesliga pick
+    fools nobody. He wants broadcast highlights instead, which I am not going
+    to source: it is his ad account and his brand the strike lands on, and the
+    edits people suggest for hiding a broadcaster's logo are exactly what the
+    rights holders' matching runs on.
+
+    So this is the third option, and it is the one that is actually used by
+    most of the accounts in his own reference feed: no footage at all. A drawn
+    floodlit stadium, a brand wash, a light sweep that crosses the frame, and a
+    glow that pulses on the beat. It cannot look like cheap stock because it is
+    not stock, and it cannot get anybody struck. `--bg motion`.
+
+    Everything here is precomputed and the per-frame work is three numpy adds -
+    compositing this with PIL every frame cost more than decoding video did.
+    """
+    key = (b.key, ow, oh)
+    if key in _MOTION:
+        return _MOTION[key]
+
+    # Blurred and taken down hard, and that is the whole difference between a
+    # background and a picture. P.stadium draws a legible floodlit ground -
+    # correct for a poster, wrong here, where a bright green pitch band cut
+    # straight through the middle of the frame and competed with the ladder
+    # sitting on top of it. Blurred it becomes light and depth instead of
+    # scenery, which is what a caption needs under it.
+    base = P.stadium(ow, oh, seed=11).convert("RGB")
+    base = base.filter(ImageFilter.GaussianBlur(ow / 110))
+    base = Image.blend(base, Image.new("RGB", (ow, oh), (6, 8, 12)), 0.42)
+    base = Image.blend(base, Image.new("RGB", (ow, oh), b.accent), 0.13)
+
+    # A slanted band, twice the width so a full pass is one slice of one image.
+    sweep = Image.new("L", (ow * 2, oh), 0)
+    ImageDraw.Draw(sweep).polygon(
+        [(0, oh), (int(ow * 0.34), oh), (int(ow * 0.34) + int(ow * 0.42), 0),
+         (int(ow * 0.42), 0)], fill=255)
+    sweep = sweep.filter(ImageFilter.GaussianBlur(ow / 9))
+
+    # The pulse: a wide soft ellipse low in the frame, where the ladder and the
+    # captions are, so a hit lifts the graphics rather than the sky.
+    pulse = Image.new("L", (ow, oh), 0)
+    ImageDraw.Draw(pulse).ellipse(
+        (int(ow * 0.02), int(oh * 0.40), int(ow * 0.98), int(oh * 0.96)),
+        fill=255)
+    pulse = pulse.filter(ImageFilter.GaussianBlur(ow / 7))
+
+    out = (np.asarray(base, np.int16),
+           np.asarray(sweep, np.float32) / 255.0,
+           np.asarray(pulse, np.float32) / 255.0,
+           np.array(b.accent, np.float32))
+    _MOTION[key] = out
+    return out
+
+
+def motion_frames(b: T.Brand, n: int, b0: int, hits: list[float], ow: int,
+                  oh: int, si: int = 0):
+    """`n` frames of drawn background, starting at beat `b0`.
+
+    Mirrored on alternate shots. With one continuous background there is
+    nothing to cut BETWEEN, and measured on the first render the drift alone
+    left three consecutive shots looking identical - the first 1.6 s of the
+    reel read as a still. A horizontal flip costs one numpy view and changes
+    every pixel of the frame, which is what a cut is.
+    """
+    base, sweep, pulse, accent = motion_layers(b, ow, oh)
+    if si % 2:
+        base, sweep, pulse = base[:, ::-1], sweep[:, ::-1], pulse[:, ::-1]
+    for k in range(n):
+        t = (b0 * FPB + k) / FPS
+        # One full pass of the sweep every four bars, so it never repeats
+        # inside a shot and never sits still inside one either.
+        off = int((t / (16 * BEAT)) % 1.0 * ow)
+        lit = 0.0
+        for ht in hits:
+            dt = t - ht
+            if 0 <= dt < 0.45:
+                lit = max(lit, (1 - dt / 0.45) ** 2)
+        frame = base + (sweep[:, off:off + ow, None] * 46).astype(np.int16)
+        if lit > 0.01:
+            frame = frame + (pulse[:, :, None] * (lit * 0.22)
+                             * accent).astype(np.int16)
+        yield np.clip(frame, 0, 255).astype(np.uint8)
 
 
 def bg_frames(src: pathlib.Path, n: int, seed: int):
@@ -532,14 +768,15 @@ def track(fx: B.Fixture, lang: str, pl: dict, vo: bool,
 
 
 # ----------------------------------------------------------------------- bake
-def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
+def render(brand_key: str, fx: B.Fixture, vo: bool, amount: int = 1000,
+           bg: str = "clips") -> pathlib.Path:
     b = T.BRANDS[brand_key]
     lang = b.lang
-    pl = beats(fx, lang)
+    pl = beats(fx, lang, amount)
     total = BARS * 4 * FPB
     OUT.mkdir(parents=True, exist_ok=True)
-    wav, warn = track(fx, lang, pl, vo,
-                      OUT / "vo" / f"{brand_key}-{fx.slug}.wav")
+    tag = f"{brand_key}-{fx.slug}" + ("-motion" if bg == "motion" else "")
+    wav, warn = track(fx, lang, pl, vo, OUT / "vo" / f"{tag}.wav")
     for w in warn:
         print(f"  !! narration overruns its segment - {w}")
 
@@ -552,11 +789,11 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
                             "legs": [{"disp": g.disp, "say": g.say,
                                       "pct": g.pct, "icon": g.icon}
                                      for g in fx.legs]},
-                "cuts": CUTS, "vo": vo, **pl}
-    (OUT / "vo" / f"{brand_key}-{fx.slug}.json").write_text(
+                "cuts": CUTS, "vo": vo, "bg": bg, **pl}
+    (OUT / "vo" / f"{tag}.json").write_text(
         json.dumps(manifest, indent=1, ensure_ascii=False), encoding="utf-8")
 
-    out = OUT / f"{brand_key}-bb-{fx.slug}.mp4"
+    out = OUT / f"{brand_key}-bb-{tag.split('-', 1)[1]}.mp4"
     enc = subprocess.Popen(
         ["ffmpeg", "-y", "-loglevel", "error",
          "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
@@ -570,9 +807,8 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
     fill = CAP_FILL[brand_key]
     card = match_card(b, fx)
     rows = [(rung(b, g, False), rung(b, g, True)) for g in fx.legs]
-    pool = clip_pool()
+    pool = clip_pool() if bg == "clips" else []
     ow, oh = int(W * OVER), int(H * OVER)
-    slack = (ow - W, oh - H)
 
     shots = [(CUTS[i], CUTS[i + 1] - CUTS[i]) for i in range(len(CUTS) - 1)]
     shots.append((CUTS[-1], BARS * 4 - CUTS[-1]))
@@ -580,13 +816,23 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
 
     for si, (b0, nb) in enumerate(shots):
         n = nb * FPB
-        src = pool[si % len(pool)]
-        gen, last = bg_frames(src, n, si), None
+        if bg == "clips":
+            src = pool[si % len(pool)]
+            gen = bg_frames(src, n, si)
+            src_name = src.name
+        else:
+            # No footage to cut between, so the cut is carried entirely by the
+            # camera: the drift direction flips every shot (d0/d1 below) and
+            # the punch-in resets. Both are real picture changes on the beat,
+            # which is what the edit claims and what verify_bbreel measures.
+            gen = motion_frames(b, n, b0, hits, ow, oh, si)
+            src_name = "motion"
+        last = None
         d0, d1 = (0.10, 0.90) if si % 2 == 0 else (0.90, 0.10)
         for k in range(n):
             arr = last = next(gen, last)
             if arr is None:
-                raise SystemExit(f"shot {si}: no frames from {src.name}")
+                raise SystemExit(f"shot {si}: no frames from {src_name}")
             f_abs = b0 * FPB + k
             t = f_abs / FPS
             u = k / max(n - 1, 1)
@@ -600,9 +846,19 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
                     e = (1 - dt / 0.34) ** 2
                     sx += int(math.sin(dt * 96) * 26 * e)
                     sy += int(math.cos(dt * 78) * 18 * e)
-            x = min(max(int(slack[0] * a) + sx, 0), slack[0])
-            y = min(max(int(slack[1] * (1 - a)) + sy, 0), slack[1])
-            frame = Image.fromarray(arr[y:y + H, x:x + W]).convert("RGBA")
+            # Every cut lands zoomed in by 8.5% and settles back over 0.4 s.
+            # `k` restarts at each shot, so the punch is on the cut by
+            # construction rather than by a timing calculation that could drift
+            # off the beat grid. It is the cheapest thing in this file that
+            # makes a cut feel like a cut rather than a slide change.
+            z = 1 + 0.085 * (1 - P.ease_out(min(1.0, k / (FPS * 0.40))))
+            cw, ch_ = int(W / z), int(H / z)
+            x = min(max(int((ow - cw) * a) + sx, 0), ow - cw)
+            y = min(max(int((oh - ch_) * (1 - a)) + sy, 0), oh - ch_)
+            frame = Image.fromarray(arr[y:y + ch_, x:x + cw])
+            if (cw, ch_) != (W, H):
+                frame = frame.resize((W, H), Image.BILINEAR)
+            frame = frame.convert("RGBA")
             # The impact flash goes on the FOOTAGE, before any graphic is laid
             # over it. Composited last and in the brand colour it washed the
             # entire frame - card, ladder and caption included - orange for
@@ -657,11 +913,25 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
                                 (LAD_X - (im.width - live.width) // 2,
                                  ry - (im.height - live.height) // 2))
 
+            # --- which pick we are on, so "how many left" is one glance
+            if 12 * FPB <= f_abs < 36 * FPB:
+                i = min(len(fx.legs) - 1, (f_abs // FPB - 12) // 8)
+                bi = badge(b, f"{STR[lang]['tip']} {i + 1}/{len(fx.legs)}")
+                # Between the match card and the ladder. Centred at caption
+                # height it sat on top of the second rung - the ladder runs
+                # x 52..528 and this pill is centred on 540, so they touch.
+                frame.alpha_composite(bi, ((W - bi.width) // 2, CARD_Y + 250))
+
             # --- captions
+            #
+            # All of them, not the first one that matches. The hook is three
+            # captions at three offsets and the old loop stopped at the first,
+            # so a stacked hook would have drawn one line and silently dropped
+            # the other two - including the figure the whole hook is about.
             for c in pl["caps"]:
                 if not (c["at"] * BEAT <= t < c["off"] * BEAT):
                     continue
-                im = word(c["text"], fill, c["size"])
+                im = word(c["text"], fill, c["size"], c.get("emo"))
                 e = (t - c["at"] * BEAT) / 0.13
                 sc = (0.66 + 0.46 * P.ease_out(e / 0.7) if e < 0.7
                       else 1.12 - 0.12 * P.ease_out(min(1.0, (e - 0.7) / 0.3)))
@@ -669,7 +939,9 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
                     im = im.resize((max(1, int(im.width * sc)),
                                     max(1, int(im.height * sc))),
                                    Image.BILINEAR)
-                cy = CAP_Y if c["size"] != "pct" else CAP_Y + 40
+                cy = CAP_Y + c.get("dy", 0)
+                if c["size"] == "pct":
+                    cy += 40
                 frame.alpha_composite(im, (max(0, W // 2 - im.width // 2),
                                            cy - im.height // 2))
                 if c["size"] == "pct":
@@ -684,7 +956,6 @@ def render(brand_key: str, fx: B.Fixture, vo: bool) -> pathlib.Path:
                         pct_bar(b, int(c["text"].rstrip("%")),
                                 min(1.0, (t - c["at"] * BEAT) / 0.50)),
                         ((W - PB_W) // 2, cy + im.height // 2 + 26))
-                break
 
             enc.stdin.write(frame.convert("RGB").tobytes())
 
@@ -703,6 +974,10 @@ def main() -> None:
     ap.add_argument("--vo", action="store_true", help="add a spoken layer")
     ap.add_argument("--all", action="store_true",
                     help="allow fixtures that have already kicked off")
+    ap.add_argument("--amount", type=int, default=1000,
+                    help="the figure in the hook line")
+    ap.add_argument("--bg", choices=("clips", "motion"), default="clips",
+                    help="stock/his footage, or the drawn background")
     a = ap.parse_args()
     for k in (list(T.BRANDS) if a.brand == "both" else [a.brand]):
         lang = T.BRANDS[k].lang
@@ -713,7 +988,7 @@ def main() -> None:
             raise SystemExit("no upcoming fixture with a usable combo")
         print(f"{k}:")
         for fx in fxs[:a.n]:
-            render(k, fx, a.vo)
+            render(k, fx, a.vo, a.amount, a.bg)
 
 
 if __name__ == "__main__":

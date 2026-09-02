@@ -180,11 +180,18 @@ def check(mp4: pathlib.Path, man: pathlib.Path,
                          f"lights ({e_before:.2f} -> {e_after:.2f})")
 
     # --- the caption band is never empty while a caption is up -------------
-    cy0, cy1 = int((R.CAP_Y - 150) * sy), int((R.CAP_Y + 190) * sy)
+    #
+    # The band follows the caption's own `dy`. The hook is three lines stacked
+    # 440px apart, so a single fixed band at CAP_Y would have looked at empty
+    # sky for two of them and passed anyway - and the renderer used to stop at
+    # the first matching caption, which is exactly the bug a fixed band cannot
+    # see.
     for c in plan["caps"]:
         mid = int(((c["at"] + c["off"]) / 2) * fpb)
         if mid >= plan["frames"]:
             continue
+        cy = R.CAP_Y + c.get("dy", 0) + (40 if c["size"] == "pct" else 0)
+        cy0, cy1 = int((cy - 150) * sy), int((cy + 190) * sy)
         if _edges(fr[mid, cy0:cy1, :]) < 1.0:
             fails.append(f"{mp4.name}: nothing drawn in the caption band at "
                          f"frame {mid}, where {c['text']!r} should be")
