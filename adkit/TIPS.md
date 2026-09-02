@@ -160,6 +160,54 @@ repo (~180 MB of binary that never changes).
   is an option, not a replacement, and nothing moved out of the picture into the
   audio.
 
+## `reel.py` — the short-form cut (2 Sept)
+*"What about this kind of videos? Can you create something similar?"* — five
+screenshots of **billhpicks**: broadcast footage running behind, one enormous
+green word at a time landing on the beat, a small dark card naming the pick.
+
+```
+python3 reel.py 78 --picks 3            # both brands
+python3 reel.py 39 --brand luxtipps --bg stadium
+```
+
+* **The captions are word-synced to the voice, not eyeballed.** This is the
+  whole reason it needed `narrate.py` first. The line is synthesized, the wav
+  is run back through whisper with word timestamps, and each caption is placed
+  on its own word. Change a scoreline and the cut re-times itself.
+* **Whisper supplies the timing only.** What is drawn is my script text aligned
+  onto the transcript with a sequence diff — a mis-heard club name must never
+  reach the screen in 190pt letters. Words whisper drops are interpolated
+  between the two it did hear.
+* **A caption token is not a word.** "2:1" is one token on screen and three
+  words in the mouth ("zwei zu eins"), so display text and spoken text are
+  carried separately all the way into the manifest.
+* **The card shows the score 0.10 s before the voice says it**, never after —
+  same rule as the long cut, in the other direction.
+* **The footage is deliberately not broadcast.** His references run World Cup
+  and La Liga clips; that is the part of this format that gets an account with
+  a paying product behind it struck rather than throttled. `fetch_broll.sh`
+  pulls Coverr and Mixkit clips (free for commercial use, no attribution), and
+  `--bg stadium` uses the procedural stadium and touches no third-party frame
+  at all. His own licensed clips are a file drop plus one list entry.
+* The two brands do not share the caption colour or the crest treatment.
+  TippsArena uses its own orange rather than the green the whole niche uses,
+  and a white disc with an orange rim; LuxTipps keeps its cream-and-gold badge.
+
+## `check_names.py` — does the voice actually say the club?
+The SAY map in `narrate.py` was a list of guesses, and one of them was wrong
+for a fortnight: the English entries were keyed `"Koln"` while the flattener
+produces `"Koeln"`, so the lookup never fired and LuxTipps read the German
+spelling out loud. The key is now the accent-STRIPPED form, so `Köln`, `Koeln`
+and `Koln` all land on the same entry.
+
+Every club in the six leagues is now synthesized inside the real sentence
+template and transcribed back, **twice** — once as the map says it, once as it
+is plainly written. A respelling is kept only where it measures more
+recognisable than the plain spelling; the ones that did not are reported as
+"no better than plain" and were removed. Whisper is not a listener, but a name
+it cannot recover from clean studio audio is a name a viewer will not recover
+either.
+
 ## Verification
 `ffprobe` per file: `audio_streams=0`, 1080×1920, 30/1, frame count matching
 duration. Then a frame is pulled back **out of the encoded mp4** with
@@ -175,6 +223,13 @@ scoreline is checked to be spoken, in fixture order, never before its score is
 on screen and never still running when the segment cuts. Whisper writes "2 zu
 1" where piper was given "zwei zu eins", so both spellings are accepted — that
 is the transcriber's convention, not a defect in the audio.
+
+`verify_reel.py` checks the claim the short cut actually makes — that the
+caption is ON the word. The audio comes back out of the mp4, every caption's
+spoken words are located in the transcript in order, and the gap between when
+the caption appears and when the word is said has to stay inside 0.40 s.
+`--selftest` slides a good file's audio 2.5 s late and requires the check to
+complain; a sync test that cannot go red is worth less than no test.
 
 Plus the data rules he asked for, asserted per file: every published price
 inside 5.00-20.00, no scoreline repeated unless forced, and no fixture where the

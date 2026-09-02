@@ -59,28 +59,55 @@ NUM = {
 }
 
 # Short names are drawn on screen because they have to fit a card. Spoken, a
-# few of them are wrong or unreadable, so they are said in full. Anything not
-# in here is spoken exactly as it is written on screen.
+# few of them are wrong or unreadable, so they are said differently. Anything
+# not in here is spoken exactly as it is written on screen.
+#
+# Two kinds of entry, and it matters which is which:
+#
+#   * EXPANSIONS - "PSG" is three letters on a card and a club when spoken.
+#     These are editorial and I chose them;
+#   * RESPELLINGS - "Leipzig" written phonetically as "Lipetsig" for the
+#     English voice. These are not opinions. check_names.py synthesizes every
+#     club BOTH ways and transcribes both back, and a respelling stays only
+#     where it measured more recognisable than the plain spelling. Fifteen of
+#     the ones I guessed at measured no better and are gone: my "Stootgart",
+#     "Hoffenhime", "Byern", "Liwwerpuhl", "Fullam" and the rest all made their
+#     club harder to recognise, not easier. Expansions are judged by eye, not
+#     by that number - "Neapel" scores badly against the word "Napoli" for the
+#     obvious reason, and is still the right thing for a German voice to say.
+#
+# A voice reads the language it was trained on. The German voice says the V in
+# "Valencia" as an F and the English one has never met "Bochum", so each side
+# needs its own spelling of the same club.
 SAY = {
     "de": {"PSG": "Paris Saint-Germain", "HSV": "Hamburger S V",
-           "Mainz 05": "Mainz null fuenf", "St. Pauli": "Sankt Pauli",
+           "Mainz 05": "Mainz null fünf", "St. Pauli": "Sankt Pauli",
            "Man United": "Manchester United", "Man City": "Manchester City",
            "Nottm Forest": "Nottingham Forest", "Depor": "Deportivo",
-           "Gladbach": "Borussia Moenchengladbach", "Bremen": "Werder Bremen",
+           "Gladbach": "Borussia Mönchengladbach", "Bremen": "Werder Bremen",
            "Athletic": "Athletic Bilbao", "Sociedad": "Real Sociedad",
-           "Celta": "Celta Vigo", "Rayo": "Rayo Vallecano",
+           "Celta": "Selta Vigo", "Rayo": "Rayo Vallecano",
            "Inter": "Inter Mailand", "Milan": "A C Mailand",
            "Napoli": "Neapel", "Roma": "A S Rom", "Lazio": "Lazio Rom",
-           "Juventus": "Juventus Turin", "Torino": "F C Turin"},
+           "Juventus": "Juventus Turin", "Torino": "F C Turin",
+           # respellings that measured better than the plain spelling
+           "Valencia": "Walensia", "Como": "Komo", "Hull City": "Hall Sitti"},
     "en": {"PSG": "Paris Saint-Germain", "HSV": "Hamburg",
            "Mainz 05": "Mainz", "St. Pauli": "Saint Pauli",
            "Man United": "Manchester United", "Man City": "Manchester City",
-           "Nottm Forest": "Nottingham Forest", "Depor": "Deportivo",
+           "Nottm Forest": "Nottingham Forest",
            "Gladbach": "Monchengladbach", "Bremen": "Werder Bremen",
            "Athletic": "Athletic Bilbao", "Sociedad": "Real Sociedad",
            "Celta": "Celta Vigo", "Rayo": "Rayo Vallecano",
-           "Koln": "Cologne", "Nurnberg": "Nuremberg",
-           "Kaiserslautern": "Kaiserslautern", "Alaves": "Alaves"},
+           "Köln": "Cologne", "Nürnberg": "Nuremberg",
+           "Kaiserslautern": "Kaiserslautern",
+           # respellings that measured better than the plain spelling
+           "Alaves": "Alavess", "Osasuna": "Ossasoona", "Valencia": "Valensia",
+           "Lecce": "Letchay", "Leipzig": "Lipetsig", "Bochum": "Bawkum",
+           "Lyon": "Leeon", "Lorient": "Loreeon", "Getafe": "Hetafay",
+           "Kiel": "Keel", "Bologna": "Bolonya", "Auxerre": "Ohsair",
+           "Cottbus": "Cottboos", "Schalke": "Shalka", "Depor": "Deporteevo",
+           "Udinese": "Oodinayzay", "Sevilla": "Seveeya"},
 }
 
 LINES = {
@@ -102,8 +129,25 @@ def _plain(s: str) -> str:
                    if not unicodedata.combining(c))
 
 
+def _key(s: str) -> str:
+    """One lookup key for a club however anybody spelled it.
+
+    The map is not looked up on the flattened spelling. _plain turns "Köln"
+    into "Koeln" - an inserted 'e' - so an entry typed "Koln" on an English
+    keyboard silently never matched, and LuxTipps read the German spelling out
+    loud instead of "Cologne". Stripping the accent instead of expanding it
+    makes "Köln", "Koeln" and "Koln" all arrive at the same key.
+    """
+    s = unicodedata.normalize("NFKD", s.replace("ß", "ss"))
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return "".join(c for c in s.lower() if c.isalnum())
+
+
+_SAY = {lang: {_key(k): v for k, v in m.items()} for lang, m in SAY.items()}
+
+
 def say(name: str, lang: str) -> str:
-    return SAY[lang].get(name) or SAY[lang].get(_plain(name)) or _plain(name)
+    return _SAY[lang].get(_key(name)) or _plain(name)
 
 
 def score_words(score: str, lang: str) -> str:
