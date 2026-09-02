@@ -243,3 +243,80 @@ complain; a sync test that cannot go red is worth less than no test.
 Plus the data rules he asked for, asserted per file: every published price
 inside 5.00-20.00, no scoreline repeated unless forced, and no fixture where the
 two brands share a result. Package spread came out 5.34 to 18.34, average 10.56.
+
+## reel.py v2 — the ladder, the hook and the reasoning beat (2 Sept)
+
+His second brief: @billhpicks structure end to end — hook, pick, stats, action,
+payoff, CTA — plus a vertical progress bar on the left that starts blurred and
+clears as each part of the pick lands.
+
+* **The bar is a real mechanic, not a graphic.** Three rungs per pick, and they
+  are pinned to the spoken score through the same word timestamps the captions
+  use: rung one lights on the home number, rung two on the away number, rung
+  three when the score finishes. Change a scoreline and the bar re-times itself.
+* **Unlit rungs must not contain the number.** The first cut drew
+  "STUTTGART 2 / KÖLN 1 / EXAKT 2:1" behind a blur, and blurred 40pt type is
+  perfectly readable — the bar handed over the answer the card spends eight
+  seconds building to. Unlit now reads "STUTTGART ?".
+* **Out, then in — never a cross-fade.** The two states carry different words,
+  so fading between them draws both at once and reads as a rendering fault.
+* `verify_reel.py` asserts the bar cannot light before the score is spoken —
+  the same defect as an early card reveal, in a place the card check never
+  looks. Tested by rigging a manifest two seconds early: 3 complaints, one per
+  pick.
+* **The reasoning beat is spoken but not captioned.** A stat sentence drawn one
+  190pt word at a time is nine cuts that say nothing. It gets a panel — one
+  number, one label — while the voice reads the sentence.
+* A pick now runs ~8s, so it **cuts once, on the stat beat**: a real edit point
+  rather than an arbitrary midpoint.
+* A caption's `off` is clamped to HOLD past its own word. Without it the last
+  word of the fixture line hung through the whole stat sentence — four seconds
+  of "KÖLN" in 190pt over a panel of numbers, because the next caption in that
+  segment was not until the tip line.
+* The retake guard keys on `lines[-1]`, not `lines[1]`. The stat line sits in
+  the middle and is full of digits ("29 von 38"), so a fixed index had the
+  guard listening for a scoreline in the wrong sentence.
+* **There is no payoff beat.** These run before kick-off; nothing has been won.
+  See below.
+
+## formstats.py — where the stats come from
+Derived from the provider's own goal-by-goal timelines for the last completed
+season. Nothing typed, nothing estimated.
+
+* **The own-goal convention was measured, not assumed.** 20 of the Bundesliga's
+  990 goal events were own goals. Crediting the event's `team` as-is matched
+  the provider's own final scores 306/306; flipping own goals to the opponent
+  matched 287 and broke 19. The instinctive fix was the wrong one.
+  `formstats.py --check` re-runs that comparison.
+* **A stat has to point at the pick.** The first version quoted Genoa's clean
+  sheets under a pick of "Genoa 0" — true, and an argument for the opposite of
+  the pick. A clean sheet is about conceding; the pick was about scoring.
+* **Head-to-head is same-orientation only.** Matching both legs made "this
+  fixture finished 3:1 last season" describe a game in which the 3 belonged to
+  tonight's away side.
+* **Measured against the league's own base rate, not a flat count.** "Valencia
+  failed to score in 9 of 38" is 24% where La Liga's average is 24% — a true
+  sentence that quietly argues against the pick it is there to support.
+* 88 of 100 picks get a line. The other 12 run a two-line segment rather than
+  say something weak.
+
+## The payoff / WIN beat — why it is not in these two files
+He asked for GOAL → ASSIST → WIN, the bar filling as the action happens, and a
+big CASHED at the end. Two things are in the way, and only one of them is
+technical:
+
+1. The bar filling on real goals needs footage of those goals. That is
+   broadcast material and it is the one part of this format that gets a brand
+   account struck rather than throttled.
+2. **Nothing we have published has finished yet.** Every tips file on disk —
+   including both earlier ones in git — is this weekend's matchday, kicking off
+   4-7 Sept. There is no settled published pick anywhere to recap.
+
+`--mode result` DOES NOT EXIST YET. Nothing in reel.py takes that flag; the
+`script()` docstring says the payoff beat is missing and that is the whole of
+it. It is deliberately unbuilt rather than half-built, because the only way to
+demo it today would be to render a win against a match we never tipped, and
+that is a fabricated track record whether or not the caption admits it. When
+the weekend settles there will be real published picks and real results, and
+the beat gets built against those — with the render refusing any fixture that
+has no stored pick matching the final score.

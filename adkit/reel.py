@@ -47,8 +47,9 @@ import subprocess
 import wave
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
+import formstats as FS
 import narrate as N
 import poster as P
 import tips_video as T
@@ -61,9 +62,9 @@ WORK = ROOT / "out" / "vo"
 SCRATCH = N.VENV.parent
 BROLL = SCRATCH / "broll"
 
-LEAD = 0.25      # silence before the first word of a segment
-GAP = 0.16       # between the two spoken lines of a pick
-TAIL = 0.42      # after the last word, before the cut
+LEAD = 0.20      # silence before the first word of a segment
+GAP = 0.12       # between the spoken lines of a pick
+TAIL = 0.30      # after the last word, before the cut
 POP = 0.13       # how long a caption word takes to snap to full size
 HOLD = 0.28      # how long the last word of a line stays up
 
@@ -97,9 +98,14 @@ STR = {
            "day": "SPIELTAG", "day_say": "Spieltag",
            "vs": "GEGEN", "vs_say": "gegen",
            "we": "WIR SAGEN", "we_say": "Wir sagen",
-           "o1": "ALLE TIPPS", "o1_say": "Alle Tipps",
-           "o2": "JEDEN SPIELTAG", "o2_say": "jeden Spieltag",
-           "tip": "TIPP"},
+           # The hook. A question, not a promise - this is a licensed
+           # gambling brand and "the easiest money today" is the one line
+           # that turns a creative into a compliance problem.
+           "hook": "KLINGT VERRÜCKT", "hook_say": "Klingt verrueckt",
+           "o1": "JEDEN SPIELTAG", "o1_say": "Jeden Spieltag",
+           "o2": "NEUE TIPPS", "o2_say": "neue Tipps",
+           "cta": "FOLGEN", "cta_say": "Folgen",
+           "tip": "TIPP", "exact": "EXAKT", "won": "GEWONNEN"},
     "en": {"n": ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX"],
            "n_say": ["", "one", "two", "three", "four", "five", "six"],
            "tips": "PICKS", "tips_say": "picks",
@@ -107,9 +113,11 @@ STR = {
            "day": "WEEKEND", "day_say": "weekend",
            "vs": "VS", "vs_say": "against",
            "we": "WE SAY", "we_say": "We say",
-           "o1": "ALL TIPS", "o1_say": "All tips",
+           "hook": "SOUNDS CRAZY", "hook_say": "Sounds crazy",
+           "o1": "NEW PICKS", "o1_say": "New picks",
            "o2": "EVERY MATCHDAY", "o2_say": "every matchday",
-           "tip": "PICK"},
+           "cta": "FOLLOW", "cta_say": "Follow",
+           "tip": "PICK", "exact": "EXACT", "won": "WINNER"},
 }
 
 
@@ -123,9 +131,15 @@ class Line:
     other.
     """
 
-    def __init__(self, key: str, chunks: list[tuple[str, str]]):
+    def __init__(self, key: str, chunks: list[tuple[str, str]],
+                 caption: bool = True):
         self.key = key
         self.chunks = chunks
+        #: The reasoning beat is spoken but NOT captioned word by word. A
+        #: sentence like "Como scored in 29 of 38 games last season" drawn one
+        #: 190pt word at a time is nine cuts that say nothing; it gets a stat
+        #: panel instead, which is also what his reference does with numbers.
+        self.caption = caption
         self.text = " ".join(s for _, s in chunks) + "."
         self.words = [w for _, s in chunks for w in s.split()]
 
@@ -147,31 +161,59 @@ class Line:
 
 
 def script(b: T.Brand, data: dict, fx: list[dict]) -> list[dict]:
-    """Segments, in order: a hook, one per pick, an outro."""
+    """Segments, in order: hook, one per pick, CTA.
+
+    The shape he asked for - hook, pick, reasoning, payoff, CTA - with one
+    deliberate omission: there is no payoff beat. These run BEFORE kick-off,
+    so nothing has been won, and every tips file on disk is this weekend's
+    matchday. The only way to show a WIN today would be to claim one on a
+    match we never tipped. That beat gets built once real published picks have
+    settled - see TIPS.md. Nothing here takes a --mode flag yet.
+    """
     s = STR[b.lang]
     lang = b.lang
     league = data["league"]
-    segs = [{"kind": "hook", "fx": None, "lines": [Line("h1", [
-        (league.upper(), N._plain(league)),
-        (s["n"][len(fx)], s["n_say"][len(fx)]),
-        (s["tips"], s["tips_say"]),
-        (s["for"], s["for_say"]),
-        (s["day"], s["day_say"]),
-    ])]}]
+    segs = [{"kind": "hook", "fx": None, "stat": None, "ladder": None,
+             "lines": [
+                 # First two seconds. A question, so the viewer stays to find
+                 # out what is crazy about it.
+                 Line("h0", [(s["hook"], s["hook_say"])]),
+                 Line("h1", [(league.upper(), N._plain(league)),
+                             (s["n"][len(fx)], s["n_say"][len(fx)]),
+                             (s["tips"], s["tips_say"]),
+                             (s["for"], s["for_say"]),
+                             (s["day"], s["day_say"])]),
+             ]}]
 
     for i, f in enumerate(fx, 1):
         score = f["picks"][b.key]["score"]
         home, away = f["home_short"], f["away_short"]
-        segs.append({"kind": "pick", "fx": f, "lines": [
-            Line(f"a{i}", [(home.upper(), N.say(home, lang)),
-                           (s["vs"], s["vs_say"]),
-                           (away.upper(), N.say(away, lang))]),
-            Line(f"b{i}", [(s["we"], s["we_say"]),
-                           (score, N.score_words(score, lang))]),
-        ]})
+        gh, ga = score.split(":")
+        lines = [Line(f"a{i}", [(home.upper(), N.say(home, lang)),
+                                (s["vs"], s["vs_say"]),
+                                (away.upper(), N.say(away, lang))])]
+        st = FS.stat_line(data["league_id"], f, score, lang)
+        if st:
+            lines.append(Line(f"s{i}", [("", st["say"])], caption=False))
+        # The tip line is always last. plan() finds it that way rather than by
+        # index, because the stat line is missing for about one pick in eight
+        # and a fixed index would silently time the ladder off the wrong line.
+        lines.append(Line(f"b{i}", [(s["we"], s["we_say"]),
+                                    (score, N.score_words(score, lang))]))
+        # Two texts per rung, unlit and lit. The unlit one must NOT contain
+        # the number: blurred 40pt type is still perfectly readable, so a
+        # ladder that says "STUTTGART 2" from frame one hands over the answer
+        # the card spends eight seconds building up to. It reads the score out
+        # before the voice does.
+        segs.append({"kind": "pick", "fx": f, "stat": st, "lines": lines,
+                     "ladder": [(f"{home.upper()}  ?", f"{home.upper()}  {gh}"),
+                                (f"{away.upper()}  ?", f"{away.upper()}  {ga}"),
+                                (f"{s['exact']}  ?:?", f"{s['exact']}  {score}")]})
 
-    segs.append({"kind": "outro", "fx": None, "lines": [Line("z1", [
-        (s["o1"], s["o1_say"]), (s["o2"], s["o2_say"])])]})
+    segs.append({"kind": "outro", "fx": None, "stat": None, "ladder": None,
+                 "lines": [Line("z1", [(s["o1"], s["o1_say"]),
+                                       (s["o2"], s["o2_say"])]),
+                           Line("z2", [(s["cta"], s["cta_say"])])]})
     return segs
 
 
@@ -291,12 +333,17 @@ def plan(b: T.Brand, segs: list[dict], model) -> dict:
     expect = {}
     for sg in segs:
         if sg["kind"] == "pick":
-            expect[sg["lines"][1].key] = [
+            # lines[-1], not lines[1]: the stat line sits in the middle for
+            # most picks and is absent for the rest, so a fixed index would
+            # have the retake guard listening to the wrong sentence for a
+            # score - and passing, because that sentence has no digits to
+            # mishear.
+            expect[sg["lines"][-1].key] = [
                 c for c in sg["fx"]["picks"][b.key]["score"] if c.isdigit()]
     clips = N.confirm(b.lang, lines, clips, expect, tag)
 
     frames, at = [], 0                      # `at` counts FRAMES, never seconds
-    audio, caps, reveals = {}, [], []
+    audio, caps, reveals, rungs, stats = {}, [], [], [], []
     for sg in segs:
         starts, t = [], LEAD
         for ln in sg["lines"]:
@@ -304,34 +351,58 @@ def plan(b: T.Brand, segs: list[dict], model) -> dict:
             t += clips[ln.key]["dur"] + GAP
         seg = math.ceil((t - GAP + TAIL) * FPS)
         base = at / FPS
-        spans = []
+        spans = {}
         for ln, st in zip(sg["lines"], starts):
             audio[ln.key] = base + st
+            if not ln.caption:
+                # Spoken, never captioned. No alignment either - nothing on
+                # screen is timed off its individual words.
+                spans[ln.key] = None
+                continue
             wt = align(clips[ln.key]["file"], ln.words,
                        clips[ln.key]["dur"], b.lang, model)
-            spans.append([(disp, say, base + st + a, base + st + c,
-                           [[w, base + st + s, base + st + e]
-                            for w, (s, e) in per])
-                          for disp, say, a, c, per in ln.spans(wt)])
-            for disp, say, a, c, per in spans[-1]:
+            spans[ln.key] = [(disp, say, base + st + a, base + st + c,
+                              [[w, base + st + s, base + st + e]
+                               for w, (s, e) in per])
+                             for disp, say, a, c, per in ln.spans(wt)]
+            for disp, say, a, c, per in spans[ln.key]:
                 caps.append({"seg": len(frames), "text": disp, "say": say,
                              "at": a, "end": c, "words": per})
-        # The score row on the card flips a beat BEFORE the score is spoken -
-        # the number is always on screen by the time the voice says it, never
-        # after. The last token of the second line is the score itself.
-        reveals.append(spans[1][-1][2] - 0.10 if sg["kind"] == "pick" else None)
+
+        rung = None
+        reveal = None
+        if sg["kind"] == "pick":
+            # The rungs are pinned to the spoken score, not to the segment.
+            # "null zu eins" is three words and "nil one" is two, so the away
+            # number is the LAST word either way and the home number the
+            # first - the bar fills exactly as the number leaves the mouth.
+            per = spans[sg["lines"][-1].key][-1][4]
+            rung = [per[0][1], per[-1][1], per[-1][2] + 0.06]
+            # The card carries the score a beat before it is said, never after.
+            reveal = per[0][1] - 0.10
+        reveals.append(reveal)
+        rungs.append(rung)
+        # The stat panel arrives with the sentence that explains it and stays
+        # up for the rest of the segment.
+        si = next((i for i, ln in enumerate(sg["lines"])
+                   if not ln.caption), None)
+        stats.append(None if si is None else base + starts[si] - 0.12)
         frames.append(seg)
         at += seg
 
-    # a caption stays up until the next one in the same segment, or a beat
-    # after its own line ends
+    # A caption stays up until the next one, but never for longer than HOLD
+    # past its own word. Without the clamp the last word of the fixture line
+    # hung on through the entire stat sentence - four seconds of "KOELN" in
+    # 190pt over a panel of numbers, because the next caption in that segment
+    # was not until the tip line and the stat line has no captions at all.
     for i, c in enumerate(caps):
         nxt = caps[i + 1] if i + 1 < len(caps) else None
-        c["off"] = (nxt["at"] if nxt and nxt["seg"] == c["seg"]
-                    else c["end"] + HOLD)
+        stop = c["end"] + HOLD
+        c["off"] = (min(nxt["at"], stop) if nxt and nxt["seg"] == c["seg"]
+                    else stop)
     return {"frames": frames, "audio": audio, "caps": caps,
-            "reveals": reveals, "clips": clips, "fps": FPS, "lang": b.lang,
-            "texts": lines}
+            "reveals": reveals, "rungs": rungs, "stats": stats,
+            "clips": clips, "fps": FPS, "lang": b.lang, "texts": lines}
 
 
 def write_track(pl: dict, path: pathlib.Path) -> pathlib.Path:
@@ -387,6 +458,13 @@ def word(text: str, fill) -> Image.Image:
     out.alpha_composite(sh, (0, 12))
     out.alpha_composite(im)
     _cap[key] = out
+    return out
+
+
+def _alpha(im: Image.Image, a: float) -> Image.Image:
+    """A copy of `im` at `a` of its own opacity, for cross-fading."""
+    out = im.copy()
+    out.putalpha(out.getchannel("A").point(lambda v: int(v * a)))
     return out
 
 
@@ -455,6 +533,100 @@ def pick_card(b: T.Brand, fx: dict, score: str | None) -> Image.Image:
     return im
 
 
+# ------------------------------------------------------------------ the ladder
+LAD_X, LAD_Y = 54, 742     # top-left of the first rung
+LAD_STEP = 132             # centre to centre
+LAD_W = 430
+NODE = 46
+FADE = 0.30                # out-then-in, so the two texts never overlap
+
+
+def lad_row(b: T.Brand, text: str, live: bool) -> Image.Image:
+    """One rung of the progress bar, in one of its two states.
+
+    Unlit rungs are blurred rather than merely dimmed. Dimming alone reads as
+    "disabled"; blur reads as "not yet known", which is the feeling he asked
+    for - the viewer can see there are three steps and cannot yet read them.
+    """
+    key = ("lad", b.key, text, live)
+    if key in P._cache:
+        return P._cache[key]
+    h = NODE + 16
+    im = Image.new("RGBA", (LAD_W, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    cy = h // 2
+    box = (2, cy - NODE // 2, 2 + NODE, cy + NODE // 2)
+    if live:
+        d.ellipse(box, fill=b.accent)
+        cx = 2 + NODE // 2
+        d.line([(cx - 11, cy), (cx - 3, cy + 9), (cx + 12, cy - 10)],
+               fill=(255, 255, 255), width=7, joint="curve")
+        ink, stroke = (255, 255, 255), 6
+    else:
+        d.ellipse(box, fill=(255, 255, 255, 38),
+                  outline=(255, 255, 255, 120), width=4)
+        ink, stroke = (235, 238, 242), 5
+
+    size = 40
+    f = P.font(size)
+    while f.getlength(text) > LAD_W - NODE - 34 and size > 22:
+        size -= 2
+        f = P.font(size)
+    d.text((2 + NODE + 22, cy), text, font=f, fill=ink, anchor="lm",
+           stroke_width=stroke, stroke_fill=(0, 0, 0, 205))
+    if not live:
+        im = im.filter(ImageFilter.GaussianBlur(3.4))
+        im.putalpha(im.getchannel("A").point(lambda v: int(v * 0.62)))
+    P._cache[key] = im
+    return im
+
+
+def lad_rail(n: int) -> Image.Image:
+    key = ("ladrail", n)
+    if key in P._cache:
+        return P._cache[key]
+    h = (n - 1) * LAD_STEP + NODE + 16
+    im = Image.new("RGBA", (LAD_W, h), (0, 0, 0, 0))
+    x = 2 + NODE // 2
+    ImageDraw.Draw(im).line([(x, (NODE + 16) // 2),
+                             (x, (n - 1) * LAD_STEP + (NODE + 16) // 2)],
+                            fill=(255, 255, 255, 62), width=5)
+    P._cache[key] = im
+    return im
+
+
+def stat_panel(b: T.Brand, st: dict) -> Image.Image:
+    """The reasoning beat: one number the eye lands on, and what it counts."""
+    key = ("stat", b.key, st["big"], st["label"])
+    if key in P._cache:
+        return P._cache[key]
+    w, h = W - 120, 132
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    dark = b.style == "dark"
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 28,
+                        fill=(10, 12, 16, 214) if dark else (243, 240, 232, 226))
+    ink = (247, 250, 253) if dark else T.CHAR
+    sub = (150, 163, 178) if dark else (120, 116, 106)
+
+    size = 66
+    f = P.font(size)
+    while f.getlength(st["big"]) > 300 and size > 34:
+        size -= 3
+        f = P.font(size)
+    d.text((30, h // 2), st["big"], font=f, fill=b.accent, anchor="lm")
+    x = 30 + f.getlength(st["big"]) + 26
+
+    size = 36
+    lf = P.font(size)
+    while lf.getlength(st["label"]) > w - x - 26 and size > 20:
+        size -= 2
+        lf = P.font(size)
+    d.text((x, h // 2), st["label"], font=lf, fill=sub, anchor="lm")
+    P._cache[key] = im
+    return im
+
+
 def furniture(b: T.Brand) -> Image.Image:
     """Everything that never changes: the darkening that makes text readable
     over moving grass, and the brand disc. No handle, no CTA - he stripped all
@@ -467,6 +639,19 @@ def furniture(b: T.Brand) -> Image.Image:
         top = max(0.0, 1 - y / 620) * 150
         bot = max(0.0, (y - 900) / (H - 900)) * 120
         gd.line([(0, y), (W, y)], fill=int(min(200, top + bot)))
+    # ...and a soft column down the left, where the progress bar lives. Its
+    # rungs carry a black outline, but a white node on a white shirt is still
+    # a coin toss, and this is the one element that must stay legible for the
+    # whole video rather than for one beat.
+    col = Image.new("L", (W, H), 0)
+    cd = ImageDraw.Draw(col)
+    for x in range(560):
+        cd.line([(x, LAD_Y - 90), (x, LAD_Y + 2 * LAD_STEP + 130)],
+                fill=int(96 * (1 - x / 560)))
+    # Blurred, or its top and bottom edges draw two hard horizontal lines
+    # across the left half of the frame - clearly visible over a flat sky.
+    col = col.filter(ImageFilter.GaussianBlur(70))
+    g.paste(ImageChops.lighter(g, col))
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     im.paste((0, 0, 0, 255), (0, 0, W, H), g)
     im.alpha_composite(b.disc(104), (60, 132))
@@ -507,6 +692,32 @@ def bg_frames(clip: str, n: int, bg: str):
         p.wait()
 
 
+def shots(sg: dict, si: int, n: int, start: int, pl: dict) -> list[tuple[str, int]]:
+    """Which clip runs under this segment, and where it cuts.
+
+    A pick now runs eight seconds - name, reasoning, tip - and eight seconds of
+    one continuous shot is the thing that makes a reel feel like a slideshow
+    however fast the captions move. So a pick cuts once, on the stat beat,
+    which is a real edit point rather than an arbitrary halfway mark: the
+    picture changes exactly when the subject does.
+    """
+    pool = CLIPS[sg["kind"]]
+    if sg["kind"] != "pick":
+        return [(pool[0], n)]
+    a, b = pool[(2 * si) % len(pool)], pool[(2 * si + 1) % len(pool)]
+    at = pl["stats"][si]
+    cut = n // 2 if at is None else int(round((at - start / FPS) * FPS))
+    cut = max(FPS // 2, min(cut, n - FPS // 2))       # never a flash frame
+    return [(a, cut), (b, n - cut)]
+
+
+def chain(shot_list: list[tuple[str, int]], bg: str):
+    for clip, count in shot_list:
+        if count <= 0:
+            continue
+        yield from bg_frames(clip, count, bg)
+
+
 def render(brand_key: str, league_id: int, picks: int, bg: str,
            model) -> pathlib.Path:
     b = T.BRANDS[brand_key]
@@ -536,22 +747,27 @@ def render(brand_key: str, league_id: int, picks: int, bg: str,
     slack = (ow - W, oh - H)
     at = 0
     for si, (sg, n) in enumerate(zip(segs, pl["frames"])):
-        pool = CLIPS[sg["kind"]]
-        clip = pool[si % len(pool)] if sg["kind"] == "pick" else pool[0]
         card = None
+        rows = rail = None
+        panel = None
         if sg["kind"] == "pick":
             card = (pick_card(b, sg["fx"], None),
                     pick_card(b, sg["fx"], sg["fx"]["picks"][brand_key]["score"]))
+            rows = [(lad_row(b, dim, False), lad_row(b, live, True))
+                    for dim, live in sg["ladder"]]
+            rail = lad_rail(len(rows))
+            if sg["stat"]:
+                panel = stat_panel(b, sg["stat"])
         # alternate the drift so three picks in a row do not feel like one shot
         d0, d1 = (0.12, 0.88) if si % 2 == 0 else (0.88, 0.12)
         # ffmpeg can hand back fewer frames than asked for on the last loop of
         # a short clip; the picture must not end before the sentence does, so
         # the final frame is held rather than the segment being shortened.
-        gen, last = bg_frames(clip, n, bg), None
+        gen, last = chain(shots(sg, si, n, at, pl), bg), None
         for k in range(n):
             src = last = next(gen, last)
             if src is None:
-                raise SystemExit(f"{clip}: no frames at all")
+                raise SystemExit(f"segment {si}: no frames at all")
             t = (at + k) / FPS
             u = k / max(n - 1, 1)
             a = d0 + (d1 - d0) * u
@@ -571,6 +787,45 @@ def render(brand_key: str, league_id: int, picks: int, bg: str,
                     lay.putalpha(lay.getchannel("A").point(
                         lambda v: int(v * s)))
                 frame.alpha_composite(lay)
+
+            if rows is not None:
+                frame.alpha_composite(rail, (LAD_X, LAD_Y))
+                for ri, (dim, live) in enumerate(rows):
+                    y = LAD_Y + ri * LAD_STEP
+                    a = (t - pl["rungs"][si][ri]) / FADE
+                    if a <= 0:
+                        frame.alpha_composite(dim, (LAD_X, y))
+                        continue
+                    if a >= 1:
+                        frame.alpha_composite(live, (LAD_X, y))
+                        continue
+                    # Sequential, not a cross-fade. The two states carry
+                    # DIFFERENT words ("EXAKT ?:?" and "EXAKT 2:1"), so
+                    # overlapping them draws both at once and the rung reads
+                    # as a rendering fault rather than a reveal. Out, then in.
+                    if a < 0.42:
+                        frame.alpha_composite(
+                            _alpha(dim, 1 - P.ease_out(a / 0.42)), (LAD_X, y))
+                    else:
+                        e = P.ease_out((a - 0.42) / 0.58)
+                        # a short overshoot on the way in, so a rung snaps
+                        # into focus rather than dissolving into it
+                        sc = 1 + 0.10 * (1 - e)
+                        im = live.resize((int(live.width * sc),
+                                          int(live.height * sc)),
+                                         Image.BILINEAR)
+                        frame.alpha_composite(
+                            _alpha(im, e),
+                            (LAD_X, y - (im.height - live.height) // 2))
+
+            if panel is not None:
+                a = (t - pl["stats"][si]) / 0.30
+                if a > 0:
+                    e = P.ease_out(min(1.0, a))
+                    dx = int((1 - e) * -46)
+                    frame.alpha_composite(
+                        panel if e >= 1 else _alpha(panel, e),
+                        (60 + dx, CARD_Y + 236 + 26))
 
             for c in pl["caps"]:
                 if c["at"] <= t < c["off"]:

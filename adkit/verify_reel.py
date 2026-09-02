@@ -97,14 +97,24 @@ def check(brand_key: str, league_id: int, model,
     for i, j, n in sm.get_matching_blocks():
         for k in range(n):
             ci, _, want = ref[i + k]
-            drift = hyp[j + k][1] - want
+            # Against the whole heard word, not its start. Whisper hands a
+            # word all of the silence in front of it: across the pause
+            # between two segments it reported "Jeden" as running 28.00-29.00
+            # when the clip demonstrably begins at 28.70, and the caption
+            # drawn exactly on that onset was reported 0.70s late. Measuring
+            # to the interval keeps the real question - is the caption up
+            # while the word is being said - and stops the transcriber's
+            # segmentation from being scored as the video's error.
+            h0, h1 = hyp[j + k][1], hyp[j + k][2]
+            drift = 0.0 if h0 <= want <= h1 else (want - h0 if want < h0
+                                                  else want - h1)
             worst = max(worst, abs(drift))
             matched += 1
-            hits.setdefault(ci, []).append((hyp[j + k][1], drift))
+            hits.setdefault(ci, []).append((h0, drift))
             if abs(drift) > TOL:
                 fails.append(f"{mp4.name}: caption {plan['caps'][ci]['text']!r}"
                              f" word {ref[i + k][1]!r} drawn at {want:.2f}s, "
-                             f"spoken at {hyp[j + k][1]:.2f}s ({drift:+.2f}s)")
+                             f"heard {h0:.2f}-{h1:.2f}s ({drift:+.2f}s)")
     share = matched / max(len(ref), 1)
     if share < 0.80:
         fails.append(f"{mp4.name}: only {share:.0%} of the script was "
@@ -118,6 +128,17 @@ def check(brand_key: str, league_id: int, model,
         if spoken + 0.05 < rev:
             fails.append(f"{mp4.name}: {c['text']} spoken at {spoken:.2f}s, "
                          f"before the card shows it at {rev:.2f}s")
+
+        # The progress bar must not give the answer away either. Its last rung
+        # carries the full scoreline, and the whole point of the blurred state
+        # is that the viewer cannot read it yet - a rung that lights early is
+        # the same defect as a card that reveals early, in a place the card
+        # check would never look.
+        rung = plan.get("rungs", [None] * len(plan["frames"]))[c["seg"]]
+        if rung and rung[-1] + 0.15 < spoken:
+            fails.append(f"{mp4.name}: the ladder shows {c['text']} at "
+                         f"{rung[-1]:.2f}s, {spoken - rung[-1]:.2f}s before "
+                         f"it is spoken at {spoken:.2f}s")
 
     print(f"  {mp4.name:<40} {got:>4}f {got / plan['fps']:>5.1f}s  "
           f"{len(plan['caps'])} captions, {share:.0%} of words heard, "
