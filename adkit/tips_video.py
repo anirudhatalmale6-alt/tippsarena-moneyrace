@@ -471,8 +471,13 @@ def _score_light(img: Image.Image, b: Brand, tip: dict, k: float) -> None:
 
 
 # ------------------------------------------------------------------- rendering
-def cards(b: Brand, data: dict):
-    """Yield every frame of the video, in order, as RGB images."""
+def cards(b: Brand, data: dict, timing=None):
+    """Yield every frame of the video, in order, as RGB images.
+
+    `timing` is (frames per fixture, outro frames), used by the narrated cut:
+    a segment there is as long as its two spoken lines need, never shorter than
+    MATCH. Only the hold at the end of a segment grows - every animation stays
+    anchored to the segment start, so the reveal still lands at REVEAL."""
     base = backdrop(b)
     chrome(base, b, data["league"], _round_label(data["round"], b))
     light = b.style == "light"
@@ -484,9 +489,11 @@ def cards(b: Brand, data: dict):
     # league and the matchday are already in the header of every frame.
 
     # --- one segment per fixture
-    n = int(MATCH * FPS)
+    segs, outro_frames = timing or ([int(MATCH * FPS)] * len(data["fixtures"]),
+                                    int(OUTRO * FPS))
     for i, fx in enumerate(data["fixtures"], 1):
         total = len(data["fixtures"])
+        n = segs[i - 1]
         if light:
             pre, post, rows, tip = match_layers_light(base, b, fx, i, total)
             for j in range(n):
@@ -552,7 +559,7 @@ def cards(b: Brand, data: dict):
     # above it are gone, so the card is the mark and the two lines - which is
     # why they moved down: they were sitting on top of a hole.
     d.line((W / 2 - 150, 1258, W / 2 + 150, 1258), fill=b.accent, width=6)
-    for _ in range(int(OUTRO * FPS)):
+    for _ in range(outro_frames):
         yield outro
 
 
@@ -563,7 +570,7 @@ def _round_label(rnd: str, b: Brand) -> str:
     return b.t("round", n=tail) if tail.isdigit() else rnd
 
 
-def render(brand_key: str, league_id: int) -> pathlib.Path:
+def render(brand_key: str, league_id: int, voice: bool = False) -> pathlib.Path:
     b = BRANDS[brand_key]
     data = json.loads((DATA / f"tips-{league_id}.json").read_text(encoding="utf-8"))
     fixtures = [f for f in data["fixtures"] if brand_key in f.get("picks", {})]
@@ -571,16 +578,28 @@ def render(brand_key: str, league_id: int) -> pathlib.Path:
         raise SystemExit(f"no fixtures with a pick for league {league_id}")
     data = dict(data, fixtures=fixtures)
     OUT.mkdir(parents=True, exist_ok=True)
-    out = OUT / f"{brand_key}-prognosen-{data['slug']}.mp4"
-    proc = subprocess.Popen(
-        ["ffmpeg", "-y", "-loglevel", "error",
-         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-         "-framerate", str(FPS), "-i", "-",
-         "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-         "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)],
-        stdin=subprocess.PIPE)
+
+    timing, wav = None, None
+    if voice:
+        # imported here on purpose: the silent set must keep rendering on a
+        # machine that has never seen piper.
+        import narrate
+        track = narrate.build(b, data, MATCH, OUTRO, REVEAL, FPS)
+        wav = track.write(OUT / "vo" / f"{brand_key}-{data['slug']}.wav")
+        timing = (track.segments, track.outro)
+
+    suffix = "-voice" if voice else ""
+    out = OUT / f"{brand_key}-prognosen-{data['slug']}{suffix}.mp4"
+    cmd = ["ffmpeg", "-y", "-loglevel", "error",
+           "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+           "-framerate", str(FPS), "-i", "-"]
+    if wav:
+        cmd += ["-i", str(wav), "-c:a", "aac", "-b:a", "128k", "-shortest"]
+    cmd += ["-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)]
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     n = 0
-    for frame in cards(b, data):
+    for frame in cards(b, data, timing):
         proc.stdin.write(frame.tobytes())
         n += 1
     proc.stdin.close()
@@ -595,12 +614,15 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("leagues", nargs="*", type=int)
     ap.add_argument("--brand", choices=list(BRANDS) + ["both"], default="both")
+    ap.add_argument("--voice", action="store_true",
+                    help="narrated cut: segments stretch to fit the spoken "
+                         "lines, output gets a -voice suffix")
     a = ap.parse_args()
     leagues = a.leagues or [39, 78, 79, 140, 135, 61]
     brands = list(BRANDS) if a.brand == "both" else [a.brand]
     for bk in brands:
         for lid in leagues:
-            render(bk, lid)
+            render(bk, lid, voice=a.voice)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""Spoken commentary for the prediction videos.
+
+He asked whether a voiceover is possible at my end. It is, offline: piper
+(neural TTS, ONNX) with a German voice for TippsArena and an English one for
+LuxTipps. No third-party API, no key of his, no per-video cost, and nothing
+leaves this machine.
+
+Two rules shape everything here:
+
+* **The voice drives the cut, not the other way round.** A silent segment is
+  3.6 s. "Borussia Moenchengladbach gegen Eintracht Frankfurt. Unser Tipp:
+  drei zu zwei." is longer than that, and clipping a sentence at the segment
+  boundary is the one mistake a viewer hears instantly. So each fixture's
+  segment is stretched to fit its own two lines, and only the still that is
+  already on screen is held longer. Nothing is spoken faster to fit a grid.
+
+* **The tip is never spoken before it is shown.** The score appears at REVEAL
+  (1.35 s in). The second line starts at REVEAL + 0.12 s, or later if the
+  team line is still running - never earlier.
+
+The video stays usable without sound: this adds a track, it does not move any
+information into it.
+"""
+from __future__ import annotations
+
+import json
+import math
+import pathlib
+import subprocess
+import unicodedata
+import wave
+
+import numpy as np
+
+ROOT = pathlib.Path(__file__).resolve().parent
+# The venv and the voice models are big and are not source; they live outside
+# the repo. install_voices.sh rebuilds both from scratch.
+VENV = pathlib.Path("/tmp/claude-1004/-home-freelancer/"
+                    "9dbe74e0-4297-4b96-ba61-8a7c42919c50/scratchpad/ttsenv")
+VOICES = VENV.parent / "voices"
+WORK = ROOT / "out" / "vo"
+
+MODEL = {"de": VOICES / "de_DE-thorsten-high.onnx",
+         "en": VOICES / "en_GB-northern_english_male-medium.onnx"}
+# thorsten-high reads deliberately; a touch under 1.0 sounds like a presenter
+# rather than an announcement board. The English voice is already brisk.
+SPEED = {"de": 0.94, "en": 1.0}
+
+LEAD = 0.30      # silence before the first word of a segment
+GAP = 0.20       # between the team line and the tip line
+TAIL = 0.55      # after the last word, before the cut
+
+NUM = {
+    "de": ["null", "eins", "zwei", "drei", "vier", "fuenf", "sechs", "sieben",
+           "acht", "neun"],
+    "en": ["nil", "one", "two", "three", "four", "five", "six", "seven",
+           "eight", "nine"],
+}
+
+# Short names are drawn on screen because they have to fit a card. Spoken, a
+# few of them are wrong or unreadable, so they are said in full. Anything not
+# in here is spoken exactly as it is written on screen.
+SAY = {
+    "de": {"PSG": "Paris Saint-Germain", "HSV": "Hamburger S V",
+           "Mainz 05": "Mainz null fuenf", "St. Pauli": "Sankt Pauli",
+           "Man United": "Manchester United", "Man City": "Manchester City",
+           "Nottm Forest": "Nottingham Forest", "Depor": "Deportivo",
+           "Gladbach": "Borussia Moenchengladbach", "Bremen": "Werder Bremen",
+           "Athletic": "Athletic Bilbao", "Sociedad": "Real Sociedad",
+           "Celta": "Celta Vigo", "Rayo": "Rayo Vallecano",
+           "Inter": "Inter Mailand", "Milan": "A C Mailand",
+           "Napoli": "Neapel", "Roma": "A S Rom", "Lazio": "Lazio Rom",
+           "Juventus": "Juventus Turin", "Torino": "F C Turin"},
+    "en": {"PSG": "Paris Saint-Germain", "HSV": "Hamburg",
+           "Mainz 05": "Mainz", "St. Pauli": "Saint Pauli",
+           "Man United": "Manchester United", "Man City": "Manchester City",
+           "Nottm Forest": "Nottingham Forest", "Depor": "Deportivo",
+           "Gladbach": "Monchengladbach", "Bremen": "Werder Bremen",
+           "Athletic": "Athletic Bilbao", "Sociedad": "Real Sociedad",
+           "Celta": "Celta Vigo", "Rayo": "Rayo Vallecano",
+           "Koln": "Cologne", "Nurnberg": "Nuremberg",
+           "Kaiserslautern": "Kaiserslautern", "Alaves": "Alaves"},
+}
+
+LINES = {
+    "de": {"match": "{home} gegen {away}.", "tip": "Unser Tipp: {score}.",
+           "outro": "Alle Tipps, jeden Spieltag."},
+    "en": {"match": "{home} against {away}.", "tip": "Our prediction: {score}.",
+           "outro": "All tips, every matchday."},
+}
+
+
+def _plain(s: str) -> str:
+    """Umlauts and accents, flattened. The English voice mispronounces them
+    outright; the German one is fed 'ue'/'oe' spellings, which it reads
+    correctly and which survive a JSON round trip on any machine."""
+    s = (s.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue")
+          .replace("Ä", "Ae").replace("Ö", "Oe").replace("Ü", "Ue")
+          .replace("ß", "ss"))
+    return "".join(c for c in unicodedata.normalize("NFKD", s)
+                   if not unicodedata.combining(c))
+
+
+def say(name: str, lang: str) -> str:
+    return SAY[lang].get(name) or SAY[lang].get(_plain(name)) or _plain(name)
+
+
+def score_words(score: str, lang: str) -> str:
+    h, a = (int(x) for x in score.split(":"))
+    n = NUM[lang]
+    h_w = n[h] if h < len(n) else str(h)
+    a_w = n[a] if a < len(n) else str(a)
+    if lang == "de":
+        return f"{h_w} zu {a_w}"
+    # "two nil", not "two zero" - and "nil nil" for a goalless draw.
+    return f"{h_w} {a_w}"
+
+
+class Track:
+    """The narration for one video, and the segment lengths it forces."""
+
+    def __init__(self, lang, clips, segments, outro, offsets, fps, texts):
+        self.lang, self.clips, self.fps = lang, clips, fps
+        self.texts = texts            # {clip key: what it says}
+        self.segments = segments      # FRAMES per fixture, in order
+        self.outro = outro            # frames
+        self.offsets = offsets        # {clip key: absolute seconds}
+
+    def write(self, path: pathlib.Path) -> pathlib.Path:
+        """Lay the clips onto one silent track. Every segment boundary was
+        rounded to a whole frame before the offsets were computed, so the words
+        cannot drift against the pictures over a ten-match video."""
+        sr = next(iter(self.clips.values()))["sr"]
+        frames = sum(self.segments) + self.outro
+        buf = np.zeros(int(round(frames / self.fps * sr)) + sr, dtype=np.int32)
+        for key, at in self.offsets.items():
+            with wave.open(self.clips[key]["file"]) as w:
+                a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+            i = int(round(at * sr))
+            buf[i:i + len(a)] += a
+        buf = np.clip(buf, -32768, 32767).astype(np.int16)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with wave.open(str(path), "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sr)
+            w.writeframes(buf.tobytes())
+        # piper is a VITS model: the duration predictor is stochastic, so the
+        # same sentence comes out a few frames longer or shorter every time it
+        # is synthesized. Re-deriving the timing later would therefore describe
+        # a track that was never muxed - so the plan that WAS used is written
+        # down beside the wav, and the verifier reads this rather than guessing.
+        path.with_suffix(".json").write_text(json.dumps(
+            {"segments": self.segments, "outro": self.outro, "fps": self.fps,
+             "offsets": self.offsets, "lang": self.lang,
+             "texts": self.texts}, indent=1), encoding="utf-8")
+        return path
+
+
+def _synth(lang: str, lines: dict, tag: str) -> dict:
+    out = WORK / tag
+    job = out / "job.json"
+    out.mkdir(parents=True, exist_ok=True)
+    job.write_text(json.dumps({"model": str(MODEL[lang]), "out": str(out),
+                               "length_scale": SPEED[lang], "lines": lines}),
+                   encoding="utf-8")
+    r = subprocess.run([str(VENV / "bin" / "python"),
+                        str(ROOT / "_tts_worker.py"), str(job)],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit(f"tts failed: {r.stderr[-800:]}")
+    return json.loads(r.stdout)
+
+
+def build(brand, data: dict, match: float, outro: float, reveal: float,
+          fps: int) -> Track:
+    """Synthesize every line for one video and work out how long each segment
+    has to be to hold it."""
+    lang = brand.lang
+    tmpl = LINES[lang]
+    lines = {}
+    for i, fx in enumerate(data["fixtures"], 1):
+        lines[f"m{i}"] = tmpl["match"].format(
+            home=say(fx["home_short"], lang), away=say(fx["away_short"], lang))
+        lines[f"t{i}"] = tmpl["tip"].format(
+            score=score_words(fx["picks"][brand.key]["score"], lang))
+    lines["outro"] = tmpl["outro"]
+
+    clips = _synth(lang, lines, f"{brand.key}-{data['slug']}")
+    segments, offsets, at = [], {}, 0        # `at` counts FRAMES, not seconds
+    for i in range(1, len(data["fixtures"]) + 1):
+        m, t = clips[f"m{i}"]["dur"], clips[f"t{i}"]["dur"]
+        # the tip is spoken at the reveal, or after the team line - never over it
+        t_at = max(reveal + 0.12, LEAD + m + GAP)
+        seg = math.ceil(max(match, t_at + t + TAIL) * fps)
+        offsets[f"m{i}"] = at / fps + LEAD
+        offsets[f"t{i}"] = at / fps + t_at
+        segments.append(seg)
+        at += seg
+    o = clips["outro"]["dur"]
+    offsets["outro"] = at / fps + 0.25
+    return Track(lang, clips, segments,
+                 math.ceil(max(outro, 0.25 + o + 0.55) * fps), offsets, fps,
+                 lines)

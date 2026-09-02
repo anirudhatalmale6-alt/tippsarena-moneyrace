@@ -127,6 +127,39 @@ python3 tips_video.py --brand luxtipps 140
 * Crest tiles are white — a crest on a dark background is unreadable for half the
   clubs in Europe.
 
+## `narrate.py` + `_tts_worker.py` — the spoken cut
+*"can you also add voiceovers or you can't do that at your end?"* — yes, and
+without an account of his: **piper**, a neural TTS that runs offline on this
+machine. `de_DE-thorsten-high` reads TippsArena, `en_GB-northern_english_male`
+reads LuxTipps. No API key, no per-video cost, nothing sent anywhere.
+`install_voices.sh` rebuilds the venv and the two models; neither is in the
+repo (~180 MB of binary that never changes).
+
+* **The voice sets the cut, not the grid.** A silent segment is 3.6 s;
+  "Borussia Moenchengladbach gegen Eintracht Frankfurt. Unser Tipp: drei zu
+  zwei." does not fit in it. Each fixture's segment is stretched to hold its own
+  two lines and only the still already on screen is held longer — so the
+  narrated Bundesliga cut runs 42.6 s against 32.4 s silent. Speeding the read
+  up to fit a fixed grid is the alternative, and it sounds like it.
+* **The tip is never spoken before it is shown.** The score appears at REVEAL;
+  the second line starts at REVEAL + 0.12 s, or after the team line if that is
+  still running. Never earlier.
+* **Offsets are computed in frames, not seconds.** Rounding each segment up to
+  a whole frame and then accumulating seconds would drift up to a third of a
+  second over ten matches — enough to put a word before its picture.
+* Piper is a VITS model, so its duration predictor is **stochastic**: the same
+  sentence is a few frames longer each time it is synthesized. The plan that was
+  actually muxed is therefore written to a manifest beside the wav, and the
+  verifier reads that. Recomputing it describes a track that never existed —
+  which is exactly how the first check reported a 4-frame mismatch that was its
+  own fault.
+* Club names are spoken from a small `SAY` map where the on-screen short name
+  would be read wrong: PSG, HSV, "Mainz 05", "Nottm Forest", "Man United". The
+  German voice gets `oe`/`ue` spellings, which it reads correctly.
+* The narrated files carry a `-voice` suffix. The silent set is untouched — this
+  is an option, not a replacement, and nothing moved out of the picture into the
+  audio.
+
 ## Verification
 `ffprobe` per file: `audio_streams=0`, 1080×1920, 30/1, frame count matching
 duration. Then a frame is pulled back **out of the encoded mp4** with
@@ -135,6 +168,13 @@ against the frame the code draws for that same fixture — mean abs error 1.6-1.
 across all twelve, which is h.264 loss and nothing else. Reading the JSON and
 trusting the render would not have caught a mis-ordered segment or a wrong
 brand binding.
+
+`verify_voice.py` does the same job for the narrated cut, by **listening**: the
+audio is pulled back out of the mp4 and transcribed with whisper, then every
+scoreline is checked to be spoken, in fixture order, never before its score is
+on screen and never still running when the segment cuts. Whisper writes "2 zu
+1" where piper was given "zwei zu eins", so both spellings are accepted — that
+is the transcriber's convention, not a defect in the audio.
 
 Plus the data rules he asked for, asserted per file: every published price
 inside 5.00-20.00, no scoreline repeated unless forced, and no fixture where the
