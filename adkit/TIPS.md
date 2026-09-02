@@ -320,3 +320,115 @@ that is a fabricated track record whether or not the caption admits it. When
 the weekend settles there will be real published picks and real results, and
 the beat gets built against those — with the render refusing any fixture that
 has no stored pick matching the final score.
+
+---
+
+## The bet builder reel (2 Sept, after his feedback)
+
+His verdict on the first reels: *"boring... the design is far away from what i
+need... i need those videos for bet builder tips not correct scores... the
+german voice that you are using is so dead."*
+
+Four separate problems. Only one of them was the design.
+
+### 1. The pick type was wrong — `bbtips.py`
+
+A correct score has ONE thing to reveal, at the end. That is why the progress
+bar felt bolted on: there was nothing to build. A bet builder has three legs,
+so the bar *is* the content — three rungs, three reveals, and the viewer can
+count what is left. The anticipation he asked for comes free with the right
+pick type.
+
+The legs are **not** derived here. They are read out of `ta_markets`, the post
+meta tippsarena.com renders its own bet builder from, via `fetch_bb.sh` →
+`export_bb.php` (read-only, `wp eval-file`). One source, so a reel cannot
+contradict the page it drives traffic to. 233 fixtures in the export; every
+leg label falls into one of eight shapes and **anything that does not parse is
+dropped, not guessed**.
+
+`Voraussichtliches Ergebnis` is deliberately unusable as a leg — it is a
+correct score, which is the thing he told me to stop making.
+
+### 2. The clock was the voice — `music.py`
+
+The old reel's segment lengths were however long the narration took, which
+reads as a slideshow with commentary. This one is cut to a 150 bpm bed, and at
+**150 bpm / 30 fps a beat is exactly 12 frames**, so every cut, caption and
+rung lands on a beat with no rounding anywhere.
+
+The bed is synthesized rather than downloaded. Partly licensing — a bed is the
+commonest reason a reel gets muted — but mostly because a tempo I choose is a
+grid I can cut to, where a detected tempo is a guess.
+
+**It was rebalanced against a measurement, not by ear.** The first arrangement
+put 97% of its power below 150 Hz; through a 500 Hz highpass — roughly a phone
+speaker — it lost 18.5 dB, meaning that on the only device that matters the
+bed was essentially gone. `balance()` reports this and `main()` exits non-zero
+below −8 dB. It now sits at −5.1 dB, 48/29/22 low/mid/high.
+
+### 3. The voice — measured, then made optional
+
+thorsten-high's pitch spread is **2.9 semitones**; the most expressive
+alternative that stays intelligible (`thorsten_emotional`, speaker
+`surprised`) is 3.7. But `emotional-medium` mangles words that `high` gets
+right, so the voice is not where the win is.
+
+The real finding is that **`narrate._plain` was hurting the German read**.
+Flattening ü→ue is correct for the English voice, which cannot read an umlaut.
+Fed to the German voice, over six takes each:
+
+| fed | heard |
+|---|---|
+| `Über zwei Komma fünf Tore` | "über 2,5 Tore" — clean 6/6 |
+| `Ueber zwei Komma fuenf Tore` | "**ui** über 2,5 Tore" — spurious syllable 6/6 |
+| `Schüsse aufs Tor` | "Schüsse aufs Tor" |
+| `Schuesse aufs Tor` | "**Schuhe ist** aufs Tor" — every take |
+
+So German now goes to the German voice as German is written (`bbtips.DE_N`,
+`bbtips.club`). `narrate.py` is untouched — the long-form videos already
+shipped against it.
+
+And narration is **off by default**. The pick has to be readable in silence
+anyway (his requirement), and most of the reference feed carries music only.
+`--vo` adds it back; `fits()` reports any line longer than the segment it sits
+in rather than letting it talk over the next card.
+
+### 4. The footage
+
+`broll/custom/` is checked first and used **exclusively** if it has anything in
+it — half real match footage and half stock warm-up looks like a mistake, not a
+style. His clips become the footage with no code change. The fallback stays
+royalty-free.
+
+I am not sourcing broadcast clips or building logo-covering into the pipeline.
+If a reel is struck it is his account that pays.
+
+### What `verify_bbreel.py` actually checks
+
+Everything is measured on the **encoded mp4**, never on the plan.
+
+* frame count against the manifest;
+* **the audio impacts land on the picture's hits** — the one claim of a
+  beat-cut edit that cannot be checked by reading code, since ffmpeg muxes two
+  streams produced separately;
+* every planned cut is visible as a picture change on its beat;
+* **each rung's own rectangle has far less structure before it lights than
+  after** — pixels, not the plan. This is here because the previous format
+  failed exactly here.
+
+**One assertion was deliberately removed rather than tuned.** "Nothing changes
+except on a beat" is a claim about the *footage*, not the edit: measured on
+this file, a real cut scores 38.8% of pixels changed and a player crossing
+frame mid-shot scores 37.5%. They are not separable by any threshold, and
+tuning one until the b-roll stopped complaining would have produced a check
+that measured nothing.
+
+Selftest: audio 150 ms late → 4 complaints. Rungs rigged 3 beats early → 3
+complaints, naming the right rungs.
+
+### Still not built
+
+**No payoff / WIN beat.** Unchanged from `reel.py` v2 and for the same reason:
+nothing published has settled. A "CASHED ✅" on a match we never tipped is a
+fabricated track record. It gets built against real settled picks, with the
+render refusing any fixture that has no stored pick matching the result.
