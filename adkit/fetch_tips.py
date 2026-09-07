@@ -49,6 +49,11 @@ DATA = ROOT / "data"
 IMG = DATA / "img" / "teams"
 
 LEAGUES = {
+    # The Champions League "round" is `League Stage - 1`, not `Regular Season -
+    # 1`, and its matchday runs over three nights rather than a weekend. Both
+    # already work: matchday() picks the round with the most games, and
+    # tips_video._round_label reads the digit off the tail either way.
+    2: ("champions-league", "Champions League", "Europa"),
     39: ("premier-league", "Premier League", "England"),
     78: ("bundesliga", "Bundesliga", "Deutschland"),
     79: ("bundesliga-2", "2. Bundesliga", "Deutschland"),
@@ -88,6 +93,14 @@ SHORT = {
     "Paris Saint Germain": "PSG", "Stade Brestois 29": "Brest",
     "Estac Troyes": "Troyes", "Paris FC": "Paris FC", "Le Mans": "Le Mans",
     "AS Roma": "Roma", "AC Milan": "Milan", "Inter": "Inter",
+    # Champions League. Only the ones a fan would actually shorten - the rest
+    # (Barcelona, Galatasaray, Fenerbahçe, Feyenoord, Como, Lens, Viking,
+    # Bodo/Glimt, Slavia Praha) go on the card exactly as the provider writes
+    # them, because a nickname I invent is a nickname nobody recognises.
+    "AEK Athens FC": "AEK Athens", "Lask Linz": "LASK",
+    "Club Brugge KV": "Club Brugge", "Real Betis": "Betis", "FC Porto": "Porto",
+    "Slovan Bratislava": "Slovan", "Sporting CP": "Sporting",
+    "PSV Eindhoven": "PSV", "Shakhtar Donetsk": "Shakhtar", "Sabah FA": "Sabah",
 }
 
 

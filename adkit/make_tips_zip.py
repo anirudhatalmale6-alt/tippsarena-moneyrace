@@ -11,9 +11,11 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import sys
 import zoneinfo
 import pathlib
 import shutil
+import subprocess
 import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -21,8 +23,17 @@ OUT = ROOT / "out" / "tips"
 DATA = ROOT / "data"
 STAGE = pathlib.Path("/tmp/claude-1004/-home-freelancer/"
                      "9dbe74e0-4297-4b96-ba61-8a7c42919c50/scratchpad/tipszip")
-LEAGUES = [(39, "premier-league"), (78, "bundesliga"), (79, "bundesliga-2"),
-           (140, "la-liga"), (135, "serie-a"), (61, "ligue-1")]
+ALL = [(2, "champions-league"), (39, "premier-league"), (78, "bundesliga"),
+       (79, "bundesliga-2"), (140, "la-liga"), (135, "serie-a"),
+       (61, "ligue-1")]
+#: `python3 make_tips_zip.py 2` packs one competition into its own zip. Without
+#: an argument it packs the six weekend leagues, which is the September set.
+#: The zip is NAMED after the selection - dropping four Champions League files
+#: into a zip still called prognose-videos-tippsarena.zip is how he ends up
+#: posting last week's Bundesliga.
+_want = [int(a) for a in sys.argv[1:]]
+LEAGUES = [x for x in ALL if x[0] in _want] if _want else ALL[1:]
+TAG = ("-" + LEAGUES[0][1]) if len(LEAGUES) == 1 else ""
 TZ = zoneinfo.ZoneInfo("Europe/Berlin")
 
 BRANDS = {
@@ -53,7 +64,7 @@ def _table(brand: str, lang: str) -> tuple[list[str], list[float]]:
     return rows, quotes
 
 
-def _readme_de(rows, quotes, leagues, missing) -> str:
+def _readme_de(rows, quotes, leagues, missing, files) -> str:
     lo, hi = min(quotes), max(quotes)
     avg = sum(quotes) / len(quotes)
     band = (f"  Niedrigste: {lo:.2f}   Hoechste: {hi:.2f}   "
@@ -61,15 +72,23 @@ def _readme_de(rows, quotes, leagues, missing) -> str:
     return f"""PROGNOSE-VIDEOS TIPPSARENA
 Erstellt am {dt.date.today().strftime('%d.%m.%Y')}
 
-6 Videos, 1080 x 1920, 30 fps, H.264, OHNE Tonspur.
+{len(files)} Videos, 1080 x 1920, 30 fps, H.264, OHNE Tonspur.
 Ton legst du in der App drauf - dann greift der Algorithmus, und ich
 schicke dir keine fremde Musik mit ins Werbekonto.
 
-WAS SICH GEAENDERT HAT
-  - kein Text mehr unten drunter, auch kein Bot-Name
-  - keine Quote mehr im Bild
-  - keine Startseite mehr: das erste Spiel laeuft ab Bild eins
-  - Anstosszeiten in deutscher Ortszeit
+WIE DAS PAKET AUFGEBAUT IST
+Wo ein Spieltag ueber mehrere Abende laeuft, bekommst du BEIDE Schnitte:
+einmal der komplette Spieltag am Stueck, und dazu ein Video pro Spieltag-
+Abend. Der lange Schnitt ist fuer TikTok und den Feed, die kurzen sind fuer
+Shorts (Grenze 60 Sekunden) und dafuer, morgens genau die Spiele zu posten,
+die am selben Abend laufen.
+
+Die Ergebnisse sind in beiden Schnitten dieselben - die Auswahl laeuft ueber
+den ganzen Spieltag, nicht pro Abend. Sonst wuerde derselbe Tipp im langen
+und im kurzen Video unterschiedlich stehen.
+
+Unveraendert seit dem letzten Paket: kein Text unten drunter, kein Bot-Name,
+keine Quote im Bild, keine Startseite, Anstosszeiten in deutscher Ortszeit.
 
 WOHER DIE ERGEBNISSE KOMMEN
 Nicht von mir. Fuer jedes Spiel wird der EXACT-SCORE-MARKT der Buchmacher
@@ -92,6 +111,9 @@ Im Video steht "PROGNOSE", nicht "FULL TIME". Die Videos laufen VOR dem
 Anpfiff; wer eine Prognose fuer ein Ergebnis haelt, haelt den Account fuer
 einen Luegner, sobald der echte Endstand kommt.
 
+DIE DATEIEN
+{chr(10).join(files)}
+
 SPIELTAGE IN DIESEM PAKET
 {chr(10).join(leagues)}
 
@@ -108,22 +130,29 @@ ALLE TIPPS IM KLARTEXT
 """
 
 
-def _readme_en(rows, quotes, leagues, missing) -> str:
+def _readme_en(rows, quotes, leagues, missing, files) -> str:
     lo, hi = min(quotes), max(quotes)
     avg = sum(quotes) / len(quotes)
     return f"""PREDICTION VIDEOS - LUXTIPPS
 Built {dt.date.today().strftime('%d.%m.%Y')}
 
-6 videos, 1080 x 1920, 30 fps, H.264, NO audio track.
+{len(files)} videos, 1080 x 1920, 30 fps, H.264, NO audio track.
 Add the sound in the app - that is what the algorithm rewards, and it keeps
 somebody else's music out of your ad account.
 
-WHAT CHANGED
-  - no text at the bottom any more, no bot name either
-  - no odds on screen
-  - no title card: the first match is on screen from frame one
-  - English throughout, and a layout that shares nothing with TippsArena
-  - kick-off times in German local time
+HOW THE PACK IS PUT TOGETHER
+Where a matchday runs over several evenings you get BOTH cuts: the whole
+matchday in one go, plus one video per night. The long cut is for TikTok and
+the feed; the short ones are for Shorts (60-second ceiling) and for posting
+in the morning exactly the matches that are played that same evening.
+
+The scorelines are identical in both cuts - the selection runs across the
+whole matchday, not per night. Otherwise the same fixture would carry a
+different tip in the long video and in the short one.
+
+Unchanged since the last pack: no text at the bottom, no bot name, no odds on
+screen, no title card, English throughout, kick-off times in German local
+time.
 
 WHERE THE SCORELINES COME FROM
 Not from me. For every match the bookmakers' EXACT SCORE market is read from
@@ -144,6 +173,9 @@ is enforced in code, not left to chance.
 The screen says PREDICTION, never FULL TIME. These go out BEFORE kick-off,
 and a viewer who reads a prediction as a result will think the account lies
 the moment the real score lands.
+
+THE FILES
+{chr(10).join(files)}
 
 MATCHDAYS IN THIS PACK
 {chr(10).join(leagues)}
@@ -174,19 +206,38 @@ def main() -> None:
                           f"{len(d['fixtures'])} of {d['round_size']} matches")
         for m in d["no_market"]:
             missing_all.append(f"  {d['league']}: {m}")
+        # The whole round, plus every per-night cut that was rendered for it.
+        # Globbing would also sweep up the -voice files, which are a different
+        # deliverable and were never part of this pack.
+        days = sorted({dt.datetime.fromisoformat(f["kickoff"]).astimezone(TZ)
+                       .date() for f in d["fixtures"]})
+        names = [f"{slug}"] + [f"{slug}-{day:%d-%m}" for day in days]
         for brand in BRANDS:
             dest = STAGE / brand
             dest.mkdir(parents=True, exist_ok=True)
-            src = OUT / f"{brand}-prognosen-{slug}.mp4"
-            shutil.copy(src, dest / src.name)
+            for nm in names:
+                src = OUT / f"{brand}-prognosen-{nm}.mp4"
+                if nm == slug or src.exists():
+                    shutil.copy(src, dest / src.name)
 
     missing = "\n".join(missing_all) if missing_all else "  keine / none"
     for brand, meta in BRANDS.items():
         rows, quotes = _table(brand, meta["lang"])
-        text = (_readme_de(rows, quotes, leagues_de, missing) if meta["lang"] == "de"
-                else _readme_en(rows, quotes, leagues_en, missing))
+        # Read the lengths off the staged files rather than recomputing them
+        # from MATCH x fixtures: the note then describes the mp4s in the zip,
+        # not the plan they were rendered from.
+        files = []
+        for f in sorted((STAGE / brand).glob("*.mp4")):
+            n = json.loads(subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries",
+                 "format=duration", "-of", "json", str(f)],
+                capture_output=True, text=True).stdout)["format"]["duration"]
+            files.append(f"  {f.name:<52}{float(n):>5.0f} s")
+        text = (_readme_de(rows, quotes, leagues_de, missing, files)
+                if meta["lang"] == "de"
+                else _readme_en(rows, quotes, leagues_en, missing, files))
         (STAGE / brand / meta["file"]).write_text(text, encoding="utf-8")
-        out = ROOT / f"prognose-videos-{brand}.zip"
+        out = ROOT / f"prognose-videos{TAG}-{brand}.zip"
         if out.exists():
             out.unlink()
         with zipfile.ZipFile(out, "w", zipfile.ZIP_STORED) as z:  # mp4 will not shrink

@@ -570,13 +570,33 @@ def _round_label(rnd: str, b: Brand) -> str:
     return b.t("round", n=tail) if tail.isdigit() else rnd
 
 
-def render(brand_key: str, league_id: int, voice: bool = False) -> pathlib.Path:
+def kickoff_day(iso: str) -> dt.date:
+    """The calendar day a viewer files the match under - Berlin, not UTC.
+
+    A 21:00 CEST kick-off is 19:00 UTC, so the UTC date happens to agree here;
+    it will not in winter, and it does not for a 22:00 kick-off in any season.
+    Same rule as the times on the card, from the same tz object.
+    """
+    return dt.datetime.fromisoformat(iso).astimezone(TZ).date()
+
+
+def render(brand_key: str, league_id: int, voice: bool = False,
+           day: dt.date | None = None) -> pathlib.Path:
     b = BRANDS[brand_key]
     data = json.loads((DATA / f"tips-{league_id}.json").read_text(encoding="utf-8"))
     fixtures = [f for f in data["fixtures"] if brand_key in f.get("picks", {})]
+    if day:
+        # A Champions League matchday is three nights, not a weekend afternoon.
+        # The picks are still chosen across the WHOLE round in fetch_tips.assign
+        # - splitting here and not there is what keeps the Tuesday cut and the
+        # full-round cut showing the same scoreline for the same fixture.
+        fixtures = [f for f in fixtures if kickoff_day(f["kickoff"]) == day]
     if not fixtures:
-        raise SystemExit(f"no fixtures with a pick for league {league_id}")
+        raise SystemExit(f"no fixtures with a pick for league {league_id}"
+                         + (f" on {day}" if day else ""))
     data = dict(data, fixtures=fixtures)
+    if day:
+        data["slug"] = f"{data['slug']}-{day:%d-%m}"
     OUT.mkdir(parents=True, exist_ok=True)
 
     timing, wav = None, None
@@ -617,12 +637,25 @@ def main() -> None:
     ap.add_argument("--voice", action="store_true",
                     help="narrated cut: segments stretch to fit the spoken "
                          "lines, output gets a -voice suffix")
+    ap.add_argument("--split", action="store_true",
+                    help="one video per kick-off night instead of one for the "
+                         "whole round - a Champions League matchday is 18 "
+                         "games over three evenings, and 18 x 3.6s is 68s, "
+                         "past the 60s Shorts ceiling")
     a = ap.parse_args()
-    leagues = a.leagues or [39, 78, 79, 140, 135, 61]
+    leagues = a.leagues or [2, 39, 78, 79, 140, 135, 61]
     brands = list(BRANDS) if a.brand == "both" else [a.brand]
     for bk in brands:
         for lid in leagues:
-            render(bk, lid, voice=a.voice)
+            if a.split:
+                data = json.loads((DATA / f"tips-{lid}.json")
+                                  .read_text(encoding="utf-8"))
+                days = sorted({kickoff_day(f["kickoff"])
+                               for f in data["fixtures"]})
+                for d in days:
+                    render(bk, lid, voice=a.voice, day=d)
+            else:
+                render(bk, lid, voice=a.voice)
 
 
 if __name__ == "__main__":

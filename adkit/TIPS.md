@@ -542,3 +542,51 @@ rung's own rectangle rather than about the text.
   height it sat on the second rung; the ladder runs x 52–528 and the pill is
   centred on 540, so they touch.
 * The voice stays off. `--vo` still works and v3 does not use it.
+
+---
+
+## Champions League, matchday 1 (7 Sept)
+
+*"Make videos again for score predictions for both LuxTipps and TippsArena for
+Champions League."* Same format as the September package, one competition, and
+two things about the Champions League that the six-league version had never met.
+
+* **The round is `League Stage - 1`, not `Regular Season - 1`.** Both the round
+  picker (`matchday()`, most games wins) and the label (`_round_label`, digit
+  off the tail) already handled it — checked rather than assumed, because a
+  header reading `LEAGUE STAGE - 1` would have shipped otherwise.
+* **A Champions League matchday is 18 games over three nights**, Tue/Wed/Thu,
+  six each. 18 × 3.6 s + outro is **68 s**, which is over the 60-second YouTube
+  Shorts ceiling and long for a feed. So `tips_video.py --split` renders one
+  video per kick-off night as well as the round: 4 files per brand, 25 s each
+  plus the 68 s cut.
+* **The split happens at RENDER time, never at selection time.** `assign()` in
+  `fetch_tips.py` still runs across all 18 fixtures, so the Tuesday cut and the
+  round cut carry the same scoreline for the same fixture. Splitting the data
+  first would have re-run the zone rotation and the least-used-first rule inside
+  each night, and the same match would have been tipped two different ways in
+  two files he posts on the same day.
+* **The day is Berlin's, from the same `TZ` the card prints.** `kickoff_day()`.
+  A 21:00 CEST kick-off is 19:00 UTC and agrees by accident today; it will not
+  in winter, and never for a 22:00 kick-off.
+* Ten new `SHORT` entries (LASK, Club Brugge, Betis, Porto, Slovan, Sporting,
+  PSV, Shakhtar, Sabah, AEK Athens). Everything else — Galatasaray, Fenerbahçe,
+  Feyenoord, Bodo/Glimt, Slavia Praha, Como, Lens, Viking — goes on the card
+  exactly as the provider writes it. A nickname I invent is a nickname nobody
+  recognises, and the longest of them (SLAVIA PRAHA) was checked on a real
+  frame of both layouts, not assumed to fit.
+
+**Data:** all 18 fixtures had a real Exact Score market — no `no_market`, no
+Poisson fallback, six books each. Published prices 6.58–19.50, average 12.54.
+No fixture where the two brands share a scoreline. One forced repeat per brand
+(Slavia Praha), i.e. no unused in-band non-colliding line existed at that point;
+the verifier proves that rather than tolerating it.
+
+**Verification:** `verify_tips.py 2` now checks every *cut* rather than every
+league — the round file and each night file, each against the fixture list it
+was actually rendered from. Passing `fx` in from the caller matters: the first
+version of the refactor re-derived it inside the check from the full round, and
+every 6-match file would have been measured against an 18-match frame count.
+8/8 files: 1080×1920, no audio stream, exact frame counts, OCR sweep clean
+(no handle, no price, no title card, no German on LuxTipps), pixel MAE
+1.63–1.72 against the frame the code draws.
