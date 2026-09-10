@@ -17,12 +17,28 @@ import pytesseract
 import tips_video as T
 
 DATA = T.DATA
+# Mirrors fetch_tips.LEAGUES. It is a separate list on purpose - the verifier
+# must not import its idea of what exists from the thing it is checking - but a
+# league missing here is a league that never gets verified, so it is read back
+# against fetch_tips below rather than trusted.
 ALL = [(2,"champions-league"),(39,"premier-league"),(78,"bundesliga"),
-       (79,"bundesliga-2"),(140,"la-liga"),(135,"serie-a"),(61,"ligue-1")]
+       (79,"bundesliga-2"),(140,"la-liga"),(135,"serie-a"),(61,"ligue-1"),
+       (94,"primeira-liga"),(88,"eredivisie")]
 # `python3 verify_tips.py 2` checks one league. Without an argument it checks
 # the six weekend leagues, which is what the September package was.
 _want = [int(a) for a in sys.argv[1:]]
-LEAGUES = [x for x in ALL if x[0] in _want] if _want else ALL[1:]
+LEAGUES = [x for x in ALL if x[0] in _want] if _want else ALL[1:7]
+# An id I was asked to check and silently did not is the worst outcome here:
+# the run prints "FAILURES: 0" and the league was never opened. This ran once
+# with 94 and 88 on the command line, checked ten files instead of fourteen and
+# reported a clean sweep.
+_missing = [x for x in _want if x not in {a for a, _ in ALL}]
+if _missing:
+    sys.exit(f"no such league in ALL: {_missing} - add it, do not skip it")
+import fetch_tips as F
+_unknown = [lid for lid, _ in ALL if lid not in F.LEAGUES]
+if _unknown:
+    sys.exit(f"ALL has leagues fetch_tips does not: {_unknown}")
 TMP = pathlib.Path("/tmp/claude-1004/-home-freelancer/9dbe74e0-4297-4b96-ba61-8a7c42919c50/scratchpad/vfy")
 TMP.mkdir(exist_ok=True)
 BAND = (5.0, 20.0)

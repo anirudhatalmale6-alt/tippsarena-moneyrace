@@ -3,1498 +3,1498 @@
   "slug": "premier-league",
   "league": "Premier League",
   "country": "England",
-  "round": "Regular Season - 3",
+  "round": "Regular Season - 4",
   "round_size": 10,
   "no_market": [],
   "fixtures": [
     {
-      "id": 1557393,
-      "kickoff": "2026-09-04T19:00:00+00:00",
-      "home": "Ipswich",
-      "away": "Liverpool",
-      "home_short": "Ipswich",
-      "away_short": "Liverpool",
-      "home_id": 57,
-      "away_id": 40,
-      "home_crest": "57.png",
-      "away_crest": "40.png",
+      "id": 1557397,
+      "kickoff": "2026-09-12T14:00:00+00:00",
+      "home": "Aston Villa",
+      "away": "Nottingham Forest",
+      "home_short": "Aston Villa",
+      "away_short": "Nottm Forest",
+      "home_id": 66,
+      "away_id": 65,
+      "home_crest": "66.png",
+      "away_crest": "65.png",
       "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 1,
-        "away": 2,
-        "p": 0.0874,
-        "outcome": "A"
-      },
-      "alt": {
-        "home": 1,
-        "away": 1,
-        "p": 0.0798,
-        "outcome": "D"
-      },
-      "cands": [
-        {
-          "score": "1:2",
-          "p": 0.0874,
-          "odds": 7.75,
-          "quoted": true
-        },
-        {
-          "score": "1:1",
-          "p": 0.0798,
-          "odds": 8.46,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0782,
-          "odds": 8.63,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0743,
-          "odds": 9.1,
-          "quoted": true
-        },
-        {
-          "score": "1:3",
-          "p": 0.0643,
-          "odds": 10.49,
-          "quoted": true
-        },
-        {
-          "score": "0:3",
-          "p": 0.0571,
-          "odds": 11.82,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0502,
-          "odds": 13.47,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.0459,
-          "odds": 14.72,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0417,
-          "odds": 16.8,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0401,
-          "odds": 16.8,
-          "quoted": true
-        },
-        {
-          "score": "2:3",
-          "p": 0.0395,
-          "odds": 17.07,
-          "quoted": true
-        },
-        {
-          "score": "1:4",
-          "p": 0.0377,
-          "odds": 17.88,
-          "quoted": true
-        },
-        {
-          "score": "0:4",
-          "p": 0.0331,
-          "odds": 20.46,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
-          "p": 0.023,
-          "odds": 29.59,
-          "quoted": true
-        },
-        {
-          "score": "2:4",
-          "p": 0.0229,
-          "odds": 29.74,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0207,
-          "odds": 32.84,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0189,
-          "odds": 36.19,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0168,
-          "odds": 40.79,
-          "quoted": true
-        },
-        {
-          "score": "1:5",
-          "p": 0.0161,
-          "odds": 38.0,
-          "quoted": true
-        },
-        {
-          "score": "0:5",
-          "p": 0.0155,
-          "odds": 40.1,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 1,
-          "away": 2,
-          "score": "1:2",
-          "p": 0.0874,
-          "odds": 7.75,
-          "quoted": true,
-          "outcome": "A"
-        },
-        "luxtipps": {
-          "home": 2,
-          "away": 1,
-          "score": "2:1",
-          "p": 0.0459,
-          "odds": 14.72,
-          "quoted": true,
-          "outcome": "H"
-        }
-      }
-    },
-    {
-      "id": 1557395,
-      "kickoff": "2026-09-05T11:30:00+00:00",
-      "home": "Newcastle",
-      "away": "Bournemouth",
-      "home_short": "Newcastle",
-      "away_short": "Bournemouth",
-      "home_id": 34,
-      "away_id": 35,
-      "home_crest": "34.png",
-      "away_crest": "35.png",
-      "method": "exact_score_market",
-      "books": 12,
+      "books": 6,
       "tip": {
         "home": 1,
         "away": 1,
-        "p": 0.0976,
-        "outcome": "D"
-      },
-      "alt": {
-        "home": 2,
-        "away": 1,
-        "p": 0.079,
-        "outcome": "H"
-      },
-      "cands": [
-        {
-          "score": "1:1",
-          "p": 0.0976,
-          "odds": 6.91,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.079,
-          "odds": 8.53,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0669,
-          "odds": 10.08,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0662,
-          "odds": 10.19,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0615,
-          "odds": 10.94,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0556,
-          "odds": 12.12,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
-          "p": 0.0545,
-          "odds": 12.34,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0486,
-          "odds": 14.31,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0465,
-          "odds": 14.45,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0403,
-          "odds": 16.73,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0363,
-          "odds": 18.56,
-          "quoted": true
-        },
-        {
-          "score": "1:3",
-          "p": 0.0343,
-          "odds": 19.64,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0326,
-          "odds": 20.64,
-          "quoted": true
-        },
-        {
-          "score": "2:3",
-          "p": 0.0309,
-          "odds": 21.91,
-          "quoted": true
-        },
-        {
-          "score": "4:1",
-          "p": 0.0218,
-          "odds": 31.4,
-          "quoted": true
-        },
-        {
-          "score": "0:3",
-          "p": 0.0215,
-          "odds": 32.12,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0201,
-          "odds": 33.97,
-          "quoted": true
-        },
-        {
-          "score": "4:2",
-          "p": 0.017,
-          "odds": 40.17,
-          "quoted": true
-        },
-        {
-          "score": "4:0",
-          "p": 0.0162,
-          "odds": 42.69,
-          "quoted": true
-        },
-        {
-          "score": "1:4",
-          "p": 0.0143,
-          "odds": 48.55,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 1,
-          "away": 0,
-          "score": "1:0",
-          "p": 0.0669,
-          "odds": 10.08,
-          "quoted": true,
-          "outcome": "H"
-        },
-        "luxtipps": {
-          "home": 1,
-          "away": 1,
-          "score": "1:1",
-          "p": 0.0976,
-          "odds": 6.91,
-          "quoted": true,
-          "outcome": "D"
-        }
-      }
-    },
-    {
-      "id": 1557388,
-      "kickoff": "2026-09-05T14:00:00+00:00",
-      "home": "Brentford",
-      "away": "Sunderland",
-      "home_short": "Brentford",
-      "away_short": "Sunderland",
-      "home_id": 55,
-      "away_id": 746,
-      "home_crest": "55.png",
-      "away_crest": "746.png",
-      "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 1,
-        "away": 0,
-        "p": 0.1059,
-        "outcome": "H"
-      },
-      "alt": {
-        "home": 2,
-        "away": 0,
-        "p": 0.0955,
-        "outcome": "H"
-      },
-      "cands": [
-        {
-          "score": "1:0",
-          "p": 0.1059,
-          "odds": 6.56,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
-          "p": 0.0955,
-          "odds": 7.28,
-          "quoted": true
-        },
-        {
-          "score": "1:1",
-          "p": 0.0954,
-          "odds": 7.29,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.0909,
-          "odds": 7.64,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0623,
-          "odds": 11.31,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0608,
-          "odds": 11.41,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0567,
-          "odds": 12.28,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0499,
-          "odds": 13.87,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0442,
-          "odds": 15.75,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0442,
-          "odds": 15.78,
-          "quoted": true
-        },
-        {
-          "score": "4:0",
-          "p": 0.0314,
-          "odds": 22.4,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0292,
-          "odds": 24.09,
-          "quoted": true
-        },
-        {
-          "score": "4:1",
-          "p": 0.0292,
-          "odds": 23.9,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0241,
-          "odds": 29.25,
-          "quoted": true
-        },
-        {
-          "score": "4:2",
-          "p": 0.0155,
-          "odds": 45.36,
-          "quoted": true
-        },
-        {
-          "score": "2:3",
-          "p": 0.0152,
-          "odds": 46.8,
-          "quoted": true
-        },
-        {
-          "score": "1:3",
-          "p": 0.015,
-          "odds": 47.32,
-          "quoted": true
-        },
-        {
-          "score": "5:0",
-          "p": 0.0119,
-          "odds": 52.11,
-          "quoted": true
-        },
-        {
-          "score": "5:1",
-          "p": 0.0114,
-          "odds": 54.89,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0107,
-          "odds": 66.74,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 0,
-          "away": 1,
-          "score": "0:1",
-          "p": 0.0499,
-          "odds": 13.87,
-          "quoted": true,
-          "outcome": "A"
-        },
-        "luxtipps": {
-          "home": 0,
-          "away": 0,
-          "score": "0:0",
-          "p": 0.0623,
-          "odds": 11.31,
-          "quoted": true,
-          "outcome": "D"
-        }
-      }
-    },
-    {
-      "id": 1557389,
-      "kickoff": "2026-09-05T14:00:00+00:00",
-      "home": "Brighton",
-      "away": "Leeds",
-      "home_short": "Brighton",
-      "away_short": "Leeds",
-      "home_id": 51,
-      "away_id": 63,
-      "home_crest": "51.png",
-      "away_crest": "63.png",
-      "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 1,
-        "away": 1,
-        "p": 0.1039,
+        "p": 0.1002,
         "outcome": "D"
       },
       "alt": {
         "home": 1,
         "away": 0,
-        "p": 0.0943,
+        "p": 0.0881,
         "outcome": "H"
       },
       "cands": [
         {
           "score": "1:1",
-          "p": 0.1039,
-          "odds": 6.68,
+          "p": 0.1002,
+          "odds": 6.32,
           "quoted": true
         },
         {
           "score": "1:0",
-          "p": 0.0943,
-          "odds": 7.37,
+          "p": 0.0881,
+          "odds": 7.19,
           "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.088,
-          "odds": 7.91,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
           "p": 0.0785,
-          "odds": 8.83,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0631,
-          "odds": 11.13,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0573,
-          "odds": 12.18,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0539,
-          "odds": 12.9,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0527,
-          "odds": 13.17,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0517,
-          "odds": 13.47,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0477,
-          "odds": 14.54,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0317,
-          "odds": 21.91,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0314,
-          "odds": 22.31,
-          "quoted": true
-        },
-        {
-          "score": "4:1",
-          "p": 0.0247,
-          "odds": 28.36,
-          "quoted": true
-        },
-        {
-          "score": "4:0",
-          "p": 0.0231,
-          "odds": 30.44,
-          "quoted": true
-        },
-        {
-          "score": "1:3",
-          "p": 0.0208,
-          "odds": 33.74,
-          "quoted": true
-        },
-        {
-          "score": "2:3",
-          "p": 0.0201,
-          "odds": 34.83,
-          "quoted": true
-        },
-        {
-          "score": "4:2",
-          "p": 0.015,
-          "odds": 47.06,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0133,
-          "odds": 53.3,
-          "quoted": true
-        },
-        {
-          "score": "0:3",
-          "p": 0.0126,
-          "odds": 55.9,
-          "quoted": true
-        },
-        {
-          "score": "5:1",
-          "p": 0.0093,
-          "odds": 68.33,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 1,
-          "away": 1,
-          "score": "1:1",
-          "p": 0.1039,
-          "odds": 6.68,
-          "quoted": true,
-          "outcome": "D"
-        },
-        "luxtipps": {
-          "home": 3,
-          "away": 0,
-          "score": "3:0",
-          "p": 0.0477,
-          "odds": 14.54,
-          "quoted": true,
-          "outcome": "H"
-        }
-      }
-    },
-    {
-      "id": 1557391,
-      "kickoff": "2026-09-05T14:00:00+00:00",
-      "home": "Fulham",
-      "away": "Crystal Palace",
-      "home_short": "Fulham",
-      "away_short": "Crystal Palace",
-      "home_id": 36,
-      "away_id": 52,
-      "home_crest": "36.png",
-      "away_crest": "52.png",
-      "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 1,
-        "away": 1,
-        "p": 0.1107,
-        "outcome": "D"
-      },
-      "alt": {
-        "home": 1,
-        "away": 0,
-        "p": 0.0844,
-        "outcome": "H"
-      },
-      "cands": [
-        {
-          "score": "1:1",
-          "p": 0.1107,
-          "odds": 6.18,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0844,
-          "odds": 8.11,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.0796,
-          "odds": 8.6,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0708,
-          "odds": 9.68,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0678,
-          "odds": 10.17,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0674,
-          "odds": 10.17,
+          "odds": 8.07,
           "quoted": true
         },
         {
           "score": "2:0",
-          "p": 0.0603,
-          "odds": 11.35,
+          "p": 0.0676,
+          "odds": 9.33,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0627,
+          "odds": 10.1,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.061,
+          "odds": 10.38,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0579,
+          "odds": 10.92,
           "quoted": true
         },
         {
           "score": "2:2",
-          "p": 0.0559,
-          "odds": 12.25,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0447,
-          "odds": 15.33,
+          "p": 0.0493,
+          "odds": 12.83,
           "quoted": true
         },
         {
           "score": "3:1",
-          "p": 0.0415,
-          "odds": 16.48,
+          "p": 0.0439,
+          "odds": 14.46,
           "quoted": true
         },
         {
           "score": "3:0",
-          "p": 0.0328,
-          "odds": 20.91,
+          "p": 0.038,
+          "odds": 16.71,
           "quoted": true
         },
         {
-          "score": "1:3",
-          "p": 0.0303,
-          "odds": 22.91,
+          "score": "0:2",
+          "p": 0.0376,
+          "odds": 16.88,
           "quoted": true
         },
         {
           "score": "3:2",
-          "p": 0.0293,
-          "odds": 23.72,
+          "p": 0.0274,
+          "odds": 23.67,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0243,
+          "odds": 26.33,
           "quoted": true
         },
         {
           "score": "2:3",
-          "p": 0.0256,
-          "odds": 27.15,
-          "quoted": true
-        },
-        {
-          "score": "0:3",
-          "p": 0.0208,
-          "odds": 33.75,
+          "p": 0.0205,
+          "odds": 31.58,
           "quoted": true
         },
         {
           "score": "4:1",
+          "p": 0.019,
+          "odds": 34.0,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0176,
+          "odds": 36.83,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
           "p": 0.0173,
-          "odds": 40.71,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0146,
-          "odds": 47.86,
-          "quoted": true
-        },
-        {
-          "score": "4:0",
-          "p": 0.0138,
-          "odds": 52.0,
-          "quoted": true
-        },
-        {
-          "score": "4:2",
-          "p": 0.0123,
-          "odds": 56.64,
-          "quoted": true
-        },
-        {
-          "score": "1:4",
-          "p": 0.0113,
-          "odds": 62.84,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 0,
-          "away": 0,
-          "score": "0:0",
-          "p": 0.0678,
-          "odds": 10.17,
-          "quoted": true,
-          "outcome": "D"
-        },
-        "luxtipps": {
-          "home": 1,
-          "away": 0,
-          "score": "1:0",
-          "p": 0.0844,
-          "odds": 8.11,
-          "quoted": true,
-          "outcome": "H"
-        }
-      }
-    },
-    {
-      "id": 1557394,
-      "kickoff": "2026-09-05T14:00:00+00:00",
-      "home": "Manchester City",
-      "away": "Coventry",
-      "home_short": "Man City",
-      "away_short": "Coventry",
-      "home_id": 50,
-      "away_id": 1346,
-      "home_crest": "50.png",
-      "away_crest": "1346.png",
-      "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 2,
-        "away": 0,
-        "p": 0.0954,
-        "outcome": "H"
-      },
-      "alt": {
-        "home": 3,
-        "away": 0,
-        "p": 0.0911,
-        "outcome": "H"
-      },
-      "cands": [
-        {
-          "score": "2:0",
-          "p": 0.0954,
-          "odds": 7.3,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0911,
-          "odds": 7.65,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.0754,
-          "odds": 9.26,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0729,
-          "odds": 9.54,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0691,
-          "odds": 10.12,
-          "quoted": true
-        },
-        {
-          "score": "4:0",
-          "p": 0.0684,
-          "odds": 10.16,
-          "quoted": true
-        },
-        {
-          "score": "4:1",
-          "p": 0.0545,
-          "odds": 12.8,
-          "quoted": true
-        },
-        {
-          "score": "1:1",
-          "p": 0.0514,
-          "odds": 13.57,
-          "quoted": true
-        },
-        {
-          "score": "5:0",
-          "p": 0.037,
-          "odds": 16.28,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0315,
-          "odds": 22.4,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0308,
-          "odds": 22.9,
-          "quoted": true
-        },
-        {
-          "score": "5:1",
-          "p": 0.0301,
-          "odds": 20.11,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0291,
-          "odds": 25.23,
-          "quoted": true
-        },
-        {
-          "score": "4:2",
-          "p": 0.0246,
-          "odds": 28.56,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0226,
-          "odds": 30.95,
-          "quoted": true
-        },
-        {
-          "score": "6:0",
-          "p": 0.0206,
-          "odds": 29.67,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0202,
-          "odds": 35.04,
-          "quoted": true
-        },
-        {
-          "score": "6:1",
-          "p": 0.0162,
-          "odds": 37.67,
-          "quoted": true
-        },
-        {
-          "score": "5:2",
-          "p": 0.0136,
-          "odds": 45.11,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0101,
-          "odds": 70.2,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 5,
-          "away": 0,
-          "score": "5:0",
-          "p": 0.037,
-          "odds": 16.28,
-          "quoted": true,
-          "outcome": "H"
-        },
-        "luxtipps": {
-          "home": 3,
-          "away": 1,
-          "score": "3:1",
-          "p": 0.0729,
-          "odds": 9.54,
-          "quoted": true,
-          "outcome": "H"
-        }
-      }
-    },
-    {
-      "id": 1557396,
-      "kickoff": "2026-09-05T14:00:00+00:00",
-      "home": "Nottingham Forest",
-      "away": "Tottenham",
-      "home_short": "Nottm Forest",
-      "away_short": "Tottenham",
-      "home_id": 65,
-      "away_id": 47,
-      "home_crest": "65.png",
-      "away_crest": "47.png",
-      "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 1,
-        "away": 1,
-        "p": 0.1136,
-        "outcome": "D"
-      },
-      "alt": {
-        "home": 1,
-        "away": 0,
-        "p": 0.0872,
-        "outcome": "H"
-      },
-      "cands": [
-        {
-          "score": "1:1",
-          "p": 0.1136,
-          "odds": 6.05,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0872,
-          "odds": 7.87,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0824,
-          "odds": 8.35,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0743,
-          "odds": 9.25,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.074,
-          "odds": 9.28,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0711,
-          "odds": 9.67,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
-          "p": 0.0577,
-          "odds": 11.91,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0527,
-          "odds": 13.02,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0514,
-          "odds": 13.36,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0354,
-          "odds": 19.38,
-          "quoted": true
-        },
-        {
-          "score": "1:3",
-          "p": 0.033,
-          "odds": 20.91,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0288,
-          "odds": 23.94,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0259,
-          "odds": 26.97,
-          "quoted": true
-        },
-        {
-          "score": "0:3",
-          "p": 0.025,
-          "odds": 27.87,
-          "quoted": true
-        },
-        {
-          "score": "2:3",
-          "p": 0.0246,
-          "odds": 28.33,
-          "quoted": true
-        },
-        {
-          "score": "4:1",
-          "p": 0.0134,
-          "odds": 52.28,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0129,
-          "odds": 55.26,
-          "quoted": true
-        },
-        {
-          "score": "1:4",
-          "p": 0.0123,
-          "odds": 57.33,
-          "quoted": true
-        },
-        {
-          "score": "4:0",
-          "p": 0.0113,
-          "odds": 63.91,
-          "quoted": true
-        },
-        {
-          "score": "4:2",
-          "p": 0.0097,
-          "odds": 73.24,
-          "quoted": true
-        }
-      ],
-      "picks": {
-        "tippsarena": {
-          "home": 2,
-          "away": 1,
-          "score": "2:1",
-          "p": 0.074,
-          "odds": 9.28,
-          "quoted": true,
-          "outcome": "H"
-        },
-        "luxtipps": {
-          "home": 0,
-          "away": 1,
-          "score": "0:1",
-          "p": 0.0824,
-          "odds": 8.35,
-          "quoted": true,
-          "outcome": "A"
-        }
-      }
-    },
-    {
-      "id": 1557392,
-      "kickoff": "2026-09-05T16:30:00+00:00",
-      "home": "Hull City",
-      "away": "Aston Villa",
-      "home_short": "Hull City",
-      "away_short": "Aston Villa",
-      "home_id": 64,
-      "away_id": 66,
-      "home_crest": "64.png",
-      "away_crest": "66.png",
-      "method": "exact_score_market",
-      "books": 12,
-      "tip": {
-        "home": 1,
-        "away": 1,
-        "p": 0.1044,
-        "outcome": "D"
-      },
-      "alt": {
-        "home": 0,
-        "away": 1,
-        "p": 0.0962,
-        "outcome": "A"
-      },
-      "cands": [
-        {
-          "score": "1:1",
-          "p": 0.1044,
-          "odds": 6.63,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.0962,
-          "odds": 7.22,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0872,
-          "odds": 7.96,
-          "quoted": true
-        },
-        {
-          "score": "0:2",
-          "p": 0.0787,
-          "odds": 8.8,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0674,
-          "odds": 10.3,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0601,
-          "odds": 11.48,
-          "quoted": true
-        },
-        {
-          "score": "2:1",
-          "p": 0.0555,
-          "odds": 12.47,
-          "quoted": true
-        },
-        {
-          "score": "1:3",
-          "p": 0.0505,
-          "odds": 13.72,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0499,
-          "odds": 13.87,
-          "quoted": true
-        },
-        {
-          "score": "0:3",
-          "p": 0.0462,
-          "odds": 14.96,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
-          "p": 0.0328,
-          "odds": 21.11,
-          "quoted": true
-        },
-        {
-          "score": "2:3",
-          "p": 0.0308,
-          "odds": 22.6,
-          "quoted": true
-        },
-        {
-          "score": "1:4",
-          "p": 0.0245,
-          "odds": 28.66,
-          "quoted": true
-        },
-        {
-          "score": "0:4",
-          "p": 0.022,
-          "odds": 31.74,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0218,
-          "odds": 32.04,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0199,
-          "odds": 35.12,
-          "quoted": true
-        },
-        {
-          "score": "2:4",
-          "p": 0.0144,
-          "odds": 48.96,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0132,
-          "odds": 53.7,
+          "odds": 37.17,
           "quoted": true
         },
         {
           "score": "3:3",
           "p": 0.0128,
-          "odds": 55.38,
+          "odds": 50.67,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0125,
+          "odds": 52.17,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0093,
+          "odds": 70.17,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 1,
+          "away": 1,
+          "score": "1:1",
+          "p": 0.1002,
+          "odds": 6.32,
+          "quoted": true,
+          "outcome": "D"
+        },
+        "luxtipps": {
+          "home": 3,
+          "away": 1,
+          "score": "3:1",
+          "p": 0.0439,
+          "odds": 14.46,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
+    },
+    {
+      "id": 1557398,
+      "kickoff": "2026-09-12T14:00:00+00:00",
+      "home": "Bournemouth",
+      "away": "Brentford",
+      "home_short": "Bournemouth",
+      "away_short": "Brentford",
+      "home_id": 35,
+      "away_id": 55,
+      "home_crest": "35.png",
+      "away_crest": "55.png",
+      "method": "exact_score_market",
+      "books": 6,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.095,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 2,
+        "away": 1,
+        "p": 0.0699,
+        "outcome": "H"
+      },
+      "cands": [
+        {
+          "score": "1:1",
+          "p": 0.095,
+          "odds": 6.58,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0699,
+          "odds": 8.93,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.067,
+          "odds": 9.33,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0625,
+          "odds": 10.0,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0608,
+          "odds": 10.25,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0579,
+          "odds": 10.83,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0495,
+          "odds": 12.88,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0478,
+          "odds": 13.21,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0456,
+          "odds": 13.79,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0389,
+          "odds": 16.21,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0359,
+          "odds": 17.5,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0308,
+          "odds": 20.5,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0303,
+          "odds": 20.83,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.027,
+          "odds": 23.33,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0245,
+          "odds": 25.83,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0185,
+          "odds": 34.33,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0177,
+          "odds": 35.58,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0162,
+          "odds": 40.33,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0143,
+          "odds": 44.67,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0124,
+          "odds": 52.0,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 1,
+          "away": 2,
+          "score": "1:2",
+          "p": 0.067,
+          "odds": 9.33,
+          "quoted": true,
+          "outcome": "A"
+        },
+        "luxtipps": {
+          "home": 1,
+          "away": 1,
+          "score": "1:1",
+          "p": 0.095,
+          "odds": 6.58,
+          "quoted": true,
+          "outcome": "D"
+        }
+      }
+    },
+    {
+      "id": 1557399,
+      "kickoff": "2026-09-12T14:00:00+00:00",
+      "home": "Chelsea",
+      "away": "Hull City",
+      "home_short": "Chelsea",
+      "away_short": "Hull City",
+      "home_id": 49,
+      "away_id": 64,
+      "home_crest": "49.png",
+      "away_crest": "64.png",
+      "method": "exact_score_market",
+      "books": 6,
+      "tip": {
+        "home": 2,
+        "away": 0,
+        "p": 0.0911,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 3,
+        "away": 0,
+        "p": 0.0819,
+        "outcome": "H"
+      },
+      "cands": [
+        {
+          "score": "2:0",
+          "p": 0.0911,
+          "odds": 7.24,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0819,
+          "odds": 8.08,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0752,
+          "odds": 8.78,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0714,
+          "odds": 9.28,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0663,
+          "odds": 9.95,
+          "quoted": true
+        },
+        {
+          "score": "1:1",
+          "p": 0.0591,
+          "odds": 11.25,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0571,
+          "odds": 11.55,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0468,
+          "odds": 14.1,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0344,
+          "odds": 19.1,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0343,
+          "odds": 19.45,
+          "quoted": true
+        },
+        {
+          "score": "5:0",
+          "p": 0.0337,
+          "odds": 19.5,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0296,
+          "odds": 22.2,
+          "quoted": true
+        },
+        {
+          "score": "5:1",
+          "p": 0.0272,
+          "odds": 24.2,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0222,
+          "odds": 29.6,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0213,
+          "odds": 30.8,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0196,
+          "odds": 33.6,
+          "quoted": true
+        },
+        {
+          "score": "6:0",
+          "p": 0.0173,
+          "odds": 38.0,
+          "quoted": true
+        },
+        {
+          "score": "6:1",
+          "p": 0.0139,
+          "odds": 47.8,
+          "quoted": true
+        },
+        {
+          "score": "5:2",
+          "p": 0.0123,
+          "odds": 53.8,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.01,
+          "odds": 69.0,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 4,
+          "away": 1,
+          "score": "4:1",
+          "p": 0.0468,
+          "odds": 14.1,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 1,
+          "away": 0,
+          "score": "1:0",
+          "p": 0.0714,
+          "odds": 9.28,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
+    },
+    {
+      "id": 1557401,
+      "kickoff": "2026-09-12T14:00:00+00:00",
+      "home": "Crystal Palace",
+      "away": "Ipswich",
+      "home_short": "Crystal Palace",
+      "away_short": "Ipswich",
+      "home_id": 52,
+      "away_id": 57,
+      "home_crest": "52.png",
+      "away_crest": "57.png",
+      "method": "exact_score_market",
+      "books": 6,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0978,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0914,
+        "outcome": "H"
+      },
+      "cands": [
+        {
+          "score": "1:1",
+          "p": 0.0978,
+          "odds": 6.48,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0914,
+          "odds": 6.94,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0804,
+          "odds": 7.9,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0732,
+          "odds": 8.69,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0657,
+          "odds": 9.67,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0588,
+          "odds": 10.83,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0527,
+          "odds": 12.08,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0478,
+          "odds": 13.38,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0464,
+          "odds": 13.75,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0443,
+          "odds": 14.42,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0332,
+          "odds": 19.17,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.028,
+          "odds": 22.83,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0224,
+          "odds": 28.58,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0222,
+          "odds": 28.67,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0197,
+          "odds": 32.67,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0192,
+          "odds": 33.67,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0136,
+          "odds": 47.33,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0128,
+          "odds": 50.83,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0126,
+          "odds": 51.67,
+          "quoted": true
+        },
+        {
+          "score": "5:0",
+          "p": 0.0092,
+          "odds": 73.0,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 1,
+          "away": 0,
+          "score": "1:0",
+          "p": 0.0914,
+          "odds": 6.94,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 3,
+          "away": 0,
+          "score": "3:0",
+          "p": 0.0443,
+          "odds": 14.42,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
+    },
+    {
+      "id": 1557403,
+      "kickoff": "2026-09-12T14:00:00+00:00",
+      "home": "Liverpool",
+      "away": "Fulham",
+      "home_short": "Liverpool",
+      "away_short": "Fulham",
+      "home_id": 40,
+      "away_id": 36,
+      "home_crest": "40.png",
+      "away_crest": "36.png",
+      "method": "exact_score_market",
+      "books": 6,
+      "tip": {
+        "home": 2,
+        "away": 1,
+        "p": 0.0799,
+        "outcome": "H"
+      },
+      "alt": {
+        "home": 2,
+        "away": 0,
+        "p": 0.074,
+        "outcome": "H"
+      },
+      "cands": [
+        {
+          "score": "2:1",
+          "p": 0.0799,
+          "odds": 7.84,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.074,
+          "odds": 8.43,
+          "quoted": true
+        },
+        {
+          "score": "1:1",
+          "p": 0.0683,
+          "odds": 9.18,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0651,
+          "odds": 9.62,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0634,
+          "odds": 9.88,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0601,
+          "odds": 10.38,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0466,
+          "odds": 13.46,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0414,
+          "odds": 15.17,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0384,
+          "odds": 16.33,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0383,
+          "odds": 16.38,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0378,
+          "odds": 16.58,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0336,
+          "odds": 19.0,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0299,
+          "odds": 21.5,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0236,
+          "odds": 26.67,
+          "quoted": true
+        },
+        {
+          "score": "5:1",
+          "p": 0.0222,
+          "odds": 28.25,
+          "quoted": true
+        },
+        {
+          "score": "5:0",
+          "p": 0.0209,
+          "odds": 30.17,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0183,
+          "odds": 34.5,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0177,
+          "odds": 36.0,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.017,
+          "odds": 37.17,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0159,
+          "odds": 40.58,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 3,
+          "away": 1,
+          "score": "3:1",
+          "p": 0.0634,
+          "odds": 9.88,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 2,
+          "away": 1,
+          "score": "2:1",
+          "p": 0.0799,
+          "odds": 7.84,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
+    },
+    {
+      "id": 1557406,
+      "kickoff": "2026-09-12T16:30:00+00:00",
+      "home": "Tottenham",
+      "away": "Everton",
+      "home_short": "Tottenham",
+      "away_short": "Everton",
+      "home_id": 47,
+      "away_id": 45,
+      "home_crest": "47.png",
+      "away_crest": "45.png",
+      "method": "exact_score_market",
+      "books": 6,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.1018,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 0,
+        "p": 0.0875,
+        "outcome": "H"
+      },
+      "cands": [
+        {
+          "score": "1:1",
+          "p": 0.1018,
+          "odds": 6.23,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0875,
+          "odds": 7.26,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0779,
+          "odds": 8.15,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.069,
+          "odds": 9.18,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.063,
+          "odds": 10.04,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0622,
+          "odds": 10.25,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0564,
+          "odds": 11.29,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0482,
+          "odds": 13.25,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0433,
+          "odds": 14.83,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0391,
+          "odds": 16.29,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0377,
+          "odds": 16.88,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0276,
+          "odds": 23.5,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0243,
+          "odds": 26.33,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0206,
+          "odds": 31.5,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.0192,
+          "odds": 33.5,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.018,
+          "odds": 36.0,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0167,
+          "odds": 38.67,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0127,
+          "odds": 50.83,
+          "quoted": true
+        },
+        {
+          "score": "4:2",
+          "p": 0.0125,
+          "odds": 52.5,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0092,
+          "odds": 72.17,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 3,
+          "away": 0,
+          "score": "3:0",
+          "p": 0.0391,
+          "odds": 16.29,
+          "quoted": true,
+          "outcome": "H"
+        },
+        "luxtipps": {
+          "home": 2,
+          "away": 0,
+          "score": "2:0",
+          "p": 0.069,
+          "odds": 9.18,
+          "quoted": true,
+          "outcome": "H"
+        }
+      }
+    },
+    {
+      "id": 1557405,
+      "kickoff": "2026-09-12T19:00:00+00:00",
+      "home": "Sunderland",
+      "away": "Arsenal",
+      "home_short": "Sunderland",
+      "away_short": "Arsenal",
+      "home_id": 746,
+      "away_id": 42,
+      "home_crest": "746.png",
+      "away_crest": "42.png",
+      "method": "exact_score_market",
+      "books": 6,
+      "tip": {
+        "home": 0,
+        "away": 1,
+        "p": 0.1162,
+        "outcome": "A"
+      },
+      "alt": {
+        "home": 0,
+        "away": 2,
+        "p": 0.1064,
+        "outcome": "A"
+      },
+      "cands": [
+        {
+          "score": "0:1",
+          "p": 0.1162,
+          "odds": 5.81,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.1064,
+          "odds": 6.29,
+          "quoted": true
+        },
+        {
+          "score": "1:1",
+          "p": 0.088,
+          "odds": 7.62,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0822,
+          "odds": 8.16,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.067,
+          "odds": 9.98,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0663,
+          "odds": 10.2,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0514,
+          "odds": 13.0,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0462,
+          "odds": 14.45,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0346,
+          "odds": 19.3,
+          "quoted": true
+        },
+        {
+          "score": "0:4",
+          "p": 0.0338,
+          "odds": 19.7,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0338,
+          "odds": 19.7,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0261,
+          "odds": 25.6,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0225,
+          "odds": 29.6,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0181,
+          "odds": 36.8,
+          "quoted": true
+        },
+        {
+          "score": "0:5",
+          "p": 0.0155,
+          "odds": 43.4,
+          "quoted": true
+        },
+        {
+          "score": "2:4",
+          "p": 0.0117,
+          "odds": 57.4,
           "quoted": true
         },
         {
           "score": "1:5",
-          "p": 0.0088,
-          "odds": 72.11,
+          "p": 0.0117,
+          "odds": 57.4,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0107,
+          "odds": 64.0,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0107,
+          "odds": 64.0,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0077,
+          "odds": 88.2,
           "quoted": true
         }
       ],
       "picks": {
         "tippsarena": {
           "home": 0,
-          "away": 2,
-          "score": "0:2",
-          "p": 0.0787,
-          "odds": 8.8,
+          "away": 1,
+          "score": "0:1",
+          "p": 0.1162,
+          "odds": 5.81,
           "quoted": true,
           "outcome": "A"
         },
         "luxtipps": {
-          "home": 1,
-          "away": 2,
-          "score": "1:2",
-          "p": 0.0872,
-          "odds": 7.96,
+          "home": 0,
+          "away": 4,
+          "score": "0:4",
+          "p": 0.0338,
+          "odds": 19.7,
           "quoted": true,
           "outcome": "A"
         }
       }
     },
     {
-      "id": 1557390,
-      "kickoff": "2026-09-06T13:00:00+00:00",
-      "home": "Everton",
-      "away": "Manchester United",
-      "home_short": "Everton",
-      "away_short": "Man United",
-      "home_id": 45,
-      "away_id": 33,
-      "home_crest": "45.png",
-      "away_crest": "33.png",
+      "id": 1557400,
+      "kickoff": "2026-09-13T13:00:00+00:00",
+      "home": "Coventry",
+      "away": "Brighton",
+      "home_short": "Coventry",
+      "away_short": "Brighton",
+      "home_id": 1346,
+      "away_id": 51,
+      "home_crest": "1346.png",
+      "away_crest": "51.png",
       "method": "exact_score_market",
       "books": 12,
       "tip": {
         "home": 1,
         "away": 1,
-        "p": 0.104,
+        "p": 0.1008,
         "outcome": "D"
       },
       "alt": {
-        "home": 1,
-        "away": 2,
-        "p": 0.0802,
+        "home": 0,
+        "away": 1,
+        "p": 0.0918,
         "outcome": "A"
       },
       "cands": [
         {
           "score": "1:1",
-          "p": 0.104,
-          "odds": 6.53,
-          "quoted": true
-        },
-        {
-          "score": "1:2",
-          "p": 0.0802,
-          "odds": 8.49,
+          "p": 0.1008,
+          "odds": 6.86,
           "quoted": true
         },
         {
           "score": "0:1",
-          "p": 0.0762,
-          "odds": 8.9,
+          "p": 0.0918,
+          "odds": 7.52,
           "quoted": true
         },
         {
-          "score": "2:1",
-          "p": 0.0659,
-          "odds": 10.28,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.0627,
-          "odds": 10.8,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0595,
-          "odds": 11.37,
+          "score": "1:2",
+          "p": 0.0891,
+          "odds": 7.76,
           "quoted": true
         },
         {
           "score": "0:2",
-          "p": 0.0589,
-          "odds": 11.48,
+          "p": 0.0766,
+          "odds": 8.99,
           "quoted": true
         },
         {
           "score": "0:0",
-          "p": 0.0558,
-          "odds": 12.34,
+          "p": 0.0597,
+          "odds": 11.73,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0569,
+          "odds": 12.16,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0543,
+          "odds": 12.68,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0526,
+          "odds": 13.12,
           "quoted": true
         },
         {
           "score": "1:3",
-          "p": 0.0447,
-          "odds": 15.17,
-          "quoted": true
-        },
-        {
-          "score": "2:0",
-          "p": 0.0417,
-          "odds": 16.26,
+          "p": 0.0524,
+          "odds": 13.15,
           "quoted": true
         },
         {
           "score": "0:3",
-          "p": 0.033,
-          "odds": 20.55,
+          "p": 0.0472,
+          "odds": 14.56,
           "quoted": true
         },
         {
           "score": "2:3",
-          "p": 0.0327,
-          "odds": 20.83,
+          "p": 0.0326,
+          "odds": 21.21,
           "quoted": true
         },
         {
-          "score": "3:1",
-          "p": 0.0317,
-          "odds": 21.45,
-          "quoted": true
-        },
-        {
-          "score": "3:2",
-          "p": 0.0285,
-          "odds": 23.89,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0203,
-          "odds": 34.25,
+          "score": "2:0",
+          "p": 0.0318,
+          "odds": 21.71,
           "quoted": true
         },
         {
           "score": "1:4",
-          "p": 0.0198,
-          "odds": 34.84,
-          "quoted": true
-        },
-        {
-          "score": "3:3",
-          "p": 0.0183,
-          "odds": 37.89,
+          "p": 0.0255,
+          "odds": 27.26,
           "quoted": true
         },
         {
           "score": "0:4",
-          "p": 0.0156,
-          "odds": 44.86,
+          "p": 0.0227,
+          "odds": 30.64,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0218,
+          "odds": 32.14,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0204,
+          "odds": 34.23,
           "quoted": true
         },
         {
           "score": "2:4",
-          "p": 0.0149,
-          "odds": 46.95,
+          "p": 0.0157,
+          "odds": 44.86,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0136,
+          "odds": 51.42,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0126,
+          "odds": 55.62,
+          "quoted": true
+        },
+        {
+          "score": "1:5",
+          "p": 0.0097,
+          "odds": 65.56,
+          "quoted": true
+        }
+      ],
+      "picks": {
+        "tippsarena": {
+          "home": 0,
+          "away": 0,
+          "score": "0:0",
+          "p": 0.0597,
+          "odds": 11.73,
+          "quoted": true,
+          "outcome": "D"
+        },
+        "luxtipps": {
+          "home": 0,
+          "away": 1,
+          "score": "0:1",
+          "p": 0.0918,
+          "odds": 7.52,
+          "quoted": true,
+          "outcome": "A"
+        }
+      }
+    },
+    {
+      "id": 1557404,
+      "kickoff": "2026-09-13T15:30:00+00:00",
+      "home": "Manchester United",
+      "away": "Manchester City",
+      "home_short": "Man United",
+      "away_short": "Man City",
+      "home_id": 33,
+      "away_id": 50,
+      "home_crest": "33.png",
+      "away_crest": "50.png",
+      "method": "exact_score_market",
+      "books": 12,
+      "tip": {
+        "home": 1,
+        "away": 1,
+        "p": 0.0897,
+        "outcome": "D"
+      },
+      "alt": {
+        "home": 1,
+        "away": 2,
+        "p": 0.0793,
+        "outcome": "A"
+      },
+      "cands": [
+        {
+          "score": "1:1",
+          "p": 0.0897,
+          "odds": 7.47,
+          "quoted": true
+        },
+        {
+          "score": "1:2",
+          "p": 0.0793,
+          "odds": 8.44,
+          "quoted": true
+        },
+        {
+          "score": "2:1",
+          "p": 0.0645,
+          "odds": 10.4,
+          "quoted": true
+        },
+        {
+          "score": "2:2",
+          "p": 0.0623,
+          "odds": 10.73,
+          "quoted": true
+        },
+        {
+          "score": "0:1",
+          "p": 0.0594,
+          "odds": 11.3,
+          "quoted": true
+        },
+        {
+          "score": "0:2",
+          "p": 0.0526,
+          "odds": 12.73,
+          "quoted": true
+        },
+        {
+          "score": "1:0",
+          "p": 0.0502,
+          "odds": 13.36,
+          "quoted": true
+        },
+        {
+          "score": "1:3",
+          "p": 0.0488,
+          "odds": 13.72,
+          "quoted": true
+        },
+        {
+          "score": "0:0",
+          "p": 0.0417,
+          "odds": 16.64,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0395,
+          "odds": 16.96,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0369,
+          "odds": 18.07,
+          "quoted": true
+        },
+        {
+          "score": "3:1",
+          "p": 0.0344,
+          "odds": 19.47,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0333,
+          "odds": 20.1,
+          "quoted": true
+        },
+        {
+          "score": "3:2",
+          "p": 0.0329,
+          "odds": 20.46,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0246,
+          "odds": 27.51,
+          "quoted": true
+        },
+        {
+          "score": "3:3",
+          "p": 0.0234,
+          "odds": 28.96,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0201,
+          "odds": 33.93,
+          "quoted": true
+        },
+        {
+          "score": "2:4",
+          "p": 0.0199,
+          "odds": 33.93,
+          "quoted": true
+        },
+        {
+          "score": "0:4",
+          "p": 0.0169,
+          "odds": 40.24,
           "quoted": true
         },
         {
           "score": "4:1",
-          "p": 0.0124,
-          "odds": 56.79,
+          "p": 0.0144,
+          "odds": 47.49,
           "quoted": true
         }
       ],
@@ -1503,8 +1503,8 @@
           "home": 1,
           "away": 3,
           "score": "1:3",
-          "p": 0.0447,
-          "odds": 15.17,
+          "p": 0.0488,
+          "odds": 13.72,
           "quoted": true,
           "outcome": "A"
         },
@@ -1512,178 +1512,178 @@
           "home": 2,
           "away": 2,
           "score": "2:2",
-          "p": 0.0595,
-          "odds": 11.37,
+          "p": 0.0623,
+          "odds": 10.73,
           "quoted": true,
           "outcome": "D"
         }
       }
     },
     {
-      "id": 1557387,
-      "kickoff": "2026-09-06T15:30:00+00:00",
-      "home": "Arsenal",
-      "away": "Chelsea",
-      "home_short": "Arsenal",
-      "away_short": "Chelsea",
-      "home_id": 42,
-      "away_id": 49,
-      "home_crest": "42.png",
-      "away_crest": "49.png",
+      "id": 1557402,
+      "kickoff": "2026-09-14T19:00:00+00:00",
+      "home": "Leeds",
+      "away": "Newcastle",
+      "home_short": "Leeds",
+      "away_short": "Newcastle",
+      "home_id": 63,
+      "away_id": 34,
+      "home_crest": "63.png",
+      "away_crest": "34.png",
       "method": "exact_score_market",
-      "books": 12,
+      "books": 13,
       "tip": {
         "home": 1,
         "away": 1,
-        "p": 0.1,
+        "p": 0.1078,
         "outcome": "D"
       },
       "alt": {
-        "home": 1,
-        "away": 0,
-        "p": 0.098,
+        "home": 2,
+        "away": 1,
+        "p": 0.0781,
         "outcome": "H"
       },
       "cands": [
         {
           "score": "1:1",
-          "p": 0.1,
-          "odds": 6.96,
-          "quoted": true
-        },
-        {
-          "score": "1:0",
-          "p": 0.098,
-          "odds": 7.11,
+          "p": 0.1078,
+          "odds": 6.36,
           "quoted": true
         },
         {
           "score": "2:1",
-          "p": 0.0903,
-          "odds": 7.71,
+          "p": 0.0781,
+          "odds": 8.76,
           "quoted": true
         },
         {
-          "score": "2:0",
-          "p": 0.0864,
-          "odds": 8.04,
-          "quoted": true
-        },
-        {
-          "score": "0:0",
-          "p": 0.0662,
-          "odds": 10.57,
-          "quoted": true
-        },
-        {
-          "score": "3:1",
-          "p": 0.0547,
-          "odds": 12.75,
-          "quoted": true
-        },
-        {
-          "score": "3:0",
-          "p": 0.0525,
-          "odds": 13.22,
-          "quoted": true
-        },
-        {
-          "score": "0:1",
-          "p": 0.052,
-          "odds": 13.4,
-          "quoted": true
-        },
-        {
-          "score": "2:2",
-          "p": 0.0499,
-          "odds": 13.94,
+          "score": "1:0",
+          "p": 0.0769,
+          "odds": 8.93,
           "quoted": true
         },
         {
           "score": "1:2",
-          "p": 0.0485,
-          "odds": 14.32,
+          "p": 0.0701,
+          "odds": 9.79,
           "quoted": true
         },
         {
-          "score": "3:2",
-          "p": 0.0314,
-          "odds": 22.2,
+          "score": "0:1",
+          "p": 0.0691,
+          "odds": 9.94,
           "quoted": true
         },
         {
-          "score": "4:1",
-          "p": 0.0277,
-          "odds": 25.18,
+          "score": "0:0",
+          "p": 0.0646,
+          "odds": 10.66,
           "quoted": true
         },
         {
-          "score": "4:0",
-          "p": 0.0269,
-          "odds": 25.97,
+          "score": "2:2",
+          "p": 0.0582,
+          "odds": 11.75,
+          "quoted": true
+        },
+        {
+          "score": "2:0",
+          "p": 0.0558,
+          "odds": 12.25,
           "quoted": true
         },
         {
           "score": "0:2",
-          "p": 0.0266,
-          "odds": 26.29,
+          "p": 0.0473,
+          "odds": 14.47,
           "quoted": true
         },
         {
-          "score": "2:3",
-          "p": 0.0179,
-          "odds": 39.48,
+          "score": "3:1",
+          "p": 0.0403,
+          "odds": 17.03,
           "quoted": true
         },
         {
           "score": "1:3",
-          "p": 0.0178,
-          "odds": 39.68,
+          "p": 0.0343,
+          "odds": 20.11,
           "quoted": true
         },
         {
-          "score": "4:2",
-          "p": 0.0157,
-          "odds": 45.08,
+          "score": "3:2",
+          "p": 0.0299,
+          "odds": 23.0,
+          "quoted": true
+        },
+        {
+          "score": "3:0",
+          "p": 0.0297,
+          "odds": 23.09,
+          "quoted": true
+        },
+        {
+          "score": "2:3",
+          "p": 0.0276,
+          "odds": 24.89,
+          "quoted": true
+        },
+        {
+          "score": "0:3",
+          "p": 0.0233,
+          "odds": 29.75,
+          "quoted": true
+        },
+        {
+          "score": "4:1",
+          "p": 0.017,
+          "odds": 40.88,
           "quoted": true
         },
         {
           "score": "3:3",
-          "p": 0.0126,
+          "p": 0.0165,
+          "odds": 42.08,
+          "quoted": true
+        },
+        {
+          "score": "1:4",
+          "p": 0.0127,
+          "odds": 54.6,
+          "quoted": true
+        },
+        {
+          "score": "4:0",
+          "p": 0.0124,
           "odds": 56.86,
           "quoted": true
         },
         {
-          "score": "5:1",
-          "p": 0.0107,
-          "odds": 59.33,
-          "quoted": true
-        },
-        {
-          "score": "5:0",
-          "p": 0.0106,
-          "odds": 59.56,
+          "score": "4:2",
+          "p": 0.0123,
+          "odds": 57.38,
           "quoted": true
         }
       ],
       "picks": {
         "tippsarena": {
           "home": 2,
-          "away": 0,
-          "score": "2:0",
-          "p": 0.0864,
-          "odds": 8.04,
+          "away": 1,
+          "score": "2:1",
+          "p": 0.0781,
+          "odds": 8.76,
           "quoted": true,
           "outcome": "H"
         },
         "luxtipps": {
-          "home": 2,
+          "home": 0,
           "away": 2,
-          "score": "2:2",
-          "p": 0.0499,
-          "odds": 13.94,
+          "score": "0:2",
+          "p": 0.0473,
+          "odds": 14.47,
           "quoted": true,
-          "outcome": "D"
+          "outcome": "A"
         }
       }
     }

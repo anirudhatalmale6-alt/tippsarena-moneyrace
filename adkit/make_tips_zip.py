@@ -14,6 +14,7 @@ import json
 import sys
 import zoneinfo
 import pathlib
+import re
 import shutil
 import subprocess
 import zipfile
@@ -25,16 +26,53 @@ STAGE = pathlib.Path("/tmp/claude-1004/-home-freelancer/"
                      "9dbe74e0-4297-4b96-ba61-8a7c42919c50/scratchpad/tipszip")
 ALL = [(2, "champions-league"), (39, "premier-league"), (78, "bundesliga"),
        (79, "bundesliga-2"), (140, "la-liga"), (135, "serie-a"),
-       (61, "ligue-1")]
+       (61, "ligue-1"), (94, "primeira-liga"), (88, "eredivisie")]
 #: `python3 make_tips_zip.py 2` packs one competition into its own zip. Without
 #: an argument it packs the six weekend leagues, which is the September set.
 #: The zip is NAMED after the selection - dropping four Champions League files
 #: into a zip still called prognose-videos-tippsarena.zip is how he ends up
 #: posting last week's Bundesliga.
 _want = [int(a) for a in sys.argv[1:]]
-LEAGUES = [x for x in ALL if x[0] in _want] if _want else ALL[1:]
-TAG = ("-" + LEAGUES[0][1]) if len(LEAGUES) == 1 else ""
+_missing = [x for x in _want if x not in {a for a, _ in ALL}]
+if _missing:
+    sys.exit(f"no such league in ALL: {_missing} - add it, do not skip it")
+LEAGUES = [x for x in ALL if x[0] in _want] if _want else ALL[1:7]
+#: One competition -> named after it. An explicit multi-league selection ->
+#: "-top-leagues", because the September six and this seven are DIFFERENT packs
+#: and a second file called prognose-videos-tippsarena.zip in his downloads
+#: folder is indistinguishable from the first.
+TAG = ("-" + LEAGUES[0][1]) if len(LEAGUES) == 1 else \
+      ("-top-leagues" if _want else "")
 TZ = zoneinfo.ZoneInfo("Europe/Berlin")
+
+SPLIT_DE = """Dieser Spieltag laeuft ueber mehrere Abende, deshalb bekommst du BEIDE
+Schnitte: einmal der komplette Spieltag am Stueck, und dazu ein Video pro
+Spieltag-Abend. Der lange Schnitt ist fuer TikTok und den Feed, die kurzen
+sind fuer Shorts (Grenze 60 Sekunden) und dafuer, morgens genau die Spiele zu
+posten, die am selben Abend laufen.
+
+Die Ergebnisse sind in beiden Schnitten dieselben - die Auswahl laeuft ueber
+den ganzen Spieltag, nicht pro Abend. Sonst wuerde derselbe Tipp im langen
+und im kurzen Video unterschiedlich stehen.
+"""
+PLAIN_DE = """Ein Video pro Liga, ein kompletter Spieltag darin, 35 bis 40 Sekunden. Damit
+bleibt jedes Video unter der 60-Sekunden-Grenze von YouTube Shorts, es
+braucht hier also keine Aufteilung nach Spieltagen wie bei der Champions
+League.
+"""
+SPLIT_EN = """This matchday runs over several evenings, so you get BOTH cuts: the whole
+matchday in one go, plus one video per night. The long cut is for TikTok and
+the feed; the short ones are for Shorts (60-second ceiling) and for posting in
+the morning exactly the matches played that same evening.
+
+The scorelines are identical in both cuts - the selection runs across the
+whole matchday, not per night. Otherwise the same fixture would carry a
+different tip in the long video and in the short one.
+"""
+PLAIN_EN = """One video per league, one full matchday in each, 35 to 40 seconds. That keeps
+every file under the 60-second YouTube Shorts ceiling, so these need no
+per-night split the way the Champions League did.
+"""
 
 BRANDS = {
     "tippsarena": {"lang": "de", "file": "LIESMICH.txt",
@@ -64,7 +102,7 @@ def _table(brand: str, lang: str) -> tuple[list[str], list[float]]:
     return rows, quotes
 
 
-def _readme_de(rows, quotes, leagues, missing, files) -> str:
+def _readme_de(rows, quotes, leagues, missing, files, split_de, split_en) -> str:
     lo, hi = min(quotes), max(quotes)
     avg = sum(quotes) / len(quotes)
     band = (f"  Niedrigste: {lo:.2f}   Hoechste: {hi:.2f}   "
@@ -77,16 +115,7 @@ Ton legst du in der App drauf - dann greift der Algorithmus, und ich
 schicke dir keine fremde Musik mit ins Werbekonto.
 
 WIE DAS PAKET AUFGEBAUT IST
-Wo ein Spieltag ueber mehrere Abende laeuft, bekommst du BEIDE Schnitte:
-einmal der komplette Spieltag am Stueck, und dazu ein Video pro Spieltag-
-Abend. Der lange Schnitt ist fuer TikTok und den Feed, die kurzen sind fuer
-Shorts (Grenze 60 Sekunden) und dafuer, morgens genau die Spiele zu posten,
-die am selben Abend laufen.
-
-Die Ergebnisse sind in beiden Schnitten dieselben - die Auswahl laeuft ueber
-den ganzen Spieltag, nicht pro Abend. Sonst wuerde derselbe Tipp im langen
-und im kurzen Video unterschiedlich stehen.
-
+{split_de}
 Unveraendert seit dem letzten Paket: kein Text unten drunter, kein Bot-Name,
 keine Quote im Bild, keine Startseite, Anstosszeiten in deutscher Ortszeit.
 
@@ -130,7 +159,7 @@ ALLE TIPPS IM KLARTEXT
 """
 
 
-def _readme_en(rows, quotes, leagues, missing, files) -> str:
+def _readme_en(rows, quotes, leagues, missing, files, split_de, split_en) -> str:
     lo, hi = min(quotes), max(quotes)
     avg = sum(quotes) / len(quotes)
     return f"""PREDICTION VIDEOS - LUXTIPPS
@@ -141,15 +170,7 @@ Add the sound in the app - that is what the algorithm rewards, and it keeps
 somebody else's music out of your ad account.
 
 HOW THE PACK IS PUT TOGETHER
-Where a matchday runs over several evenings you get BOTH cuts: the whole
-matchday in one go, plus one video per night. The long cut is for TikTok and
-the feed; the short ones are for Shorts (60-second ceiling) and for posting
-in the morning exactly the matches that are played that same evening.
-
-The scorelines are identical in both cuts - the selection runs across the
-whole matchday, not per night. Otherwise the same fixture would carry a
-different tip in the long video and in the short one.
-
+{split_en}
 Unchanged since the last pack: no text at the bottom, no bot name, no odds on
 screen, no title card, English throughout, kick-off times in German local
 time.
@@ -233,9 +254,18 @@ def main() -> None:
                  "format=duration", "-of", "json", str(f)],
                 capture_output=True, text=True).stdout)["format"]["duration"]
             files.append(f"  {f.name:<52}{float(n):>5.0f} s")
-        text = (_readme_de(rows, quotes, leagues_de, missing, files)
-                if meta["lang"] == "de"
-                else _readme_en(rows, quotes, leagues_en, missing, files))
+        # Only claim the per-night cuts when the pack actually has some. A
+        # weekend league is 9-10 games in 36s and needs no split; describing
+        # files that are not in the zip is the same defect as omitting ones
+        # that are.
+        has_split = any(re.search(r"-\d{2}-\d{2}\.mp4$", f.name)
+                        for f in sorted((STAGE / brand).glob("*.mp4")))
+        split_de = SPLIT_DE if has_split else PLAIN_DE
+        split_en = SPLIT_EN if has_split else PLAIN_EN
+        text = (_readme_de(rows, quotes, leagues_de, missing, files,
+                           split_de, split_en) if meta["lang"] == "de"
+                else _readme_en(rows, quotes, leagues_en, missing, files,
+                                split_de, split_en))
         (STAGE / brand / meta["file"]).write_text(text, encoding="utf-8")
         out = ROOT / f"prognose-videos{TAG}-{brand}.zip"
         if out.exists():

@@ -590,3 +590,51 @@ every 6-match file would have been measured against an 18-match frame count.
 8/8 files: 1080×1920, no audio stream, exact frame counts, OCR sweep clean
 (no handle, no price, no title card, no German on LuxTipps), pixel MAE
 1.63–1.72 against the frame the code draws.
+
+---
+
+## The top leagues, matchday of 11-14 Sept (7 Sept)
+
+*"Now make the videos for prognoses for each top 6 leagues in the world."*
+
+**The sixth league is a judgement call, so both candidates were built.** The
+first five are not in dispute: Premier League, La Liga, Serie A, Bundesliga,
+Ligue 1. Portugal and the Netherlands sit next to each other on the UEFA country
+coefficient and swap places most seasons, so `primeira-liga` and `eredivisie`
+are both in the pack and he picks which one stays in the weekly set. Naming one
+of them "the sixth" would be my ranking presented to him as a fact.
+
+**2. Bundesliga is OUT.** It was the sixth file of the 1 Sept package and it is
+a second division; "top 6 leagues in the world" excludes it. Said so explicitly
+rather than quietly swapping the file, because the pack looks the same size
+either way.
+
+**No per-night split here.** A weekend round is 9-10 games — 36-39 s, under the
+60 s Shorts ceiling — so `--split` was not used. The readme says which shape the
+pack is, and `has_split` is read off the staged FILE NAMES rather than asserted:
+describing per-night files that are not in the zip is the same defect as leaving
+out ones that are. Detector positive-controlled both ways.
+
+**Data:** 66 fixtures across seven leagues, **every one of them with a real
+Exact Score market** — no `no_market` and no Poisson fallback anywhere, where
+the 1 Sept run had seven fixtures with no pre-match market. Prices 5.25-19.80.
+
+### The verifier reported a clean sweep on a run that skipped four files
+
+`python3 verify_tips.py 39 140 135 78 61 94 88` printed **10** rows and
+**FAILURES: 0**. Leagues 94 and 88 were not in the verifier's own `ALL` table,
+so they were filtered out of the selection silently — the two brand-new leagues,
+the only ones with new club names and new crest art, were the exact ones that
+went unchecked. A league id on the command line that the table does not know is
+now a hard exit, and `ALL` is read back against `fetch_tips.LEAGUES` so the two
+lists cannot drift apart again. Both guards positive-controlled.
+
+Re-run: **14/14 pass** — geometry, frame counts, no audio, OCR sweep clean,
+pixel MAE 1.50-1.82.
+
+`ACADEMICO VISEU` and `GO AHEAD EAGLES` are the longest names in the pack and
+were looked at on a real frame. `_fit()` shrinks a label to the room it has, so
+they set rather than overflow; no invented abbreviation was needed. `GIL Vicente`
+and `Vitória SC` are fixed to `Gil Vicente` and `Vitória` — that is the
+provider's capitalisation and suffix, not the club's, which is a different thing
+from inventing a nickname.

@@ -60,6 +60,13 @@ LEAGUES = {
     140: ("la-liga", "La Liga", "Spanien"),
     135: ("serie-a", "Serie A", "Italien"),
     61: ("ligue-1", "Ligue 1", "Frankreich"),
+    # "top 6 leagues in the world" - the first five are not in dispute. The
+    # sixth is: Portugal and the Netherlands sit next to each other on the UEFA
+    # country coefficient and swap places most seasons. Both are built and he
+    # picks; guessing one and calling it "the sixth" would be my ranking
+    # presented as a fact.
+    94: ("primeira-liga", "Primeira Liga", "Portugal"),
+    88: ("eredivisie", "Eredivisie", "Niederlande"),
 }
 
 # Names as a fan writes them on a graphic. Anything not here is used verbatim -
@@ -101,6 +108,16 @@ SHORT = {
     "Club Brugge KV": "Club Brugge", "Real Betis": "Betis", "FC Porto": "Porto",
     "Slovan Bratislava": "Slovan", "Sporting CP": "Sporting",
     "PSV Eindhoven": "PSV", "Shakhtar Donetsk": "Shakhtar", "Sabah FA": "Sabah",
+    # Primeira Liga. "GIL Vicente" and "Vitória SC" are the provider's
+    # capitalisation and suffix, not the club's - fixing those is not the same
+    # as inventing a nickname.
+    # Academico Viseu stays as it is: it is long, but _fit() shrinks a name to
+    # fit and an abbreviation I make up is still an abbreviation nobody uses.
+    "SC Braga": "Braga", "GIL Vicente": "Gil Vicente", "Vitória SC": "Vitória",
+    # Eredivisie.
+    "AZ Alkmaar": "AZ", "ADO Den Haag": "Den Haag", "PEC Zwolle": "Zwolle",
+    "NEC Nijmegen": "NEC", "Sparta Rotterdam": "Sparta",
+    "Fortuna Sittard": "Fortuna", "GO Ahead Eagles": "Go Ahead Eagles",
 }
 
 
